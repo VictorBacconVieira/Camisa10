@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Login } from "./src/screens/Login";
 import { Cadastro } from "./src/screens/Cadastro";
 import { Home } from "./src/screens/Home";
+import { Noticias } from "./src/screens/Noticias";
+import { Jogos } from "./src/screens/Jogos";
 import { Quiz } from "./src/screens/Quiz";
 import { Perfil } from "./src/screens/Perfil";
 
@@ -19,6 +21,8 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Cadastro" component={Cadastro} />
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Noticias" component={Noticias} />
       </Stack.Navigator>
     </NavigationContainer>
   );
