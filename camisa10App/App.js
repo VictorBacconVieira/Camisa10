@@ -1,12 +1,24 @@
-import { View, Text } from "react-native";
-import "./global.css";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import { Login } from "./src/screens/Login";
+import { Cadastro } from "./src/screens/Cadastro";
+import { Home } from "./src/screens/Home";
+import { Quiz } from "./src/screens/Quiz";
+import { Perfil } from "./src/screens/Perfil";
+
+
+
+
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View className="flex-1 items-center justify-center bg-red-500">
-      <Text className="text-4xl font-bold text-white">
-        CAMISA10
-      </Text>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={Login} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
