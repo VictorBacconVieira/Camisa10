@@ -17,6 +17,8 @@ import {
   UserIcon,
 } from "phosphor-react-native";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { useNavigation } from "@react-navigation/native";
 
 import { BottomNav } from "../components/bottomNav";
@@ -84,7 +86,7 @@ export function Home() {
   // =========================================================
 
   return (
-    <View className="flex-1 bg-fundo">
+    <SafeAreaView className="flex-1 bg-fundo" edges={["top", "bottom"]}>
 
       <ScrollView
         className="flex-1"
@@ -643,6 +645,6 @@ export function Home() {
 
       <BottomNav />
 
-    </View>
+    </SafeAreaView>
   );
 }
