@@ -11,8 +11,6 @@ import { Perfil } from "./src/screens/Perfil";
 
 
 
-
-
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -23,6 +21,7 @@ export default function App() {
         <Stack.Screen name="Cadastro" component={Cadastro} />
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Noticias" component={Noticias} />
+        <Stack.Screen name="Jogos" component={Jogos} />
       </Stack.Navigator>
     </NavigationContainer>
   );
