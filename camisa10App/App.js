@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import "./global.css";
 
 import { Login } from "./src/screens/Login";
 import { Cadastro } from "./src/screens/Cadastro";
@@ -22,6 +23,8 @@ export default function App() {
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Noticias" component={Noticias} />
         <Stack.Screen name="Jogos" component={Jogos} />
+        <Stack.Screen name="Quiz" component={Quiz} />
+        <Stack.Screen name="Perfil" component={Perfil} />
       </Stack.Navigator>
     </NavigationContainer>
   );
