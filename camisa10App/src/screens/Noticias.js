@@ -484,10 +484,7 @@ export function Noticias() {
 
       <Pressable
         className="absolute bottom-[105px] right-5 h-[60px] w-[60px] items-center justify-center rounded-full bg-verde"
-        onPress={() => {
-          // FUTURO BACKEND / IA:
-          // Abrir o assistente de IA do Camisa10.
-        }}
+        onPress={() => { navigation.navigate("Chatbot")}}
         accessibilityRole="button"
         accessibilityLabel="Abrir assistente de IA"
         style={({ pressed }) => ({

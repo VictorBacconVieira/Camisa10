@@ -584,16 +584,7 @@ export function Home() {
 
       <Pressable
         className="absolute bottom-[105px] right-5 h-[60px] w-[60px] items-center justify-center rounded-full bg-verde"
-        onPress={() => {
-          // ===================================================
-          // FUTURO BACKEND / IA
-          // ===================================================
-          //
-          // Este botão será utilizado posteriormente para
-          // abrir o assistente/IA do Camisa10.
-          //
-          // ===================================================
-        }}
+        onPress={() => { navigation.navigate("Chatbot")}}
         style={({ pressed }) => ({
           opacity: pressed ? 0.75 : 1,
           transform: [
