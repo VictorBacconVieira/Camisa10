@@ -100,33 +100,9 @@ export function Home() {
         {/* CABEÇALHO */}
         {/* ================================================= */}
 
-        <View className="h-[62px] flex-row items-center justify-between px-4">
+        <View className="h-[62px] flex-row items-center justify-center px-4">
 
-          {/* MENU */}
-
-          <Pressable
-            className="h-10 w-10 items-center justify-center"
-            onPress={() => {
-              // FUTURO:
-              // Abrir menu lateral.
-            }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.6 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.9 : 1,
-                },
-              ],
-            })}
-          >
-            <ListIcon
-              size={26}
-              color="#F5F7F8"
-              weight="regular"
-            />
-          </Pressable>
-
-          {/* LOGO / NOME */}
+          {/* LOGO / NOME CENTRALIZADO */}
 
           <Text
             className="text-[28px] text-texto"
@@ -135,14 +111,14 @@ export function Home() {
             }}
           >
             Camisa
-            <Text className="text-[#39FF14]">
-              10
-            </Text>
+            <Text className="text-[#39FF14]">10</Text>
           </Text>
 
-          {/* AÇÕES */}
+          {/* AÇÕES À DIREITA */}
 
-          <View className="flex-row items-center">
+          <View
+            className="absolute right-4 flex-row items-center"
+          >
 
             {/* PESQUISA */}
 
