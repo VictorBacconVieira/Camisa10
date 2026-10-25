@@ -1,3 +1,4 @@
+
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,87 +23,75 @@ import {
 
 import { BottomNav } from "../components/bottomNav";
 
+const quizzesDiarios = [
+  {
+    id: "quiz-dia",
+    titulo: "Quiz do Dia",
+    icone: QuestionIcon,
+    cor: "#00C853",
+    destaque: true,
+  },
+  {
+    id: "escalacao",
+    titulo: "Acerte a Escalação",
+    icone: SoccerBallIcon,
+    cor: "#F5F7F8",
+  },
+  {
+    id: "jogador",
+    titulo: "Quem é esse jogador?",
+    icone: UsersThreeIcon,
+    cor: "#F5F7F8",
+  },
+];
+
+const categorias = [
+  {
+    id: "brasileirao",
+    titulo: "Brasileirão",
+    icone: TrophyIcon,
+    cor: "#39FF14",
+  },
+  {
+    id: "copa-brasil",
+    titulo: "Copa do Brasil",
+    icone: TrophyIcon,
+    cor: "#FFC107",
+  },
+  {
+    id: "selecao-brasil",
+    titulo: "Seleção Brasileira - História",
+    icone: FlagIcon,
+    cor: "#00C853",
+  },
+  {
+    id: "copa-mundo",
+    titulo: "Copa do Mundo",
+    icone: GlobeHemisphereWestIcon,
+    cor: "#FFC107",
+  },
+  {
+    id: "champions",
+    titulo: "Champions League",
+    icone: TrophyIcon,
+    cor: "#7B8CFF",
+  },
+  {
+    id: "laliga",
+    titulo: "La Liga",
+    icone: TrophyIcon,
+    cor: "#E53935",
+  },
+];
+
 export function Quiz() {
   const navigation = useNavigation();
 
-  // =========================================================
-  // QUIZZES DIÁRIOS
-  // FUTURA API: carregar os quizzes disponíveis pelo backend.
-  // =========================================================
-
-  const quizzesDiarios = [
-    {
-      id: "quiz-dia",
-      titulo: "Quiz do Dia",
-      icone: QuestionIcon,
-      cor: "#00C853",
-      destaque: true,
-    },
-    {
-      id: "escalacao",
-      titulo: "Acerte a Escalação",
-      icone: SoccerBallIcon,
-      cor: "#F5F7F8",
-    },
-    {
-      id: "jogador",
-      titulo: "Quem é esse jogador?",
-      icone: UsersThreeIcon,
-      cor: "#F5F7F8",
-    },
-  ];
-
-  // =========================================================
-  // CATEGORIAS
-  // FUTURA API: carregar categorias e competições pelo backend.
-  // =========================================================
-
-  const categorias = [
-    {
-      id: "brasileirao",
-      titulo: "Brasileirão - Geral",
-      icone: ShieldIcon,
-      cor: "#39FF14",
-    },
-    {
-      id: "laliga",
-      titulo: "La Liga - História",
-      icone: SoccerBallIcon,
-      cor: "#E53935",
-    },
-    {
-      id: "champions",
-      titulo: "Champions League - História",
-      icone: TrophyIcon,
-      cor: "#7B8CFF",
-    },
-    {
-      id: "copa-mundo",
-      titulo: "Copa do Mundo 2026",
-      icone: FlagIcon,
-      cor: "#FFC107",
-    },
-    {
-      id: "copa-brasil",
-      titulo: "Copa do Brasil - Geral",
-      icone: TrophyIcon,
-      cor: "#FFC107",
-    },
-    {
-      id: "selecao",
-      titulo: "Seleção Brasileira - História",
-      icone: GlobeHemisphereWestIcon,
-      cor: "#00C853",
-    },
-  ];
-
-  function abrirQuiz(id) {
-    // FUTURA NAVEGAÇÃO:
-    // Criar a tela de perguntas e enviar a categoria selecionada.
-    // Exemplo:
-    // navigation.navigate("PerguntasQuiz", { categoria: id });
-
-    console.log("Quiz selecionado:", id);
+  function abrirQuiz(id, titulo) {
+    navigation.navigate("QuizPerguntas", {
+      quizId: id,
+      titulo,
+    });
   }
 
   return (
@@ -110,22 +99,16 @@ export function Quiz() {
       className="flex-1 bg-fundo"
       edges={["top", "bottom"]}
     >
-      {/* ===================================================== */}
-      {/* CABEÇALHO */}
-      {/* ===================================================== */}
-
+      {/* Cabeçalho */}
       <View className="flex-row items-center px-5 pb-3 pt-4">
-        {/* VOLTAR */}
         <Pressable
           className="h-10 w-10 items-center justify-center"
           onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
           style={({ pressed }) => ({
             opacity: pressed ? 0.6 : 1,
-            transform: [
-              {
-                scale: pressed ? 0.9 : 1,
-              },
-            ],
+            transform: [{ scale: pressed ? 0.9 : 1 }],
           })}
         >
           <ArrowLeftIcon
@@ -135,34 +118,23 @@ export function Quiz() {
           />
         </Pressable>
 
-        {/* TÍTULO */}
         <Text
           className="ml-3 text-[26px] text-texto"
-          style={{
-            fontFamily: "Anuphan",
-          }}
+          style={{ fontFamily: "Anuphan" }}
         >
           Quiz
         </Text>
       </View>
 
-      {/* ===================================================== */}
-      {/* CONTEÚDO */}
-      {/* ===================================================== */}
-
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
           paddingHorizontal: 15,
-          paddingBottom: 24,
+          paddingBottom: 100,
         }}
         showsVerticalScrollIndicator={false}
       >
-
-        {/* =================================================== */}
-        {/* QUIZZES DIÁRIOS */}
-        {/* =================================================== */}
-
+        {/* Quizzes diários */}
         <Text
           className="mb-3 mt-1 text-[20px] text-texto"
           style={{ fontFamily: "Inter" }}
@@ -177,7 +149,9 @@ export function Quiz() {
             return (
               <Pressable
                 key={quiz.id}
-                onPress={() => abrirQuiz(quiz.id)}
+                onPress={() => abrirQuiz(quiz.id, quiz.titulo)}
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir ${quiz.titulo}`}
                 className={`flex-row items-center px-4 ${
                   index === 0 ? "h-[48px]" : "h-[52px]"
                 } ${
@@ -190,16 +164,10 @@ export function Quiz() {
                   backgroundColor: pressed
                     ? "#26343E"
                     : "transparent",
-                  transform: [
-                    {
-                      scale: pressed ? 0.99 : 1,
-                    },
-                  ],
+                  transform: [{ scale: pressed ? 0.99 : 1 }],
                 })}
               >
                 {quiz.id === "escalacao" ? (
-                  // Placeholder visual.
-                  // FUTURA API: substituir pela imagem correspondente.
                   <View className="h-7 w-7 items-center justify-center bg-verde">
                     <SoccerBallIcon
                       size={20}
@@ -226,22 +194,17 @@ export function Quiz() {
                   {quiz.titulo}
                 </Text>
 
-                {quiz.destaque && (
-                  <CaretRightIcon
-                    size={21}
-                    color="#00C853"
-                    weight="bold"
-                  />
-                )}
+                <CaretRightIcon
+                  size={21}
+                  color={quiz.destaque ? "#00C853" : "#6F7B83"}
+                  weight="regular"
+                />
               </Pressable>
             );
           })}
         </View>
 
-        {/* =================================================== */}
-        {/* CATEGORIAS */}
-        {/* =================================================== */}
-
+        {/* Categorias */}
         <Text
           className="mb-3 mt-5 text-[20px] text-texto"
           style={{ fontFamily: "Inter" }}
@@ -256,7 +219,11 @@ export function Quiz() {
             return (
               <Pressable
                 key={categoria.id}
-                onPress={() => abrirQuiz(categoria.id)}
+                onPress={() =>
+                  abrirQuiz(categoria.id, categoria.titulo)
+                }
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir ${categoria.titulo}`}
                 className={`h-[58px] flex-row items-center px-4 ${
                   index !== categorias.length - 1
                     ? "border-b border-cartao-borda"
@@ -267,14 +234,9 @@ export function Quiz() {
                   backgroundColor: pressed
                     ? "#26343E"
                     : "transparent",
-                  transform: [
-                    {
-                      scale: pressed ? 0.99 : 1,
-                    },
-                  ],
+                  transform: [{ scale: pressed ? 0.99 : 1 }],
                 })}
               >
-                {/* FUTURA API: substituir pelo escudo oficial. */}
                 <View className="mr-3 h-7 w-7 items-center justify-center">
                   <Icone
                     size={23}
@@ -302,8 +264,9 @@ export function Quiz() {
         </View>
       </ScrollView>
 
-      {/* NAVEGAÇÃO INFERIOR */}
       <BottomNav />
     </SafeAreaView>
   );
 }
+
+export default Quiz;

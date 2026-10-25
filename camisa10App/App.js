@@ -10,6 +10,7 @@ import { Jogos } from "./src/screens/Jogos";
 import { Quiz } from "./src/screens/Quiz";
 import { Perfil } from "./src/screens/Perfil";
 import { Chatbot } from "./src/screens/Chatbot";
+import { QuizPerguntas } from "./src/screens/QuizPerguntas";
 
 
 
@@ -27,6 +28,7 @@ export default function App() {
         <Stack.Screen name="Quiz" component={Quiz} />
         <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="Chatbot" component={Chatbot} />
+        <Stack.Screen name="QuizPerguntas" component={QuizPerguntas} />
       </Stack.Navigator>
     </NavigationContainer>
   );
