@@ -31,18 +31,6 @@ const quizzesDiarios = [
     cor: "#00C853",
     destaque: true,
   },
-  {
-    id: "escalacao",
-    titulo: "Acerte a Escalação",
-    icone: SoccerBallIcon,
-    cor: "#F5F7F8",
-  },
-  {
-    id: "jogador",
-    titulo: "Quem é esse jogador?",
-    icone: UsersThreeIcon,
-    cor: "#F5F7F8",
-  },
 ];
 
 const categorias = [

@@ -576,4 +576,229 @@ export const quizzes = {
 
 // --------------------------------------------------------------------------------------------------------------------------------------
 
+  "copa-mundo": {
+    titulo: "Copa do Mundo - História e Curiosidades",
+    perguntas: [
+      {
+        pergunta: "Em qual país foi realizada a primeira Copa do Mundo da FIFA, em 1930?",
+        alternativas: ["Itália", "Uruguai", "Brasil", "Argentina"],
+        respostaCorreta: 1,
+        explicacao:
+          "A primeira Copa do Mundo foi realizada no Uruguai, em 1930. A seleção anfitriã também conquistou o título."
+      },
+      {
+        pergunta: "Qual seleção conquistou mais títulos da Copa do Mundo masculina até 2026?",
+        alternativas: ["Alemanha", "Itália", "Argentina", "Brasil"],
+        respostaCorreta: 3,
+        explicacao:
+          "O Brasil é o maior campeão mundial, com cinco títulos: 1958, 1962, 1970, 1994 e 2002."
+      },
+      {
+        pergunta: "Quem é o maior artilheiro da história da Copa do Mundo masculina após a edição de 2026?",
+        alternativas: [
+          "Kylian Mbappé",
+          "Miroslav Klose",
+          "Lionel Messi",
+          "Ronaldo Fenômeno"
+        ],
+        respostaCorreta: 0,
+        explicacao:
+          "Kylian Mbappé terminou a Copa de 2026 como maior artilheiro da história do torneio, com 22 gols em três edições."
+      },
+      {
+        pergunta: "Qual seleção venceu o Brasil por 7 a 1 na semifinal da Copa do Mundo de 2014?",
+        alternativas: ["Argentina", "Holanda", "Alemanha", "França"],
+        respostaCorreta: 2,
+        explicacao:
+          "A Alemanha venceu o Brasil por 7 a 1 no Mineirão, em Belo Horizonte, e avançou à final da Copa de 2014."
+      },
+      {
+        pergunta: "Qual seleção venceu a Copa do Mundo de 2022, disputada no Catar?",
+        alternativas: ["França", "Argentina", "Croácia", "Marrocos"],
+        respostaCorreta: 1,
+        explicacao:
+          "A Argentina conquistou o título de 2022 ao vencer a França nos pênaltis, após um empate por 3 a 3 na final."
+      },
+      {
+        pergunta: "Qual jogador brasileiro conquistou três títulos da Copa do Mundo como atleta?",
+        alternativas: ["Ronaldo Fenômeno", "Garrincha", "Romário", "Pelé"],
+        respostaCorreta: 3,
+        explicacao:
+          "Pelé conquistou três Copas do Mundo com o Brasil: 1958, 1962 e 1970."
+      },
+      {
+        pergunta: "Como ficou conhecido o episódio em que o Uruguai venceu o Brasil no Maracanã, na Copa de 1950?",
+        alternativas: [
+          "Maracanazo",
+          "Milagre de Berna",
+          "Tragédia de Turim",
+          "Batalha de Santiago"
+        ],
+        respostaCorreta: 0,
+        explicacao:
+          "O Maracanazo é o nome dado à vitória do Uruguai por 2 a 1 sobre o Brasil na partida decisiva da Copa de 1950."
+      },
+      {
+        pergunta: "Qual seleção foi a primeira a conquistar duas Copas do Mundo consecutivas?",
+        alternativas: ["Brasil", "Uruguai", "Itália", "Alemanha"],
+        respostaCorreta: 2,
+        explicacao:
+          "A Itália foi campeã em 1934 e 1938, tornando-se a primeira seleção a conquistar dois títulos mundiais consecutivos."
+      },
+      {
+        pergunta: "Qual jogador marcou 13 gols em uma única edição da Copa do Mundo, em 1958?",
+        alternativas: [
+          "Gerd Müller",
+          "Ronaldo Fenômeno",
+          "Miroslav Klose",
+          "Just Fontaine"
+        ],
+        respostaCorreta: 3,
+        explicacao:
+          "O francês Just Fontaine marcou 13 gols na Copa de 1958, recorde de gols de um jogador em uma única edição masculina do torneio."
+      },
+      {
+        pergunta: "Qual seleção venceu a Alemanha Ocidental na final da Copa do Mundo de 1966?",
+        alternativas: [
+          "Inglaterra",
+          "Brasil",
+          "Argentina",
+          "Portugal"
+        ],
+        respostaCorreta: 0,
+        explicacao:
+          "A Inglaterra venceu a Alemanha Ocidental por 4 a 2 na prorrogação e conquistou sua primeira Copa do Mundo, em 1966."
+      }
+    ]
+  },
+
+
+// --------------------------------------------------------------------------------------------------------------------------------------
+
+
+  "selecao-brasil": {
+    titulo: "Seleção Brasileira - História",
+    perguntas: [
+      {
+        pergunta: "Em qual Copa do Mundo a Seleção Brasileira conquistou seu primeiro título mundial?",
+        alternativas: [
+          "1950, no Brasil",
+          "1962, no Chile",
+          "1958, na Suécia",
+          "1970, no México"
+        ],
+        respostaCorreta: 2,
+        explicacao:
+          "O Brasil conquistou sua primeira Copa do Mundo em 1958, na Suécia, derrotando os anfitriões por 5 a 2 na final."
+      },
+      {
+        pergunta: "Qual jogador é o maior artilheiro da Seleção Brasileira em Copas do Mundo masculinas, segundo o gabarito deste quiz?",
+        alternativas: [
+          "Ronaldo Fenômeno",
+          "Pelé",
+          "Neymar",
+          "Jairzinho"
+        ],
+        respostaCorreta: 0,
+        explicacao:
+          "Ronaldo Fenômeno marcou 15 gols em Copas do Mundo pela Seleção Brasileira, incluindo oito na conquista de 2002."
+      },
+      {
+        pergunta: "Qual seleção o Brasil derrotou na final da Copa do Mundo de 2002?",
+        alternativas: [
+          "Itália",
+          "Alemanha",
+          "França",
+          "Inglaterra"
+        ],
+        respostaCorreta: 1,
+        explicacao:
+          "O Brasil venceu a Alemanha por 2 a 0 na final de 2002, com dois gols de Ronaldo Fenômeno, conquistando o pentacampeonato."
+      },
+      {
+        pergunta: "Quem marcou o primeiro gol da história do Brasil em Copas do Mundo, na edição de 1930?",
+        alternativas: [
+          "Leônidas da Silva",
+          "Friedenreich",
+          "Arthur Friedenreich",
+          "Preguinho"
+        ],
+        respostaCorreta: 3,
+        explicacao:
+          "Preguinho marcou o primeiro gol brasileiro em Copas do Mundo, contra a Iugoslávia, em 1930."
+      },
+      {
+        pergunta: "Em qual Copa do Mundo o Brasil conquistou o pentacampeonato?",
+        alternativas: [
+          "1994, nos Estados Unidos",
+          "1998, na França",
+          "2002, no Japão e na Coreia do Sul",
+          "2006, na Alemanha"
+        ],
+        respostaCorreta: 2,
+        explicacao:
+          "O Brasil conquistou seu quinto título mundial em 2002, vencendo a Alemanha na final disputada no Japão."
+      },
+      {
+        pergunta: "Qual goleiro brasileiro defendeu a Seleção na conquista do tetracampeonato, em 1994?",
+        alternativas: [
+          "Taffarel",
+          "Dida",
+          "Marcos",
+          "Júlio César"
+        ],
+        respostaCorreta: 0,
+        explicacao:
+          "Cláudio Taffarel foi o goleiro titular do Brasil na Copa de 1994 e teve participação decisiva na disputa de pênaltis da final contra a Itália."
+      },
+      {
+        pergunta: "Qual foi o placar da final da Copa do Mundo de 1970 entre Brasil e Itália?",
+        alternativas: [
+          "Brasil 3 x 1 Itália",
+          "Brasil 2 x 0 Itália",
+          "Brasil 5 x 2 Itália",
+          "Brasil 4 x 1 Itália"
+        ],
+        respostaCorreta: 3,
+        explicacao:
+          "O Brasil venceu a Itália por 4 a 1 na final de 1970, conquistando seu terceiro título mundial."
+      },
+      {
+        pergunta: "Qual jogador brasileiro foi capitão e levantou a taça na conquista do pentacampeonato de 2002?",
+        alternativas: [
+          "Ronaldo Fenômeno",
+          "Cafu",
+          "Rivaldo",
+          "Roberto Carlos"
+        ],
+        respostaCorreta: 1,
+        explicacao:
+          "Cafu foi o capitão da Seleção Brasileira em 2002 e levantou a taça após a vitória na final."
+      },
+      {
+        pergunta: "Contra qual seleção o Brasil conquistou sua primeira Copa do Mundo, em 1958?",
+        alternativas: [
+          "Suécia",
+          "Alemanha Ocidental",
+          "Hungria",
+          "França"
+        ],
+        respostaCorreta: 0,
+        explicacao:
+          "O Brasil derrotou a Suécia por 5 a 2 na final de 1958, conquistando seu primeiro título mundial."
+      },
+      {
+        pergunta: "Qual jogador brasileiro é o único a ter conquistado três títulos da Copa do Mundo como atleta?",
+        alternativas: [
+          "Garrincha",
+          "Zagallo",
+          "Pelé",
+          "Zico"
+        ],
+        respostaCorreta: 2,
+        explicacao:
+          "Pelé foi campeão mundial em 1958, 1962 e 1970, sendo o único jogador a conquistar três Copas do Mundo como atleta."
+      }
+    ]
+  },
 };
