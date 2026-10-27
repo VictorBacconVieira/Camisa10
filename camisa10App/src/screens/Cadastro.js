@@ -150,11 +150,9 @@ export function Cadastro() {
 
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : undefined
-        }
+        behavior={Platform.OS === "android" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}
       >
 
         <ScrollView

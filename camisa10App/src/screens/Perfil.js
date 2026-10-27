@@ -8,7 +8,7 @@ import {
 import {
   BellIcon,
   CaretRightIcon,
-  CircleIcon,
+  SealQuestionIcon,
   EyeIcon,
   GearIcon,
   PaletteIcon,
@@ -18,10 +18,10 @@ import {
   StarIcon,
   TrophyIcon,
   UserCircleIcon,
+  FireIcon,
 } from "phosphor-react-native";
 
 import { useNavigation } from "@react-navigation/native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BottomNav } from "../components/bottomNav";
@@ -32,29 +32,23 @@ export function Perfil() {
   // =========================================================
   // DADOS TEMPORÁRIOS DO USUÁRIO
   // =========================================================
-  //
   // FRONTEND:
   // Estes valores são apenas para representar o layout.
   //
   // FUTURO BACKEND:
   // Estes dados deverão vir da API após o usuário realizar
   // o login.
-  //
   // =========================================================
 
   const usuario = {
     nome: "Neymar Jr.",
     nivel: 80,
-
     experienciaAtual: 15000,
     experienciaTotal: 32500,
-
-    quizzes: 80,
+    quizzes: 49,
     xpTotal: "2.532.126",
-    sequenciaAtual: 12,
-
+    sequenciaAtual: 5,
     timeFavorito: "Santos",
-
     notificacoes: "Ativadas",
     acessibilidade: "Ver mais",
     tema: "Escuro",
@@ -72,42 +66,29 @@ export function Perfil() {
         }}
         showsVerticalScrollIndicator={false}
       >
-
-        {/* ================================================= */}
-        {/* TÍTULO */}
-        {/* ================================================= */}
-
-
-
         {/* ================================================= */}
         {/* ÁREA DO PERFIL */}
         {/* ================================================= */}
 
-        <View className="mt-1 bg-fundo px-5">
+        <View className="mt-3 bg-fundo px-5">
           <View className="items-center">
-
-            {/* ================================================= */}
             {/* FOTO DE PERFIL */}
-            {/* ================================================= */}
 
             <View className="relative">
-
               {/*
                 FUTURO BACKEND / API:
-
                 Substituir este círculo pela foto do usuário.
 
                 Exemplo:
-
                 <Image
                   source={{ uri: usuario.fotoPerfil }}
-                  className="h-[74px] w-[74px] rounded-full"
+                  className="h-24 w-24 rounded-full"
                 />
               */}
 
-              <View className="h-[74px] w-[74px] items-center justify-center rounded-full bg-cartao-borda">
+              <View className="h-24 w-24 items-center justify-center rounded-full bg-cartao-borda">
                 <UserCircleIcon
-                  size={55}
+                  size={68}
                   color="#A8B2B9"
                   weight="regular"
                 />
@@ -136,15 +117,12 @@ export function Perfil() {
                   weight="regular"
                 />
               </Pressable>
-
             </View>
 
-            {/* ================================================= */}
             {/* NOME */}
-            {/* ================================================= */}
 
             <Text
-              className="mt-2 text-[20px] text-texto"
+              className="mt-3 text-2xl text-texto"
               style={{
                 fontFamily: "Inter",
               }}
@@ -152,39 +130,31 @@ export function Perfil() {
               {usuario.nome}
             </Text>
 
-            {/* ================================================= */}
             {/* NÍVEL */}
-            {/* ================================================= */}
 
-            <View className="mt-0.5 flex-row items-center">
-
+            <View className="mt-1 flex-row items-center">
               <StarIcon
-                size={14}
+                size={17}
                 color="#FFC107"
                 weight="fill"
               />
 
               <Text
-                className="ml-1 text-xs text-texto-sec"
+                className="ml-1 text-sm text-texto-sec"
                 style={{
                   fontFamily: "Inter",
                 }}
               >
                 Nível {usuario.nivel} - Gênio
               </Text>
-
             </View>
 
-            {/* ================================================= */}
             {/* XP */}
-            {/* ================================================= */}
 
-            <View className="mt-3 w-full">
-
+            <View className="mt-5 w-full">
               <View className="flex-row justify-between">
-
                 <Text
-                  className="text-[9px] text-texto-ter"
+                  className="text-[11px] text-texto-ter"
                   style={{
                     fontFamily: "Inter",
                   }}
@@ -193,7 +163,7 @@ export function Perfil() {
                 </Text>
 
                 <Text
-                  className="text-[9px] text-verde"
+                  className="text-[11px] text-verde"
                   style={{
                     fontFamily: "Inter",
                   }}
@@ -202,10 +172,9 @@ export function Perfil() {
                   {" / "}
                   {usuario.experienciaTotal.toLocaleString("pt-BR")}
                 </Text>
-
               </View>
 
-              <View className="mt-1 h-[4px] overflow-hidden rounded-full bg-cartao-borda">
+              <View className="mt-2 h-[6px] overflow-hidden rounded-full bg-cartao-borda">
                 <View
                   className="h-full rounded-full bg-verde"
                   style={{
@@ -213,9 +182,7 @@ export function Perfil() {
                   }}
                 />
               </View>
-
             </View>
-
           </View>
         </View>
 
@@ -223,12 +190,11 @@ export function Perfil() {
         {/* ESTATÍSTICAS */}
         {/* ================================================= */}
 
-        <View className="mt-4 flex-row px-5">
-
+        <View className="mt-6 flex-row px-5">
           {/* QUIZZES */}
 
           <Pressable
-            className="mr-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-3"
+            className="mr-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-4"
             onPress={() => {
               // FUTURO:
               // Abrir histórico de quizzes.
@@ -242,14 +208,14 @@ export function Perfil() {
               ],
             })}
           >
-            <CircleIcon
-              size={21}
-              color="#E53935"
+            <TrophyIcon
+              size={25}
+              color="#00C853"
               weight="regular"
             />
 
             <Text
-              className="mt-1 text-sm font-bold text-verde"
+              className="mt-1 text-base font-bold text-verde"
               style={{
                 fontFamily: "Inter",
               }}
@@ -258,7 +224,7 @@ export function Perfil() {
             </Text>
 
             <Text
-              className="text-[9px] text-texto-ter"
+              className="text-[11px] text-texto-ter"
               style={{
                 fontFamily: "Inter",
               }}
@@ -270,7 +236,7 @@ export function Perfil() {
           {/* XP TOTAL */}
 
           <Pressable
-            className="mx-1 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-3"
+            className="mx-1 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-4"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes de XP.
@@ -285,13 +251,13 @@ export function Perfil() {
             })}
           >
             <StarIcon
-              size={21}
+              size={25}
               color="#FFC107"
               weight="fill"
             />
 
             <Text
-              className="mt-1 text-sm font-bold text-verde"
+              className="mt-1 text-base font-bold text-verde"
               style={{
                 fontFamily: "Inter",
               }}
@@ -300,7 +266,7 @@ export function Perfil() {
             </Text>
 
             <Text
-              className="text-[9px] text-texto-ter"
+              className="text-[11px] text-texto-ter"
               style={{
                 fontFamily: "Inter",
               }}
@@ -312,7 +278,7 @@ export function Perfil() {
           {/* SEQUÊNCIA */}
 
           <Pressable
-            className="ml-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-3"
+            className="ml-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-4"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes da sequência.
@@ -326,14 +292,14 @@ export function Perfil() {
               ],
             })}
           >
-            <CircleIcon
-              size={21}
+            <FireIcon
+              size={25}
               color="#E53935"
               weight="regular"
             />
 
             <Text
-              className="mt-1 text-sm font-bold text-verde"
+              className="mt-1 text-base font-bold text-verde"
               style={{
                 fontFamily: "Inter",
               }}
@@ -342,7 +308,7 @@ export function Perfil() {
             </Text>
 
             <Text
-              className="text-[9px] text-texto-ter"
+              className="text-[11px] text-texto-ter"
               style={{
                 fontFamily: "Inter",
               }}
@@ -350,17 +316,15 @@ export function Perfil() {
               Sequência Atual
             </Text>
           </Pressable>
-
         </View>
 
         {/* ================================================= */}
         {/* CONQUISTAS */}
         {/* ================================================= */}
 
-        <View className="mt-5 px-5">
-
+        <View className="mt-7 px-5">
           <Text
-            className="text-base text-texto"
+            className="text-lg text-texto"
             style={{
               fontFamily: "Inter",
             }}
@@ -371,7 +335,7 @@ export function Perfil() {
           {/* CRAQUE */}
 
           <Pressable
-            className="mt-1 flex-row items-center rounded-lg border border-verde bg-cartao px-3 py-2"
+            className="mt-2 flex-row items-center rounded-lg border border-verde bg-cartao px-3 py-3"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes da conquista.
@@ -385,9 +349,9 @@ export function Perfil() {
               ],
             })}
           >
-            <View className="h-8 w-8 items-center justify-center rounded-md bg-cartao-borda">
-              <TrophyIcon
-                size={21}
+            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
+              <SealQuestionIcon
+                size={24}
                 color="#00C853"
                 weight="fill"
               />
@@ -395,16 +359,16 @@ export function Perfil() {
 
             <View className="ml-3 flex-1">
               <Text
-                className="text-xs text-texto"
+                className="text-sm text-texto"
                 style={{
                   fontFamily: "Inter",
                 }}
               >
-                Craque
+                Sábio
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -417,7 +381,7 @@ export function Perfil() {
           {/* OLHEIRO */}
 
           <Pressable
-            className="mt-1 flex-row items-center rounded-lg border border-verde bg-cartao px-3 py-2"
+            className="mt-2 flex-row items-center rounded-lg border border-verde bg-cartao px-3 py-3"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes da conquista.
@@ -431,9 +395,9 @@ export function Perfil() {
               ],
             })}
           >
-            <View className="h-8 w-8 items-center justify-center rounded-md bg-cartao-borda">
+            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
               <EyeIcon
-                size={21}
+                size={24}
                 color="#00C853"
                 weight="regular"
               />
@@ -441,7 +405,7 @@ export function Perfil() {
 
             <View className="ml-3 flex-1">
               <Text
-                className="text-xs text-texto"
+                className="text-sm text-texto"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -450,7 +414,7 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -463,7 +427,7 @@ export function Perfil() {
           {/* CAMPEÃO */}
 
           <Pressable
-            className="mt-1 flex-row items-center rounded-lg bg-cartao px-3 py-2"
+            className="mt-2 flex-row items-center rounded-lg bg-cartao px-3 py-3"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes da conquista.
@@ -477,15 +441,15 @@ export function Perfil() {
               ],
             })}
           >
-            <View className="h-8 w-8 items-center justify-center rounded-md bg-cartao-borda">
-              <Text className="text-lg text-texto-ter">
+            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
+              <Text className="text-xl text-texto-ter">
                 ◇
               </Text>
             </View>
 
             <View className="ml-3 flex-1">
               <Text
-                className="text-xs text-texto-ter"
+                className="text-sm text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -494,12 +458,12 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
               >
-                Venceu 5 simulações
+                Venceu 50 Quizzes
               </Text>
             </View>
           </Pressable>
@@ -507,7 +471,7 @@ export function Perfil() {
           {/* EM CHAMAS */}
 
           <Pressable
-            className="mt-1 flex-row items-center rounded-lg bg-cartao px-3 py-2"
+            className="mt-2 flex-row items-center rounded-lg bg-cartao px-3 py-3"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes da conquista.
@@ -521,15 +485,15 @@ export function Perfil() {
               ],
             })}
           >
-            <View className="h-8 w-8 items-center justify-center rounded-md bg-cartao-borda">
-              <Text className="text-lg text-texto-ter">
+            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
+              <Text className="text-xl text-texto-ter">
                 ♢
               </Text>
             </View>
 
             <View className="ml-3 flex-1">
               <Text
-                className="text-xs text-texto-ter"
+                className="text-sm text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -538,7 +502,7 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -547,17 +511,15 @@ export function Perfil() {
               </Text>
             </View>
           </Pressable>
-
         </View>
 
         {/* ================================================= */}
         {/* CONFIGURAÇÕES */}
         {/* ================================================= */}
 
-        <View className="mt-5 px-5">
-
+        <View className="mt-7 px-5">
           <Text
-            className="text-base text-texto"
+            className="text-lg text-texto"
             style={{
               fontFamily: "Inter",
             }}
@@ -565,12 +527,11 @@ export function Perfil() {
             Configurações
           </Text>
 
-          <View className="mt-1 overflow-hidden rounded-lg border border-cartao-borda bg-cartao">
-
+          <View className="mt-2 overflow-hidden rounded-lg border border-cartao-borda bg-cartao">
             {/* TIME FAVORITO */}
 
             <Pressable
-              className="h-[52px] flex-row items-center px-3"
+              className="h-16 flex-row items-center px-3"
               onPress={() => {
                 // FUTURO BACKEND / API:
                 // Permitir selecionar o time favorito.
@@ -580,13 +541,13 @@ export function Perfil() {
               })}
             >
               <SoccerBallIcon
-                size={23}
+                size={25}
                 color="#F5F7F8"
                 weight="regular"
               />
 
               <Text
-                className="ml-3 flex-1 text-xs text-texto"
+                className="ml-3 flex-1 text-sm text-texto"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -595,7 +556,7 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -604,7 +565,7 @@ export function Perfil() {
               </Text>
 
               <CaretRightIcon
-                size={17}
+                size={19}
                 color="#6F7B83"
               />
             </Pressable>
@@ -614,7 +575,7 @@ export function Perfil() {
             {/* NOTIFICAÇÕES */}
 
             <Pressable
-              className="h-[52px] flex-row items-center px-3"
+              className="h-16 flex-row items-center px-3"
               onPress={() => {
                 // FUTURO:
                 // Configuração de notificações.
@@ -624,13 +585,13 @@ export function Perfil() {
               })}
             >
               <BellIcon
-                size={23}
+                size={25}
                 color="#F5F7F8"
                 weight="regular"
               />
 
               <Text
-                className="ml-3 flex-1 text-xs text-texto"
+                className="ml-3 flex-1 text-sm text-texto"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -639,7 +600,7 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -648,7 +609,7 @@ export function Perfil() {
               </Text>
 
               <CaretRightIcon
-                size={17}
+                size={19}
                 color="#6F7B83"
               />
             </Pressable>
@@ -658,7 +619,7 @@ export function Perfil() {
             {/* ACESSIBILIDADE */}
 
             <Pressable
-              className="h-[52px] flex-row items-center px-3"
+              className="h-16 flex-row items-center px-3"
               onPress={() => {
                 // FUTURO:
                 // Abrir configurações de acessibilidade.
@@ -668,13 +629,13 @@ export function Perfil() {
               })}
             >
               <GearIcon
-                size={23}
+                size={25}
                 color="#F5F7F8"
                 weight="regular"
               />
 
               <Text
-                className="ml-3 flex-1 text-xs text-texto"
+                className="ml-3 flex-1 text-sm text-texto"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -683,7 +644,7 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="text-[9px] text-texto-ter"
+                className="text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -692,7 +653,7 @@ export function Perfil() {
               </Text>
 
               <CaretRightIcon
-                size={17}
+                size={19}
                 color="#6F7B83"
               />
             </Pressable>
@@ -702,7 +663,7 @@ export function Perfil() {
             {/* TEMA */}
 
             <Pressable
-              className="h-[52px] flex-row items-center px-3"
+              className="h-16 flex-row items-center px-3"
               onPress={() => {
                 // FUTURO:
                 // Alternar entre tema claro/escuro.
@@ -712,13 +673,13 @@ export function Perfil() {
               })}
             >
               <PaletteIcon
-                size={23}
+                size={25}
                 color="#F5F7F8"
                 weight="regular"
               />
 
               <Text
-                className="ml-3 flex-1 text-xs text-texto"
+                className="ml-3 flex-1 text-sm text-texto"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -727,7 +688,7 @@ export function Perfil() {
               </Text>
 
               <Text
-                className="mr-3 text-[9px] text-texto-ter"
+                className="mr-3 text-[11px] text-texto-ter"
                 style={{
                   fontFamily: "Inter",
                 }}
@@ -735,36 +696,28 @@ export function Perfil() {
                 {usuario.tema}
               </Text>
 
-              <View className="h-[20px] w-[40px] justify-center rounded-full bg-verde px-1">
-                <View className="h-[16px] w-[16px] self-end rounded-full bg-white" />
+              <View className="h-[22px] w-[42px] justify-center rounded-full bg-verde px-1">
+                <View className="h-[18px] w-[18px] self-end rounded-full bg-white" />
               </View>
-
             </Pressable>
-
           </View>
-
         </View>
 
         {/* ================================================= */}
         {/* SAIR DA CONTA */}
         {/* ================================================= */}
 
-        <View className="mt-4 px-5">
-
+        <View className="mt-6 px-5">
           <Pressable
-            className="h-[45px] flex-row items-center justify-between rounded-lg border border-vermelho px-3"
+            className="h-14 flex-row items-center justify-between rounded-lg border border-vermelho px-3"
             onPress={() => {
-              // =================================================
               // FUTURO BACKEND:
-              //
               // Aqui será realizado o logout real da sessão.
               //
               // Exemplo:
-              //
               // await api.post("/logout");
               //
-              // Por enquanto, apenas voltamos para o Login.
-              // =================================================
+              // Por enquanto, voltamos para o Login.
 
               navigation.replace("Login");
             }}
@@ -777,9 +730,8 @@ export function Perfil() {
               ],
             })}
           >
-
             <Text
-              className="text-sm text-vermelho"
+              className="text-base text-vermelho"
               style={{
                 fontFamily: "Inter",
               }}
@@ -788,15 +740,12 @@ export function Perfil() {
             </Text>
 
             <SignOutIcon
-              size={22}
+              size={24}
               color="#E53935"
               weight="regular"
             />
-
           </Pressable>
-
         </View>
-
       </ScrollView>
 
       {/* ================================================= */}
@@ -804,7 +753,6 @@ export function Perfil() {
       {/* ================================================= */}
 
       <BottomNav />
-
     </SafeAreaView>
   );
 }

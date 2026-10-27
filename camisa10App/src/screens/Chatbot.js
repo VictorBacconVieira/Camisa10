@@ -130,43 +130,73 @@ export function Chatbot() {
     );
   }
 
-  function enviarMensagem(texto = mensagem) {
+  async function enviarMensagem(texto = mensagem) {
     const textoEnviado = texto.trim();
-
-    // Impede mensagens vazias ou envios simultâneos.
+    
     if (!textoEnviado || digitando) return;
 
+    const gerarId = (prefixo) =>
+      `${prefixo}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
     const novaMensagem = {
-      id: `${Date.now()}-usuario`,
+      id: gerarId("usuario"),
       texto: textoEnviado,
       autor: "usuario",
     };
 
-    // Adiciona a mensagem do usuário à conversa.
-    setMensagens((anteriores) => [
-      ...anteriores,
-      novaMensagem,
-    ]);
-
+    setMensagens((anteriores) => [...anteriores, novaMensagem]);
     setMensagem("");
     setDigitando(true);
 
-    // Simula o tempo de resposta da IA.
-    // FUTURA API: enviar textoEnviado ao backend e aguardar a resposta.
-    setTimeout(() => {
-      const resposta = {
-        id: `${Date.now()}-ia`,
-        texto: gerarResposta(textoEnviado),
-        autor: "ia",
-      };
+    try {
+      const respostaApi = await fetch(
+        "https://scary-incantation-q7v4974ww77q2jp7-8000.app.github.dev/api/chat",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            pergunta: textoEnviado,
+          }),
+        }
+      );
+
+      if (!respostaApi.ok) {
+        throw new Error(`Erro HTTP ${respostaApi.status}`);
+      }
+
+      const dados = await respostaApi.json();
+
+      if (typeof dados.response !== "string" || !dados.response.trim()) {
+        throw new Error("A API não retornou uma resposta válida.");
+      }
 
       setMensagens((anteriores) => [
         ...anteriores,
-        resposta,
+        {
+          id: gerarId("ia"),
+          texto: dados.response,
+          autor: "ia"
+        },
       ]);
+    } catch (erro) {
+      console.error("Erro ao consultar o Camisa10:", erro);
 
+      setMensagens((anteriores) => [
+        ...anteriores,
+        {
+          id: gerarId("erro"),
+          texto:
+          "Não consegui obter uma resposta agora. Tente novamente em instantes.",
+          autor: "ia",
+        },
+      ]);
+    } finally {
       setDigitando(false);
-    }, 1000);
+    }
+  
   }
 
   function selecionarSugestao(pergunta) {
