@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -40,6 +39,7 @@ import { useNavigation } from "@react-navigation/native";
 import Input from "../components/input";
 import Checkbox from "../components/checkbox";
 import PasswordRequirement from "../components/passwordRequirement";
+import { cadastrarUsuario } from "../services/authService";
 
 // =============================================================
 // MODAL PERSONALIZADO
@@ -118,10 +118,7 @@ function ModalAlerta({ visible, tipo, titulo, mensagem, onClose }) {
           className="w-full rounded-2xl border border-cartao-borda bg-cartao p-6"
           style={{
             opacity: opacidade,
-            transform: [
-              { scale: escala },
-              { translateY: deslocamento },
-            ],
+            transform: [{ scale: escala }, { translateY: deslocamento }],
           }}
         >
           <Pressable
@@ -242,10 +239,7 @@ function ModalFoto({ visible, onClose, onCamera, onGaleria }) {
             </Text>
           </Pressable>
 
-          <Pressable
-            onPress={onClose}
-            className="mt-4 items-center py-2"
-          >
+          <Pressable onPress={onClose} className="mt-4 items-center py-2">
             <Text
               className="text-sm text-texto-sec"
               style={{ fontFamily: "Anuphan" }}
@@ -412,9 +406,7 @@ export function Cadastro() {
   const senhaTemNumero = /\d/.test(senha);
 
   const senhasIguais =
-    senha.length > 0 &&
-    confirmacao.length > 0 &&
-    senha === confirmacao;
+    senha.length > 0 && confirmacao.length > 0 && senha === confirmacao;
 
   // ===========================================================
   // FORMATAÇÃO DA DATA
@@ -475,6 +467,9 @@ export function Cadastro() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(valor.trim());
   }
 
+  const nomeValido = (valor) =>
+    /^[\p{L}\p{M}]+(?:[ '-][\p{L}\p{M}]+)*$/u.test(valor.trim());
+
   // ===========================================================
   // SELEÇÃO DE FOTO
   // ===========================================================
@@ -497,7 +492,7 @@ export function Cadastro() {
       mostrarAlerta(
         "erro",
         "Não foi possível abrir as imagens",
-        "Ocorreu um problema ao acessar a galeria. Tente novamente."
+        "Ocorreu um problema ao acessar a galeria. Tente novamente.",
       );
     }
   }
@@ -506,14 +501,13 @@ export function Cadastro() {
     setModalFoto(false);
 
     try {
-      const permissao =
-        await ImagePicker.requestCameraPermissionsAsync();
+      const permissao = await ImagePicker.requestCameraPermissionsAsync();
 
       if (!permissao.granted) {
         mostrarAlerta(
           "aviso",
           "Permissão necessária",
-          "Precisamos da sua autorização para acessar a câmera do dispositivo."
+          "Precisamos da sua autorização para acessar a câmera do dispositivo.",
         );
         return;
       }
@@ -532,7 +526,7 @@ export function Cadastro() {
       mostrarAlerta(
         "erro",
         "Não foi possível abrir a câmera",
-        "Verifique a permissão da câmera e tente novamente."
+        "Verifique a permissão da câmera e tente novamente.",
       );
     }
   }
@@ -541,39 +535,17 @@ export function Cadastro() {
   // BACKEND - PONTO DE INTEGRAÇÃO FUTURA
   // ===========================================================
 
-  async function cadastrarUsuario() {
-    /*
-      FUTURA INTEGRAÇÃO COM A API:
+  async function enviarCadastro() {
+    const dataNascimentoISO = dataNascimento.split("/").reverse().join("-");
 
-      const dataNascimentoISO = dataNascimento
-        .split("/")
-        .reverse()
-        .join("-");
+    const resultado = await cadastrarUsuario({
+      nome: nome.trim(),
+      email: email.trim().toLowerCase(),
+      senha: senha,
+      data_nascimento: dataNascimentoISO,
+    });
 
-      await api.post("/usuarios", {
-        nome,
-        email,
-        dataNascimento: dataNascimentoISO,
-        senha,
-        fotoPerfil,
-      });
-
-      O backend deverá:
-      - Verificar se o e-mail já está cadastrado;
-      - Validar os dados recebidos;
-      - Criptografar a senha;
-      - Salvar os dados no banco;
-      - Receber e armazenar a foto de perfil;
-      - Retornar o resultado do cadastro.
-
-      A foto deverá ser enviada por multipart/form-data
-      ou pelo mecanismo de upload definido na API.
-    */
-
-    // Simulação temporária enquanto a API não está disponível.
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    return true;
+    return resultado;
   }
 
   // ===========================================================
@@ -589,14 +561,18 @@ export function Cadastro() {
     const campoVazio = campoObrigatorioVazio();
 
     if (campoVazio) {
+      mostrarAlerta("aviso", campoVazio.titulo, campoVazio.mensagem, () =>
+        focarCampo(campoVazio.campo, campoVazio.referencia),
+      );
+      return;
+    }
+
+    if (!nomeValido(nome)) {
       mostrarAlerta(
-        "aviso",
-        campoVazio.titulo,
-        campoVazio.mensagem,
-        () => focarCampo(
-          campoVazio.campo,
-          campoVazio.referencia
-        )
+        "erro",
+        "Nome inválido",
+        "Informe um nome válido, utilizando apenas letras, espaços, hífens ou apóstrofos.",
+        () => focarCampo("nome", nomeRef),
       );
       return;
     }
@@ -606,7 +582,7 @@ export function Cadastro() {
         "erro",
         "E-mail inválido",
         "Informe um endereço de e-mail válido. Exemplo: usuario@gmail.com.",
-        () => focarCampo("email", emailRef)
+        () => focarCampo("email", emailRef),
       );
       return;
     }
@@ -618,7 +594,7 @@ export function Cadastro() {
         "erro",
         "Data incompleta",
         "Informe a data de nascimento completa no formato DD/MM/AAAA.",
-        () => focarCampo("data", dataRef)
+        () => focarCampo("data", dataRef),
       );
       return;
     }
@@ -628,7 +604,7 @@ export function Cadastro() {
         "erro",
         "Ano inválido",
         "O ano de nascimento deve ser 1900 ou posterior. Verifique a data informada.",
-        () => focarCampo("data", dataRef)
+        () => focarCampo("data", dataRef),
       );
       return;
     }
@@ -638,7 +614,7 @@ export function Cadastro() {
         "erro",
         "Data inválida",
         "Essa data não existe. Verifique o dia e o mês informados.",
-        () => focarCampo("data", dataRef)
+        () => focarCampo("data", dataRef),
       );
       return;
     }
@@ -648,7 +624,7 @@ export function Cadastro() {
         "erro",
         "Data futura",
         "A data de nascimento não pode ser posterior à data atual.",
-        () => focarCampo("data", dataRef)
+        () => focarCampo("data", dataRef),
       );
       return;
     }
@@ -658,7 +634,7 @@ export function Cadastro() {
         "aviso",
         "Senha muito curta",
         "Sua senha precisa ter pelo menos 8 caracteres.",
-        () => focarCampo("senha", senhaRef)
+        () => focarCampo("senha", senhaRef),
       );
       return;
     }
@@ -668,7 +644,7 @@ export function Cadastro() {
         "aviso",
         "Senha incompleta",
         "Sua senha precisa ter pelo menos uma letra maiúscula.",
-        () => focarCampo("senha", senhaRef)
+        () => focarCampo("senha", senhaRef),
       );
       return;
     }
@@ -678,7 +654,7 @@ export function Cadastro() {
         "aviso",
         "Senha incompleta",
         "Sua senha precisa ter pelo menos um número.",
-        () => focarCampo("senha", senhaRef)
+        () => focarCampo("senha", senhaRef),
       );
       return;
     }
@@ -688,7 +664,7 @@ export function Cadastro() {
         "erro",
         "Senhas diferentes",
         "A senha e a confirmação precisam ser iguais.",
-        () => focarCampo("confirmacao", confirmacaoRef)
+        () => focarCampo("confirmacao", confirmacaoRef),
       );
       return;
     }
@@ -697,7 +673,7 @@ export function Cadastro() {
       mostrarAlerta(
         "aviso",
         "Termos de Uso",
-        "É necessário aceitar os Termos de Uso e a Política de Privacidade para continuar."
+        "É necessário aceitar os Termos de Uso e a Política de Privacidade para continuar.",
       );
       return;
     }
@@ -705,22 +681,41 @@ export function Cadastro() {
     try {
       setCarregando(true);
 
-      const sucesso = await cadastrarUsuario();
+      const resultado = await enviarCadastro();
 
-      if (sucesso) {
+      if (resultado?.access_token) {
         mostrarAlerta(
           "sucesso",
-          "Cadastro validado!",
-          "Todos os dados foram preenchidos corretamente. A integração com o servidor será ativada quando a API estiver disponível.",
-          () => navigation.navigate("Login")
+          "Conta criada!",
+          "Seu cadastro foi realizado com sucesso. Bem-vindo ao Camisa10!",
+          () => navigation.navigate("Login"),
+        );
+      } else {
+        mostrarAlerta(
+          "aviso",
+          "Cadastro realizado",
+          "Sua conta foi cadastrada, mas não recebemos um token de autenticação. Faça login para continuar.",
+          () => navigation.navigate("Login"),
         );
       }
     } catch (error) {
-      mostrarAlerta(
-        "erro",
-        "Erro no cadastro",
-        "Não foi possível concluir o cadastro. Tente novamente."
-      );
+      const mensagem = error.message || "";
+
+      if (mensagem.toLowerCase().includes("já está cadastrado")) {
+        mostrarAlerta(
+          "aviso",
+          "E-mail já cadastrado",
+          "Este endereço de e-mail já possui uma conta. Utilize outro e-mail ou faça login."
+        );
+      } else {
+        console.error("ERRO NO CADASTRO:", error);
+        
+        mostrarAlerta(
+          "erro",
+          "Erro no cadastro",
+          mensagem || "Não foi possível concluir o cadastro. Tente novamente.",
+        );
+      }     
     } finally {
       setCarregando(false);
     }
@@ -731,10 +726,7 @@ export function Cadastro() {
   // ===========================================================
 
   return (
-    <SafeAreaView
-      className="flex-1 bg-fundo"
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView className="flex-1 bg-fundo" edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "android" ? "padding" : "height"}
@@ -760,11 +752,7 @@ export function Cadastro() {
               className="mr-4 p-2"
               hitSlop={8}
             >
-              <ArrowLeftIcon
-                size={30}
-                color="#F5F7F8"
-                weight="bold"
-              />
+              <ArrowLeftIcon size={30} color="#F5F7F8" weight="bold" />
             </Pressable>
 
             <Text
@@ -781,16 +769,15 @@ export function Cadastro() {
             className="text-3xl font-bold text-texto"
             style={{ fontFamily: "Anuphan" }}
           >
-            Criar{" "}
-            <Text className="text-verde">Conta</Text>
+            Criar <Text className="text-verde">Conta</Text>
           </Text>
 
           <Text
             className="mt-2 text-sm leading-5 text-texto-sec"
             style={{ fontFamily: "Anuphan" }}
           >
-            Preencha os campos com os dados
-            correspondentes para criar sua conta.
+            Preencha os campos com os dados correspondentes para criar sua
+            conta.
           </Text>
 
           {/* FOTO DE PERFIL */}
@@ -808,19 +795,11 @@ export function Cadastro() {
                     resizeMode="cover"
                   />
                 ) : (
-                  <UserIcon
-                    size={42}
-                    color="#00C853"
-                    weight="regular"
-                  />
+                  <UserIcon size={42} color="#00C853" weight="regular" />
                 )}
 
                 <View className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full border-2 border-fundo bg-verde">
-                  <CameraIcon
-                    size={17}
-                    color="#FFFFFF"
-                    weight="bold"
-                  />
+                  <CameraIcon size={17} color="#FFFFFF" weight="bold" />
                 </View>
               </View>
             </Pressable>
@@ -936,9 +915,7 @@ export function Cadastro() {
               rightIcon={mostrarSenha ? EyeSlashIcon : EyeIcon}
               onRightIconPress={() => setMostrarSenha(!mostrarSenha)}
               returnKeyType="next"
-              onSubmitEditing={() =>
-                focarCampo("confirmacao", confirmacaoRef)
-              }
+              onSubmitEditing={() => focarCampo("confirmacao", confirmacaoRef)}
             />
 
             <View className="mt-2">
@@ -960,9 +937,7 @@ export function Cadastro() {
 
           <View
             className="mb-5"
-            onLayout={(event) =>
-              registrarPosicao("confirmacao", event)
-            }
+            onLayout={(event) => registrarPosicao("confirmacao", event)}
           >
             <Text
               className="mb-2 text-base text-texto"
@@ -978,9 +953,7 @@ export function Cadastro() {
               value={confirmacao}
               onChangeText={setConfirmacao}
               secureTextEntry={!mostrarConfirmacao}
-              rightIcon={
-                mostrarConfirmacao ? EyeSlashIcon : EyeIcon
-              }
+              rightIcon={mostrarConfirmacao ? EyeSlashIcon : EyeIcon}
               onRightIconPress={() =>
                 setMostrarConfirmacao(!mostrarConfirmacao)
               }
@@ -998,12 +971,8 @@ export function Cadastro() {
           {/* TERMOS DE USO */}
 
           <View className="mb-6">
-            <Checkbox
-              checked={termos}
-              onPress={() => setTermos(!termos)}
-            >
-              Li e concordo com os Termos de Uso
-              e Política de Privacidade.
+            <Checkbox checked={termos} onPress={() => setTermos(!termos)}>
+              Li e concordo com os Termos de Uso e Política de Privacidade.
             </Checkbox>
           </View>
 
@@ -1037,9 +1006,7 @@ export function Cadastro() {
               Já tem uma conta?{" "}
             </Text>
 
-            <Pressable
-              onPress={() => navigation.navigate("Login")}
-            >
+            <Pressable onPress={() => navigation.navigate("Login")}>
               <Text
                 className="text-sm font-bold text-verde"
                 style={{ fontFamily: "Anuphan" }}

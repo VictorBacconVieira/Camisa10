@@ -31,6 +31,8 @@ import { useNavigation } from "@react-navigation/native";
 
 import Input from "../components/input";
 
+import { fazerLogin } from "../services/authService"; 
+
 // ==================================================
 // USUÁRIO TEMPORÁRIO DE DESENVOLVIMENTO
 // REMOVER QUANDO O BACKEND ESTIVER INTEGRADO
@@ -350,29 +352,8 @@ export function Login() {
   // ==================================================
 
   async function autenticarUsuario(emailUsuario, senhaUsuario) {
-
-    /*
-      USUÁRIO TEMPORÁRIO:
-
-      E-mail: admin@gmail.com
-      Senha: Admin@1234
-
-      Quando o backend estiver pronto, substituir
-      esta função pela requisição real à API.
-
-      IMPORTANTE:
-      Esta autenticação local serve somente para
-      testes durante o desenvolvimento.
-    */
-
-    const emailCorreto =
-      emailUsuario.toLowerCase() === USUARIO_TESTE.email;
-
-    const senhaCorreta =
-      senhaUsuario === USUARIO_TESTE.senha;
-
-    return emailCorreto && senhaCorreta;
-  }
+    return await fazerLogin(emailUsuario, senhaUsuario);
+}
 
   // ==================================================
   // FUNÇÃO ENTRAR
@@ -443,7 +424,7 @@ export function Login() {
         senha
       );
 
-      if (autenticado) {
+      if (autenticado?.access_token) {
         mostrarAlerta(
           "Login realizado!",
           "Bem-vindo ao Camisa10! Prepare-se para entrar em campo.",

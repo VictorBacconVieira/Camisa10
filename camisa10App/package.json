@@ -10,6 +10,7 @@
     "expo": "~57.0.24",
     "expo-font": "~57.0.4",
     "expo-image-picker": "~57.0.20",
+    "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "nativewind": "^4.2.7",
     "phosphor-react-native": "^3.0.6",
