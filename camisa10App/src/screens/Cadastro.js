@@ -1,10 +1,10 @@
+
 import { useEffect, useRef, useState } from "react";
 
 import {
   ActivityIndicator,
   Animated,
   Easing,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -16,22 +16,19 @@ import {
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as ImagePicker from "expo-image-picker";
 
 import {
   ArrowLeftIcon,
   CalendarBlankIcon,
-  CameraIcon,
   CheckCircleIcon,
   EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
-  ImageIcon,
   InfoIcon,
   LockIcon,
-  UserIcon,
   WarningCircleIcon,
   XIcon,
+  UserIcon,
 } from "phosphor-react-native";
 
 import { useNavigation } from "@react-navigation/native";
@@ -39,6 +36,8 @@ import { useNavigation } from "@react-navigation/native";
 import Input from "../components/input";
 import Checkbox from "../components/checkbox";
 import PasswordRequirement from "../components/passwordRequirement";
+import { FotoPerfil } from "../components/fotoPerfil";
+
 import { cadastrarUsuario } from "../services/authService";
 
 // =============================================================
@@ -168,92 +167,6 @@ function ModalAlerta({ visible, tipo, titulo, mensagem, onClose }) {
 }
 
 // =============================================================
-// MODAL DE ESCOLHA DA FOTO
-// =============================================================
-
-function ModalFoto({ visible, onClose, onCamera, onGaleria }) {
-  return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      <Pressable
-        className="flex-1 items-center justify-center px-7"
-        style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
-        onPress={onClose}
-      >
-        <Pressable
-          className="w-full rounded-2xl border border-cartao-borda bg-cartao p-5"
-          onPress={(event) => event.stopPropagation()}
-        >
-          <View className="mb-5 flex-row items-center justify-between">
-            <Text
-              className="text-xl font-bold text-texto"
-              style={{ fontFamily: "Anuphan" }}
-            >
-              Foto de perfil
-            </Text>
-
-            <Pressable onPress={onClose} className="p-1">
-              <XIcon size={22} color="#A8B2B9" />
-            </Pressable>
-          </View>
-
-          <Text
-            className="mb-5 text-sm text-texto-sec"
-            style={{ fontFamily: "Anuphan" }}
-          >
-            Escolha como deseja adicionar sua foto ao Camisa10.
-          </Text>
-
-          {Platform.OS !== "web" && (
-            <Pressable
-              onPress={onCamera}
-              className="mb-3 h-14 flex-row items-center rounded-xl border border-cartao-borda bg-fundo px-4"
-            >
-              <CameraIcon size={24} color="#00C853" weight="bold" />
-              <Text
-                className="ml-3 text-base text-texto"
-                style={{ fontFamily: "Anuphan" }}
-              >
-                Tirar uma foto
-              </Text>
-            </Pressable>
-          )}
-
-          <Pressable
-            onPress={onGaleria}
-            className="h-14 flex-row items-center rounded-xl border border-cartao-borda bg-fundo px-4"
-          >
-            <ImageIcon size={24} color="#00C853" weight="bold" />
-            <Text
-              className="ml-3 text-base text-texto"
-              style={{ fontFamily: "Anuphan" }}
-            >
-              {Platform.OS === "web"
-                ? "Escolher imagem do computador"
-                : "Escolher da galeria"}
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={onClose} className="mt-4 items-center py-2">
-            <Text
-              className="text-sm text-texto-sec"
-              style={{ fontFamily: "Anuphan" }}
-            >
-              Cancelar
-            </Text>
-          </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-}
-
-// =============================================================
 // TELA DE CADASTRO
 // =============================================================
 
@@ -273,7 +186,6 @@ export function Cadastro() {
 
   const [termos, setTermos] = useState(false);
   const [carregando, setCarregando] = useState(false);
-  const [modalFoto, setModalFoto] = useState(false);
 
   const [alerta, setAlerta] = useState({
     visivel: false,
@@ -471,67 +383,6 @@ export function Cadastro() {
     /^[\p{L}\p{M}]+(?:[ '-][\p{L}\p{M}]+)*$/u.test(valor.trim());
 
   // ===========================================================
-  // SELEÇÃO DE FOTO
-  // ===========================================================
-
-  async function escolherGaleria() {
-    setModalFoto(false);
-
-    try {
-      const resultado = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!resultado.canceled && resultado.assets?.length > 0) {
-        setFotoPerfil(resultado.assets[0].uri);
-      }
-    } catch (error) {
-      mostrarAlerta(
-        "erro",
-        "Não foi possível abrir as imagens",
-        "Ocorreu um problema ao acessar a galeria. Tente novamente.",
-      );
-    }
-  }
-
-  async function tirarFoto() {
-    setModalFoto(false);
-
-    try {
-      const permissao = await ImagePicker.requestCameraPermissionsAsync();
-
-      if (!permissao.granted) {
-        mostrarAlerta(
-          "aviso",
-          "Permissão necessária",
-          "Precisamos da sua autorização para acessar a câmera do dispositivo.",
-        );
-        return;
-      }
-
-      const resultado = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!resultado.canceled && resultado.assets?.length > 0) {
-        setFotoPerfil(resultado.assets[0].uri);
-      }
-    } catch (error) {
-      mostrarAlerta(
-        "erro",
-        "Não foi possível abrir a câmera",
-        "Verifique a permissão da câmera e tente novamente.",
-      );
-    }
-  }
-
-  // ===========================================================
   // BACKEND - PONTO DE INTEGRAÇÃO FUTURA
   // ===========================================================
 
@@ -709,13 +560,13 @@ export function Cadastro() {
         );
       } else {
         console.error("ERRO NO CADASTRO:", error);
-        
+
         mostrarAlerta(
           "erro",
           "Erro no cadastro",
           mensagem || "Não foi possível concluir o cadastro. Tente novamente.",
         );
-      }     
+      }
     } finally {
       setCarregando(false);
     }
@@ -783,33 +634,18 @@ export function Cadastro() {
           {/* FOTO DE PERFIL */}
 
           <View className="my-7 items-center">
-            <Pressable
-              onPress={() => setModalFoto(true)}
-              className="active:opacity-70"
-            >
-              <View className="relative h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-verde bg-cartao">
-                {fotoPerfil ? (
-                  <Image
-                    source={{ uri: fotoPerfil }}
-                    className="h-full w-full"
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <UserIcon size={42} color="#00C853" weight="regular" />
-                )}
+            <FotoPerfil
+              foto={fotoPerfil}
+              nome={nome || "Novo usuário"}
+              tamanho={96}
+              onFotoSelecionada={(uri) => {
+                setFotoPerfil(uri);
 
-                <View className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full border-2 border-fundo bg-verde">
-                  <CameraIcon size={17} color="#FFFFFF" weight="bold" />
-                </View>
-              </View>
-            </Pressable>
-
-            <Text
-              className="mt-2 text-xs text-texto-sec"
-              style={{ fontFamily: "Anuphan" }}
-            >
-              {fotoPerfil ? "Alterar foto" : "Adicionar foto"}
-            </Text>
+                // FUTURO BACKEND:
+                // Enviar a imagem para a API e associá-la
+                // ao usuário após a criação da conta.
+              }}
+            />
           </View>
 
           {/* NOME COMPLETO */}
@@ -1017,15 +853,6 @@ export function Cadastro() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* MODAL DE FOTO */}
-
-      <ModalFoto
-        visible={modalFoto}
-        onClose={() => setModalFoto(false)}
-        onCamera={tirarFoto}
-        onGaleria={escolherGaleria}
-      />
 
       {/* MODAL DE ALERTA */}
 

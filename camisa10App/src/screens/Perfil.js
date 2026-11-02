@@ -1,9 +1,13 @@
+
 import {
   Pressable,
   ScrollView,
   Text,
   View,
+  Modal,
 } from "react-native";
+
+import { useState } from "react";
 
 import {
   BellIcon,
@@ -17,42 +21,196 @@ import {
   SoccerBallIcon,
   StarIcon,
   TrophyIcon,
-  UserCircleIcon,
   FireIcon,
+  CheckCircleIcon,
+  ArrowLeftIcon,
 } from "phosphor-react-native";
 
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BottomNav } from "../components/bottomNav";
+import { FotoPerfil } from "../components/fotoPerfil";
 
 export function Perfil() {
   const navigation = useNavigation();
+
+  const [modalSucessoVisivel, setModalSucessoVisivel] =
+    useState(false);
+
+  const [fotoPerfil, setFotoPerfil] = useState(null);
+
+  // =========================================================
+  // FOTO DE PERFIL
+  // =========================================================
+  // O componente FotoPerfil controla a seleção da imagem,
+  // permissões, câmera, galeria e modal de seleção.
+  //
+  // FUTURO BACKEND:
+  // Enviar a imagem para a API e salvar a foto do usuário.
+  // =========================================================
 
   // =========================================================
   // DADOS TEMPORÁRIOS DO USUÁRIO
   // =========================================================
   // FRONTEND:
-  // Estes valores são apenas para representar o layout.
+  // Valores temporários para testar a interface.
   //
   // FUTURO BACKEND:
-  // Estes dados deverão vir da API após o usuário realizar
-  // o login.
+  // Substituir pelos dados recebidos da API do usuário.
+  // Campos numéricos sem registros devem retornar 0.
   // =========================================================
 
   const usuario = {
     nome: "Neymar Jr.",
-    nivel: 80,
-    experienciaAtual: 15000,
-    experienciaTotal: 32500,
+
+    // XP acumulado pelo usuário.
+    // Exemplo: 0, 10000, 11000, 12000...
+    xpTotal: 451000,
+
     quizzes: 49,
-    xpTotal: "2.532.126",
     sequenciaAtual: 5,
+
     timeFavorito: "Santos",
     notificacoes: "Ativadas",
     acessibilidade: "Ver mais",
     tema: "Escuro",
+
+    // =====================================================
+    // DADOS DAS CONQUISTAS
+    // =====================================================
+    // FRONTEND:
+    // Valores temporários para testar os desbloqueios.
+    //
+    // FUTURO BACKEND:
+    // Substituir pelos dados recebidos da API.
+    // =====================================================
+
+    respostasCorretas: 101,
+    escalacoesCorretas: 9,
   };
+
+  // =========================================================
+  // SISTEMA DE NÍVEIS
+  // =========================================================
+  // Nível 1 -> 2: 10.000 XP
+  // Nível 2 -> 3: 11.000 XP
+  // Nível 3 -> 4: 12.000 XP
+  // Nível 4 -> 5: 13.000 XP
+  //
+  // A cada nível, o requisito aumenta em 1.000 XP.
+  //
+  // FUTURO BACKEND:
+  // Receber o XP total acumulado do usuário pela API.
+  // O XP total nunca deve ser zerado ao subir de nível.
+  // =========================================================
+
+  const xpTotal = Math.max(
+    0,
+    Number(usuario.xpTotal) || 0
+  );
+
+  // Calcula o XP total necessário para alcançar determinado nível.
+  function calcularXpNivel(nivel) {
+    if (nivel <= 1) return 0;
+
+    const quantidadeNiveis = nivel - 1;
+
+    return (
+      quantidadeNiveis * 10000 +
+      ((quantidadeNiveis - 1) * quantidadeNiveis * 1000) / 2
+    );
+  }
+
+  // Descobre o nível atual com base no XP acumulado.
+  let nivelAtual = 1;
+
+  while (xpTotal >= calcularXpNivel(nivelAtual + 1)) {
+    nivelAtual++;
+  }
+
+  // XP total necessário para alcançar o nível atual.
+  const xpInicioNivel = calcularXpNivel(nivelAtual);
+
+  // XP total necessário para alcançar o próximo nível.
+  const xpProximoNivel = calcularXpNivel(nivelAtual + 1);
+
+  // XP conquistado dentro do nível atual.
+  const xpAtualNivel = xpTotal - xpInicioNivel;
+
+  // XP necessário para completar o nível atual.
+  const xpNecessarioNivel = xpProximoNivel - xpInicioNivel;
+
+  // Progresso da barra.
+  const progressoNivel = Math.min(
+    100,
+    Math.max(
+      0,
+      (xpAtualNivel / xpNecessarioNivel) * 100
+    )
+  );
+
+  // =========================================================
+  // REGRAS DAS CONQUISTAS
+  // =========================================================
+  // Cada conquista verifica o progresso do usuário.
+  //
+  // FUTURO BACKEND:
+  // Os valores serão recebidos da API.
+  // O backend poderá também informar quais conquistas
+  // foram desbloqueadas pelo usuário.
+  // =========================================================
+
+  const conquistas = [
+    {
+      id: "sabio",
+      nome: "Sábio",
+      descricao: "Acertou 100 perguntas",
+      progresso: Math.max(
+        0,
+        Number(usuario.respostasCorretas) || 0
+      ),
+      requisito: 100,
+      Icone: SealQuestionIcon,
+    },
+    {
+      id: "olheiro",
+      nome: "Olheiro",
+      descricao: "Acertou 10 escalações",
+      progresso: Math.max(
+        0,
+        Number(usuario.escalacoesCorretas) || 0
+      ),
+      requisito: 10,
+      Icone: EyeIcon,
+    },
+    {
+      id: "campeao",
+      nome: "Campeão",
+      descricao: "Venceu 50 quizzes",
+      progresso: Math.max(
+        0,
+        Number(usuario.quizzes) || 0
+      ),
+      requisito: 50,
+      Icone: TrophyIcon,
+    },
+    {
+      id: "em-chamas",
+      nome: "Em Chamas",
+      descricao: "Sequência de 15 dias",
+      progresso: Math.max(
+        0,
+        Number(usuario.sequenciaAtual) || 0
+      ),
+      requisito: 15,
+      Icone: FireIcon,
+    },
+  ].map((conquista) => ({
+    ...conquista,
+    desbloqueada:
+      conquista.progresso >= conquista.requisito,
+  }));
 
   return (
     <SafeAreaView
@@ -66,58 +224,56 @@ export function Perfil() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {/* BOTÃO DE VOLTAR */}
+
+        <View className="flex-row items-center px-5 pb-3 pt-4">
+          <Pressable
+            className="h-10 w-10 items-center justify-center"
+            onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.6 : 1,
+              transform: [{ scale: pressed ? 0.9 : 1 }],
+            })}
+          >
+            <ArrowLeftIcon
+              size={25}
+              color="#F5F7F8"
+              weight="regular"
+            />
+          </Pressable>
+
+          <Text
+            className="ml-3 text-[26px] text-texto"
+            style={{ fontFamily: "Anuphan" }}
+          >
+            Perfil
+          </Text>
+        </View>
+
         {/* ================================================= */}
         {/* ÁREA DO PERFIL */}
         {/* ================================================= */}
 
         <View className="mt-3 bg-fundo px-5">
           <View className="items-center">
-            {/* FOTO DE PERFIL */}
 
-            <View className="relative">
-              {/*
-                FUTURO BACKEND / API:
-                Substituir este círculo pela foto do usuário.
+            {/* FOTO DE PERFIL - COMPONENTE REUTILIZÁVEL */}
 
-                Exemplo:
-                <Image
-                  source={{ uri: usuario.fotoPerfil }}
-                  className="h-24 w-24 rounded-full"
-                />
-              */}
+            <FotoPerfil
+              foto={fotoPerfil}
+              nome={usuario.nome}
+              tamanho={96}
+              onFotoSelecionada={(uri) => {
+                setFotoPerfil(uri);
+                setModalSucessoVisivel(true);
 
-              <View className="h-24 w-24 items-center justify-center rounded-full bg-cartao-borda">
-                <UserCircleIcon
-                  size={68}
-                  color="#A8B2B9"
-                  weight="regular"
-                />
-              </View>
-
-              {/* EDITAR FOTO */}
-
-              <Pressable
-                className="absolute -right-2 -top-1 h-9 w-9 items-center justify-center rounded-full bg-fundo"
-                onPress={() => {
-                  // FUTURO BACKEND:
-                  // Abrir seleção de foto e atualizar o perfil.
-                }}
-                style={({ pressed }) => ({
-                  opacity: pressed ? 0.6 : 1,
-                  transform: [
-                    {
-                      scale: pressed ? 0.9 : 1,
-                    },
-                  ],
-                })}
-              >
-                <PencilSimpleIcon
-                  size={21}
-                  color="#F5F7F8"
-                  weight="regular"
-                />
-              </Pressable>
-            </View>
+                // FUTURO BACKEND:
+                // Enviar a imagem para a API e salvar
+                // a foto do usuário.
+              }}
+            />
 
             {/* NOME */}
 
@@ -145,7 +301,7 @@ export function Perfil() {
                   fontFamily: "Inter",
                 }}
               >
-                Nível {usuario.nivel} - Gênio
+                Nível {nivelAtual}
               </Text>
             </View>
 
@@ -168,9 +324,9 @@ export function Perfil() {
                     fontFamily: "Inter",
                   }}
                 >
-                  {usuario.experienciaAtual.toLocaleString("pt-BR")}
+                  {xpAtualNivel.toLocaleString("pt-BR")}
                   {" / "}
-                  {usuario.experienciaTotal.toLocaleString("pt-BR")}
+                  {xpNecessarioNivel.toLocaleString("pt-BR")}
                 </Text>
               </View>
 
@@ -178,10 +334,21 @@ export function Perfil() {
                 <View
                   className="h-full rounded-full bg-verde"
                   style={{
-                    width: "46%",
+                    width: `${progressoNivel}%`,
                   }}
                 />
               </View>
+
+              <Text
+                className="mt-1 text-right text-[10px] text-texto-ter"
+                style={{
+                  fontFamily: "Inter",
+                }}
+              >
+                Faltam{" "}
+                {(xpProximoNivel - xpTotal).toLocaleString("pt-BR")}
+                {" XP para o próximo nível"}
+              </Text>
             </View>
           </View>
         </View>
@@ -191,6 +358,7 @@ export function Perfil() {
         {/* ================================================= */}
 
         <View className="mt-6 flex-row px-5">
+
           {/* QUIZZES */}
 
           <Pressable
@@ -202,9 +370,7 @@ export function Perfil() {
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
               transform: [
-                {
-                  scale: pressed ? 0.97 : 1,
-                },
+                { scale: pressed ? 0.97 : 1 },
               ],
             })}
           >
@@ -220,7 +386,7 @@ export function Perfil() {
                 fontFamily: "Inter",
               }}
             >
-              {usuario.quizzes}
+              {(Number(usuario.quizzes) || 0).toLocaleString("pt-BR")}
             </Text>
 
             <Text
@@ -244,9 +410,7 @@ export function Perfil() {
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
               transform: [
-                {
-                  scale: pressed ? 0.97 : 1,
-                },
+                { scale: pressed ? 0.97 : 1 },
               ],
             })}
           >
@@ -262,7 +426,7 @@ export function Perfil() {
                 fontFamily: "Inter",
               }}
             >
-              {usuario.xpTotal}
+              {xpTotal.toLocaleString("pt-BR")}
             </Text>
 
             <Text
@@ -286,9 +450,7 @@ export function Perfil() {
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
               transform: [
-                {
-                  scale: pressed ? 0.97 : 1,
-                },
+                { scale: pressed ? 0.97 : 1 },
               ],
             })}
           >
@@ -304,7 +466,7 @@ export function Perfil() {
                 fontFamily: "Inter",
               }}
             >
-              {usuario.sequenciaAtual}
+              {(Number(usuario.sequenciaAtual) || 0).toLocaleString("pt-BR")}
             </Text>
 
             <Text
@@ -332,185 +494,103 @@ export function Perfil() {
             Conquistas
           </Text>
 
-          {/* CRAQUE */}
+          {conquistas.map((conquista) => {
+            const Icone = conquista.Icone;
 
-          <Pressable
-            className="mt-2 flex-row items-center rounded-lg border border-verde bg-cartao px-3 py-3"
-            onPress={() => {
-              // FUTURO:
-              // Abrir detalhes da conquista.
-            }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.75 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.98 : 1,
-                },
-              ],
-            })}
-          >
-            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
-              <SealQuestionIcon
-                size={24}
-                color="#00C853"
-                weight="fill"
-              />
-            </View>
-
-            <View className="ml-3 flex-1">
-              <Text
-                className="text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
+            return (
+              <Pressable
+                key={conquista.id}
+                className={`mt-2 flex-row items-center rounded-lg border bg-cartao px-3 py-3 ${
+                  conquista.desbloqueada
+                    ? "border-verde"
+                    : "border-cartao-borda"
+                }`}
+                onPress={() => {
+                  // FUTURO:
+                  // Poderemos abrir os detalhes da conquista.
                 }}
+                style={({ pressed }) => ({
+                  opacity: pressed
+                    ? 0.75
+                    : conquista.desbloqueada
+                      ? 1
+                      : 0.55,
+                  transform: [
+                    { scale: pressed ? 0.98 : 1 },
+                  ],
+                })}
               >
-                Sábio
-              </Text>
+                {/* ÍCONE */}
 
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Acertou 100 perguntas
-              </Text>
-            </View>
-          </Pressable>
+                <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
+                  <Icone
+                    size={24}
+                    color={
+                      conquista.desbloqueada
+                        ? "#00C853"
+                        : "#6F7B83"
+                    }
+                    weight="fill"
+                  />
+                </View>
 
-          {/* OLHEIRO */}
+                {/* INFORMAÇÕES */}
 
-          <Pressable
-            className="mt-2 flex-row items-center rounded-lg border border-verde bg-cartao px-3 py-3"
-            onPress={() => {
-              // FUTURO:
-              // Abrir detalhes da conquista.
-            }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.75 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.98 : 1,
-                },
-              ],
-            })}
-          >
-            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
-              <EyeIcon
-                size={24}
-                color="#00C853"
-                weight="regular"
-              />
-            </View>
+                <View className="ml-3 flex-1">
+                  <Text
+                    className={`text-sm ${
+                      conquista.desbloqueada
+                        ? "text-texto"
+                        : "text-texto-ter"
+                    }`}
+                    style={{
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    {conquista.nome}
+                  </Text>
 
-            <View className="ml-3 flex-1">
-              <Text
-                className="text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Olheiro
-              </Text>
+                  <Text
+                    className="text-[11px] text-texto-ter"
+                    style={{
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    {conquista.descricao}
+                  </Text>
 
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Acertou 10 escalações
-              </Text>
-            </View>
-          </Pressable>
+                  {/* PROGRESSO */}
 
-          {/* CAMPEÃO */}
+                  <Text
+                    className={`mt-1 text-[10px] ${
+                      conquista.desbloqueada
+                        ? "text-verde"
+                        : "text-texto-ter"
+                    }`}
+                    style={{
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    {conquista.progresso.toLocaleString("pt-BR")}
+                    {" / "}
+                    {conquista.requisito.toLocaleString("pt-BR")}
+                  </Text>
+                </View>
 
-          <Pressable
-            className="mt-2 flex-row items-center rounded-lg bg-cartao px-3 py-3"
-            onPress={() => {
-              // FUTURO:
-              // Abrir detalhes da conquista.
-            }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.75 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.98 : 1,
-                },
-              ],
-            })}
-          >
-            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
-              <Text className="text-xl text-texto-ter">
-                ◇
-              </Text>
-            </View>
+                {/* STATUS */}
 
-            <View className="ml-3 flex-1">
-              <Text
-                className="text-sm text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Campeão
-              </Text>
-
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Venceu 50 Quizzes
-              </Text>
-            </View>
-          </Pressable>
-
-          {/* EM CHAMAS */}
-
-          <Pressable
-            className="mt-2 flex-row items-center rounded-lg bg-cartao px-3 py-3"
-            onPress={() => {
-              // FUTURO:
-              // Abrir detalhes da conquista.
-            }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.75 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.98 : 1,
-                },
-              ],
-            })}
-          >
-            <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
-              <Text className="text-xl text-texto-ter">
-                ♢
-              </Text>
-            </View>
-
-            <View className="ml-3 flex-1">
-              <Text
-                className="text-sm text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Em Chamas
-              </Text>
-
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                Sequência de 15 dias
-              </Text>
-            </View>
-          </Pressable>
+                {conquista.desbloqueada && (
+                  <View className="ml-2">
+                    <CheckCircleIcon
+                      size={21}
+                      color="#00C853"
+                      weight="fill"
+                    />
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* ================================================= */}
@@ -527,7 +607,40 @@ export function Perfil() {
             Configurações
           </Text>
 
+          {/* EDITAR PERFIL */}
+
           <View className="mt-2 overflow-hidden rounded-lg border border-cartao-borda bg-cartao">
+            <Pressable
+              className="h-16 flex-row items-center px-3"
+              onPress={() => navigation.navigate("EditarPerfil")}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <PencilSimpleIcon
+                size={25}
+                color="#F5F7F8"
+                weight="regular"
+              />
+
+              <Text
+                className="ml-3 flex-1 text-sm text-texto"
+                style={{
+                  fontFamily: "Inter",
+                }}
+              >
+                Editar Perfil
+              </Text>
+
+              <CaretRightIcon
+                size={19}
+                color="#6F7B83"
+              />
+            </Pressable>
+          </View>
+
+          <View className="mt-2 overflow-hidden rounded-lg border border-cartao-borda bg-cartao">
+
             {/* TIME FAVORITO */}
 
             <Pressable
@@ -561,7 +674,7 @@ export function Perfil() {
                   fontFamily: "Inter",
                 }}
               >
-                {usuario.timeFavorito}
+                {usuario.timeFavorito || "Nenhum"}
               </Text>
 
               <CaretRightIcon
@@ -605,7 +718,7 @@ export function Perfil() {
                   fontFamily: "Inter",
                 }}
               >
-                {usuario.notificacoes}
+                {usuario.notificacoes || "Desativadas"}
               </Text>
 
               <CaretRightIcon
@@ -649,7 +762,7 @@ export function Perfil() {
                   fontFamily: "Inter",
                 }}
               >
-                {usuario.acessibilidade}
+                {usuario.acessibilidade || "Ver mais"}
               </Text>
 
               <CaretRightIcon
@@ -693,7 +806,7 @@ export function Perfil() {
                   fontFamily: "Inter",
                 }}
               >
-                {usuario.tema}
+                {usuario.tema || "Escuro"}
               </Text>
 
               <View className="h-[22px] w-[42px] justify-center rounded-full bg-verde px-1">
@@ -724,9 +837,7 @@ export function Perfil() {
             style={({ pressed }) => ({
               opacity: pressed ? 0.7 : 1,
               transform: [
-                {
-                  scale: pressed ? 0.98 : 1,
-                },
+                { scale: pressed ? 0.98 : 1 },
               ],
             })}
           >
@@ -747,6 +858,59 @@ export function Perfil() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* ================================================= */}
+      {/* MODAL DE FOTO ATUALIZADA */}
+      {/* ================================================= */}
+
+      <Modal
+        visible={modalSucessoVisivel}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalSucessoVisivel(false)}
+      >
+        <Pressable
+          className="flex-1 items-center justify-center bg-black/70 px-6"
+          onPress={() => setModalSucessoVisivel(false)}
+        >
+          <Pressable
+            className="w-full items-center rounded-2xl border border-cartao-borda bg-cartao px-5 py-6"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <CheckCircleIcon
+              size={48}
+              color="#00C853"
+              weight="fill"
+            />
+
+            <Text
+              className="mt-3 text-center text-base text-texto"
+              style={{
+                fontFamily: "Inter",
+              }}
+            >
+              Foto de perfil atualizada!
+            </Text>
+
+            <Pressable
+              className="mt-5 w-full items-center rounded-xl bg-verde py-3"
+              onPress={() => setModalSucessoVisivel(false)}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Text
+                className="text-sm font-bold text-white"
+                style={{
+                  fontFamily: "Inter",
+                }}
+              >
+                Continuar
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* ================================================= */}
       {/* BOTTOM NAV */}
