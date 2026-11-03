@@ -12,15 +12,45 @@ import { QuizPerguntas } from "./src/screens/QuizPerguntas";
 import { Perfil } from "./src/screens/Perfil";
 import { EditarPerfil } from "./src/screens/EditarPerfil";
 import { Chatbot } from "./src/screens/Chatbot";
+import { AuthProvider, useAuth } from "./src/context/AuthContext";
 
 
 
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+function NavegacaoPrincipal() {
+  const { usuario, carregando } = useAuth();
+
+  if (carregando) {
+    return null;
+  }
+
   return (
     <NavigationContainer>
+      <Stack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName={usuario ? "Home" : "Login"}
+      >
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Cadastro" component={Cadastro} />
+        <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Noticias" component={Noticias} />
+        <Stack.Screen name="Jogos" component={Jogos} />
+        <Stack.Screen name="Quiz" component={Quiz} />
+        <Stack.Screen name="QuizPerguntas" component={QuizPerguntas} />
+        <Stack.Screen name="Perfil" component={Perfil} />
+        <Stack.Screen name="EditarPerfil" component={EditarPerfil} />
+        <Stack.Screen name="Chatbot" component={Chatbot} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+  <AuthProvider>
+    <NavegacaoPrincipal>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Cadastro" component={Cadastro} />
@@ -34,6 +64,7 @@ export default function App() {
         <Stack.Screen name="Chatbot" component={Chatbot} />
         
       </Stack.Navigator>
-    </NavigationContainer>
+    </NavegacaoPrincipal>
+  </AuthProvider>
   );
 }

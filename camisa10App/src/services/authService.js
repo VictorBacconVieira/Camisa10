@@ -94,3 +94,25 @@ export async function obterUsuarioAutenticado() {
 export async function fazerLogout() {
   await SecureStore.deleteItemAsync("camisa10_token");
 }
+
+export async function atualizarPerfil(dados) {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.")
+  }
+
+  return await requisicaoAPI(
+    "/api/auth/me",
+    "PUT",
+    dados,
+    token
+  ); 
+}
+
+export async function obterTimesDisponiveis() {
+  return await requisicaoAPI(
+    "/api/times",
+    "GET"
+  );  
+}

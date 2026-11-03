@@ -31,7 +31,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import Input from "../components/input";
 
-import { fazerLogin } from "../services/authService"; 
+import { useAuth } from "../context/AuthContext";
 
 // ==================================================
 // USUÁRIO TEMPORÁRIO DE DESENVOLVIMENTO
@@ -301,6 +301,8 @@ export function Login() {
 
   const acaoAlertaRef = useRef(null);
 
+  const { entrar: loginContexto } = useAuth();
+
   // ==================================================
   // EXIBIR POP-UP
   // ==================================================
@@ -352,7 +354,7 @@ export function Login() {
   // ==================================================
 
   async function autenticarUsuario(emailUsuario, senhaUsuario) {
-    return await fazerLogin(emailUsuario, senhaUsuario);
+    return await loginContexto(emailUsuario, senhaUsuario);
 }
 
   // ==================================================

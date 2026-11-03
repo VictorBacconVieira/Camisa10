@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   View,
@@ -28,7 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
 import { CalendarioPersonalizado } from "../components/calendarioPersonalizado";
-
+import { useAuth } from "../context/AuthContext";
 // =====================================================
 // COMPONENTE: CAMPO DE TEXTO
 // Declarado fora de EditarPerfil para preservar o foco.
@@ -147,6 +147,10 @@ function CampoSenha({
 
 export function EditarPerfil() {
   const navigation = useNavigation();
+  const { 
+    usuario: usuarioAutenticado,
+    atualizarDadosUsuario,
+  } = useAuth();
 
   // =====================================================
   // DADOS TEMPORÁRIOS DO USUÁRIO
@@ -154,11 +158,27 @@ export function EditarPerfil() {
   // =====================================================
 
   const [usuario, setUsuario] = useState({
-    nome: "Neymar Jr.",
-    nomeUsuario: "neymarjr",
-    email: "neymar@email.com",
-    dataNascimento: new Date(1992, 1, 5),
+    nome: usuarioAutenticado?.nome || "",
+    nomeUsuario: usuarioAutenticado?.apelido || "",
+    email: usuarioAutenticado?.email || "",
+    dataNascimento: usuarioAutenticado?.data_nascimento
+    ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
+    : new Date(),
   });
+
+  useEffect(() => {
+    if (!usuarioAutenticado) return;
+
+    setUsuario((anterior) => ({
+      ...anterior,
+      nome: usuarioAutenticado.nome || "",
+      nomeUsuario: usuarioAutenticado.apelido || "",
+      email: usuarioAutenticado.email || "",
+      dataNascimento: usuarioAutenticado.data_nascimento
+      ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
+      : anterior.dataNascimento,
+    }));
+  }, [usuarioAutenticado]);
 
   const [fotoPerfil, setFotoPerfil] = useState(null);
 
@@ -231,7 +251,7 @@ export function EditarPerfil() {
     }));
   }
 
-  function salvarAlteracoes() {
+  async function salvarAlteracoes() {
     if (!usuario.nome.trim()) {
       setMensagemSucesso("Informe seu nome completo.");
       setModalSucesso(true);
@@ -250,13 +270,29 @@ export function EditarPerfil() {
       return;
     }
 
-    // BACKEND:
-    // Enviar os dados atualizados para a API.
-    // Exemplo futuro: PUT/PATCH dos dados do usuário.
-    // A API deverá validar e-mail, nome de usuário e demais informações.
+    try {
+      const dados = {
+        nome: usuario.nome.trim(),
+        email: usuario.email.trim(),
+        apelido: usuario.nomeUsuario.trim(),
+        data_nascimento: usuario.dataNascimento
+        .toISOString()
+        .split("T")[0],
+      };
 
-    setMensagemSucesso("Seus dados foram atualizados!");
-    setModalSucesso(true);
+      await atualizarDadosUsuario(dados);
+
+      setMensagemSucesso("Seus dados foram atualizados!");
+      setModalSucesso(true);
+    } catch (error) {
+      console.log("Erro ao atualizar perfil:", error.message);
+
+      setMensagemSucesso(
+        error.message || "Não foi possível atualizar seus dados."
+      );
+
+      setModalSucesso(true);
+    }
   }
 
   // =====================================================

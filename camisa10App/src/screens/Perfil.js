@@ -3,8 +3,10 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
   Modal,
+  Image,
 } from "react-native";
 
 import { useState } from "react";
@@ -32,6 +34,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
 
+import { useAuth } from "../context/AuthContext";
+
+import { obterTimesDisponiveis } from "../services/authService";
+
 export function Perfil() {
   const navigation = useNavigation();
 
@@ -39,6 +45,18 @@ export function Perfil() {
     useState(false);
 
   const [fotoPerfil, setFotoPerfil] = useState(null);
+
+  const [pesquisaTime, setPesquisaTime] = useState("");
+
+  const {
+    usuario: usuarioAutenticado,
+    sair,
+    atualizarDadosUsuario,
+  } = useAuth();
+
+  const [timesDisponiveis, setTimesDisponiveis] = useState([]);
+  const [carregandoTimes, setCarregandoTimes] = useState(false);
+  const [modalTimesVisivel, setModalTimesVisivel] = useState(false);
 
   // =========================================================
   // FOTO DE PERFIL
@@ -61,8 +79,35 @@ export function Perfil() {
   // Campos numéricos sem registros devem retornar 0.
   // =========================================================
 
+  async function abrirSeletorTimes() {
+    try {
+      setCarregandoTimes(true);
+
+      const resultado = await obterTimesDisponiveis();
+
+      setTimesDisponiveis(resultado.times || []);
+      setModalTimesVisivel(true);
+    } catch (error) {
+      console.log("Erro ao carregar clubes:", error.message);
+    } finally {
+      setCarregandoTimes(false);
+    }
+  }
+
+  async function salvarTimeFavorito(time) {
+    try {
+      await atualizarDadosUsuario({
+        time_coracao_id: time ? String(time.id) : null,
+      });
+
+      setModalTimesVisivel(false);
+    } catch (error) {
+      console.log("Erro ao atualizar time favorito:", error.message);
+    }
+  }
+
   const usuario = {
-    nome: "Neymar Jr.",
+    nome: usuarioAutenticado?.nome || "Usuário",
 
     // XP acumulado pelo usuário.
     // Exemplo: 0, 10000, 11000, 12000...
@@ -71,7 +116,7 @@ export function Perfil() {
     quizzes: 49,
     sequenciaAtual: 5,
 
-    timeFavorito: "Santos",
+    timeFavorito: usuarioAutenticado?.time_coracao?.nome || "Nenhum",
     notificacoes: "Ativadas",
     acessibilidade: "Ver mais",
     tema: "Escuro",
@@ -500,11 +545,10 @@ export function Perfil() {
             return (
               <Pressable
                 key={conquista.id}
-                className={`mt-2 flex-row items-center rounded-lg border bg-cartao px-3 py-3 ${
-                  conquista.desbloqueada
+                className={`mt-2 flex-row items-center rounded-lg border bg-cartao px-3 py-3 ${conquista.desbloqueada
                     ? "border-verde"
                     : "border-cartao-borda"
-                }`}
+                  }`}
                 onPress={() => {
                   // FUTURO:
                   // Poderemos abrir os detalhes da conquista.
@@ -538,11 +582,10 @@ export function Perfil() {
 
                 <View className="ml-3 flex-1">
                   <Text
-                    className={`text-sm ${
-                      conquista.desbloqueada
+                    className={`text-sm ${conquista.desbloqueada
                         ? "text-texto"
                         : "text-texto-ter"
-                    }`}
+                      }`}
                     style={{
                       fontFamily: "Inter",
                     }}
@@ -562,11 +605,10 @@ export function Perfil() {
                   {/* PROGRESSO */}
 
                   <Text
-                    className={`mt-1 text-[10px] ${
-                      conquista.desbloqueada
+                    className={`mt-1 text-[10px] ${conquista.desbloqueada
                         ? "text-verde"
                         : "text-texto-ter"
-                    }`}
+                      }`}
                     style={{
                       fontFamily: "Inter",
                     }}
@@ -645,10 +687,7 @@ export function Perfil() {
 
             <Pressable
               className="h-16 flex-row items-center px-3"
-              onPress={() => {
-                // FUTURO BACKEND / API:
-                // Permitir selecionar o time favorito.
-              }}
+              onPress={abrirSeletorTimes}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
@@ -823,16 +862,16 @@ export function Perfil() {
         <View className="mt-6 px-5">
           <Pressable
             className="h-14 flex-row items-center justify-between rounded-lg border border-vermelho px-3"
-            onPress={() => {
-              // FUTURO BACKEND:
-              // Aqui será realizado o logout real da sessão.
-              //
-              // Exemplo:
-              // await api.post("/logout");
-              //
-              // Por enquanto, voltamos para o Login.
-
-              navigation.replace("Login");
+            onPress={async () => {
+              try {
+                await sair();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Login" }],
+                });
+              } catch (error) {
+                console.log("Erro ao sair da conta:", error.message);
+              }
             }}
             style={({ pressed }) => ({
               opacity: pressed ? 0.7 : 1,
@@ -858,6 +897,135 @@ export function Perfil() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* ================================================= */}
+      {/* MODAL DE SELEÇÃO DO TIME FAVORITO */}
+      {/* ================================================= */}
+
+      <Modal
+        visible={modalTimesVisivel}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalTimesVisivel(false)}
+      >
+        <View className="flex-1 justify-end bg-black/70">
+          <View className="h-[85%] rounded-t-3xl border border-cartao-borda bg-fundo px-5 pt-5">
+
+            {/* CABEÇALHO */}
+
+            <View className="mb-5 flex-row items-center justify-between">
+              <Text
+                className="text-xl text-texto"
+                style={{ fontFamily: "Inter" }}
+              >
+                Meu Time Favorito
+              </Text>
+
+              <Pressable
+                onPress={() => setModalTimesVisivel(false)}
+              >
+                <Text className="text-verde">Fechar</Text>
+              </Pressable>
+            </View>
+
+            {/* PESQUISA */}
+
+            <TextInput
+              value={pesquisaTime}
+              onChangeText={setPesquisaTime}
+              placeholder="Pesquisar clube..."
+              placeholderTextColor="#6F7B83"
+              className="mb-4 rounded-xl border border-cartao-borda bg-cartao px-4 py-3 text-texto"
+              style={{ fontFamily: "Inter" }}
+            />
+
+            {/* REMOVER FAVORITO */}
+
+            <Pressable
+              className="mb-3 rounded-xl border border-vermelho px-4 py-3"
+              onPress={() => salvarTimeFavorito(null)}
+            >
+              <Text
+                className="text-center text-vermelho"
+                style={{ fontFamily: "Inter" }}
+              >
+                Remover time favorito
+              </Text>
+            </Pressable>
+
+            {/* LISTA DE CLUBES */}
+
+            {carregandoTimes ? (
+              <Text className="mt-5 text-center text-texto-sec">
+                Carregando clubes...
+              </Text>
+            ) : (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {timesDisponiveis
+                  .filter((time) =>
+                    time.nome
+                      ?.toLowerCase()
+                      .includes(pesquisaTime.toLowerCase().trim())
+                  )
+                  .map((time) => (
+                    <Pressable
+                      key={time.id}
+                      className="mb-2 flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-3 py-3"
+                      onPress={() => salvarTimeFavorito(time)}
+                    >
+                      {time.logo ? (
+                        <Image
+                          source={{ uri: time.logo }}
+                          className="h-10 w-10"
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <View className="h-10 w-10 rounded-full bg-cartao-borda" />
+                      )}
+
+                      <View className="ml-3 flex-1">
+                        <Text
+                          className="text-sm text-texto"
+                          style={{ fontFamily: "Inter" }}
+                        >
+                          {time.nome}
+                        </Text>
+
+                        <Text className="mt-1 text-[10px] text-texto-ter">
+                          {time.pais || "País não informado"}
+                        </Text>
+
+                        <Text className="mt-1 text-[10px] text-texto-ter">
+                          {time.competicoes
+                            ?.map((competicao) =>
+                              typeof competicao === "string"
+                                ? competicao
+                                : competicao.name
+                            )
+                            .filter(Boolean)
+                            .join(" • ")}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))}
+
+                {timesDisponiveis.filter((time) =>
+                  time.nome
+                    ?.toLowerCase()
+                    .includes(pesquisaTime.toLowerCase().trim())
+                ).length === 0 && (
+                    <Text className="mt-5 text-center text-texto-sec">
+                      Nenhum clube encontrado.
+                    </Text>
+                  )}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* ================================================= */}
       {/* MODAL DE FOTO ATUALIZADA */}
