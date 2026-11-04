@@ -29,6 +29,7 @@ import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
 import { CalendarioPersonalizado } from "../components/calendarioPersonalizado";
 import { useAuth } from "../context/AuthContext";
+import { atualizarFotoPerfil, alterarSenha as alterarSenhaAPI, excluirConta as excluirContaAPI, } from "../services/authService";
 // =====================================================
 // COMPONENTE: CAMPO DE TEXTO
 // Declarado fora de EditarPerfil para preservar o foco.
@@ -150,12 +151,9 @@ export function EditarPerfil() {
   const { 
     usuario: usuarioAutenticado,
     atualizarDadosUsuario,
+    atualizarFotoUsuario,
+    sair,
   } = useAuth();
-
-  // =====================================================
-  // DADOS TEMPORÁRIOS DO USUÁRIO
-  // BACKEND: substituir pelos dados do usuário autenticado.
-  // =====================================================
 
   const [usuario, setUsuario] = useState({
     nome: usuarioAutenticado?.nome || "",
@@ -178,9 +176,16 @@ export function EditarPerfil() {
       ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
       : anterior.dataNascimento,
     }));
+
+    setFotoPerfil(usuarioAutenticado.avatar_url || null);
+
   }, [usuarioAutenticado]);
 
-  const [fotoPerfil, setFotoPerfil] = useState(null);
+  const [fotoPerfil, setFotoPerfil] = useState(
+    usuarioAutenticado?.avatar_url || null
+  );
+
+  const [fotoCarregando, setFotoCarregando] = useState(false);
 
   // =====================================================
   // MODAIS
@@ -214,6 +219,9 @@ export function EditarPerfil() {
   // =====================================================
   // EXCLUSÃO DE CONTA
   // =====================================================
+
+  const [senhaExclusao, setSenhaExclusao] = useState("");
+  const [mostrarSenhaExclusao, setMostrarSenhaExclusao] = useState(false);
 
   const [confirmacaoExclusao, setConfirmacaoExclusao] =
     useState("");
@@ -249,6 +257,32 @@ export function EditarPerfil() {
       ...anterior,
       [campo]: valor,
     }));
+  }
+
+  async function selecionarFoto(uri) {
+    if (fotoCarregando) return;
+
+    try {
+      setFotoCarregando(true);
+
+      const resultado = await atualizarFotoPerfil(uri);
+
+      setFotoPerfil(resultado.avatar_url);
+      atualizarFotoUsuario(resultado.avatar_url);
+
+      setMensagemSucesso("Foto de perfil atualizada com sucesso!");
+      setModalSucesso(true);
+    } catch (error) {
+      console.log("Erro ao atualizar foto:", error.message);
+
+      setMensagemSucesso(
+        error.message || "Não foi possível atualizar sua foto."
+      );
+
+      setModalSucesso(true);
+    } finally {
+      setFotoCarregando(false);
+    } 
   }
 
   async function salvarAlteracoes() {
@@ -312,43 +346,40 @@ export function EditarPerfil() {
     setConfirmarSenha("");
   }
 
-  function alterarSenha() {
+  async function alterarSenha() {
+    setErroSenha("");
+
     if (!senhaAntiga || !novaSenha || !confirmarSenha) {
       setErroSenha("Preencha todos os campos para continuar.");
       return;
     }
 
     if (novaSenha.length < 8) {
-      setErroSenha(
-        "A nova senha deve possuir pelo menos 8 caracteres."
-      );
+      setErroSenha("A nova senha deve possuir pelo menos 8 caracteres.");
       return;
     }
 
     if (novaSenha !== confirmarSenha) {
-      setErroSenha(
-        "A nova senha e a confirmação precisam ser iguais."
-      );
+      setErroSenha("A nova senha e a confirmação precisam ser iguais.");
       return;
     }
 
     if (senhaAntiga === novaSenha) {
-      setErroSenha(
-        "A nova senha deve ser diferente da senha antiga."
-      );
+      setErroSenha("A nova senha deve ser diferente da senha antiga.");
       return;
     }
 
-    // BACKEND:
-    // Enviar senha antiga e nova senha para a API.
-    // O backend deverá validar a senha antiga e atualizar
-    // a senha utilizando hash seguro.
-    // Nunca armazenar senhas em texto puro.
+    try {
+      await alterarSenhaAPI(senhaAntiga, novaSenha);
 
-    fecharModalSenha();
+      fecharModalSenha();
+      setMensagemSucesso("Senha alterada com sucesso!");
+      setModalSucesso(true);
 
-    setMensagemSucesso("Senha alterada com sucesso!");
-    setModalSucesso(true);
+    } catch (erro) {
+      console.error("ERRO AO ALTERAR SENHA:", erro);
+      setErroSenha(erro.message || "Não foi possível alterar a senha.");
+    }
   }
 
   // =====================================================
@@ -365,29 +396,41 @@ export function EditarPerfil() {
     setModalExcluir(false);
     setConfirmacaoExclusao("");
     setErroExclusao("");
+    setSenhaExclusao("");
+    setMostrarSenhaExclusao(false);
   }
 
-  function excluirConta() {
+  async function excluirConta() {
+    setErroExclusao("");
+
     if (confirmacaoExclusao.trim() !== "EXCLUIR") {
       setErroExclusao(
         'Digite exatamente "EXCLUIR" para confirmar.'
       );
       return;
     }
+    
+    if (!senhaExclusao) {
+      setErroExclusao("Informe sua senha atual para continuar.");
+      return;
+    }
 
-    // BACKEND:
-    // Solicitar a exclusão da conta autenticada.
-    // O backend deverá validar a identidade do usuário,
-    // encerrar a sessão e aplicar a política de exclusão
-    // dos dados associados à conta.
+    try {
+      await excluirContaAPI(senhaExclusao);
 
-    fecharModalExcluir();
+      fecharModalExcluir();
 
-    setMensagemSucesso(
-      "A exclusão de conta será integrada ao backend futuramente."
-    );
+      await sair();
 
-    setModalSucesso(true);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (erro) {
+      setErroExclusao(
+        erro.message || "Não foi possível excluir sua conta."
+      );
+    }
   }
 
   // =====================================================
@@ -448,16 +491,7 @@ export function EditarPerfil() {
           <FotoPerfil
             foto={fotoPerfil}
             nome={usuario.nome}
-            onFotoSelecionada={(uri) => {
-              setFotoPerfil(uri);
-
-              // BACKEND:
-              // Futuramente enviar a imagem para o serviço
-              // de armazenamento e atualizar a foto do usuário.
-
-              setMensagemSucesso("Foto de perfil atualizada!");
-              setModalSucesso(true);
-            }}
+            onFotoSelecionada={selecionarFoto}
           />
         </View>
 
@@ -941,6 +975,17 @@ export function EditarPerfil() {
                 color: "#F5F7F8",
                 marginBottom: 12,
               }}
+            />
+
+            <CampoSenha
+              label="Senha atual"
+              valor={senhaExclusao}
+              onChangeText={setSenhaExclusao}
+              mostrar={mostrarSenhaExclusao}
+              alternarVisibilidade={() =>
+                setMostrarSenhaExclusao(!mostrarSenhaExclusao)
+              }
+              placeholder="Digite sua senha atual"
             />
 
             {!!erroExclusao && (

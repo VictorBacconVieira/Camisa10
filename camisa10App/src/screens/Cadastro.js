@@ -38,7 +38,7 @@ import Checkbox from "../components/checkbox";
 import PasswordRequirement from "../components/passwordRequirement";
 import { FotoPerfil } from "../components/fotoPerfil";
 
-import { cadastrarUsuario } from "../services/authService";
+import { cadastrarUsuario, atualizarFotoPerfil } from "../services/authService";
 
 // =============================================================
 // MODAL PERSONALIZADO
@@ -186,6 +186,7 @@ export function Cadastro() {
 
   const [termos, setTermos] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [fotoCarregando, setFotoCarregando] = useState(false);
 
   const [alerta, setAlerta] = useState({
     visivel: false,
@@ -535,10 +536,28 @@ export function Cadastro() {
       const resultado = await enviarCadastro();
 
       if (resultado?.access_token) {
+        let mensagem = "Seu cadastro foi realizado com sucesso. Bem-vindo ao Camisa10!";
+
+        if (fotoPerfil) {
+          try {
+            setFotoCarregando(true);
+
+            await atualizarFotoPerfil(fotoPerfil);
+
+            mensagem += "\n\nSua foto de perfil também foi cadastrada!";
+          } catch (erroFoto) {
+            console.error("ERRO AO ENVIAR FOTO:", erroFoto);
+
+            mensagem += "\n\nNão foi possível enviar sua foto. Você poderá adicioná-la depois no perfil.";
+          } finally {
+            setFotoCarregando(false);
+          }
+        }
+
         mostrarAlerta(
           "sucesso",
           "Conta criada!",
-          "Seu cadastro foi realizado com sucesso. Bem-vindo ao Camisa10!",
+          mensagem,
           () => navigation.navigate("Login"),
         );
       } else {
@@ -816,11 +835,11 @@ export function Cadastro() {
 
           <Pressable
             onPress={cadastrar}
-            disabled={carregando}
+            disabled={carregando || fotoCarregando}
             className="h-12 flex-row items-center justify-center rounded-xl bg-verde"
             style={{ opacity: carregando ? 0.7 : 1 }}
           >
-            {carregando ? (
+            {carregando || fotoCarregando ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text

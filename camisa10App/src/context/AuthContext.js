@@ -60,6 +60,13 @@ export function AuthProvider({ children }) {
         return dadosAtualizados;  
     }
 
+    function atualizarFotoUsuario(novaFoto) {
+        setUsuario((usuarioAtual) => ({
+            ...usuarioAtual,
+            avatar_url: novaFoto,
+        }));
+    }
+
     async function sair() {
         await fazerLogout();
         setUsuario(null); 
@@ -75,6 +82,7 @@ export function AuthProvider({ children }) {
                 sair,
                 setUsuario,
                 atualizarDadosUsuario,
+                atualizarFotoUsuario,
             }}
             >
                 {children}

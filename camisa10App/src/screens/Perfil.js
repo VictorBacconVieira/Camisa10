@@ -38,35 +38,28 @@ import { useAuth } from "../context/AuthContext";
 
 import { obterTimesDisponiveis } from "../services/authService";
 
+import { atualizarFotoPerfil } from "../services/authService";
+
 export function Perfil() {
   const navigation = useNavigation();
 
   const [modalSucessoVisivel, setModalSucessoVisivel] =
     useState(false);
 
-  const [fotoPerfil, setFotoPerfil] = useState(null);
-
   const [pesquisaTime, setPesquisaTime] = useState("");
+
+  const [fotoCarregando, setFotoCarregando] = useState(false);
 
   const {
     usuario: usuarioAutenticado,
     sair,
     atualizarDadosUsuario,
+    atualizarFotoUsuario,
   } = useAuth();
 
   const [timesDisponiveis, setTimesDisponiveis] = useState([]);
   const [carregandoTimes, setCarregandoTimes] = useState(false);
   const [modalTimesVisivel, setModalTimesVisivel] = useState(false);
-
-  // =========================================================
-  // FOTO DE PERFIL
-  // =========================================================
-  // O componente FotoPerfil controla a seleção da imagem,
-  // permissões, câmera, galeria e modal de seleção.
-  //
-  // FUTURO BACKEND:
-  // Enviar a imagem para a API e salvar a foto do usuário.
-  // =========================================================
 
   // =========================================================
   // DADOS TEMPORÁRIOS DO USUÁRIO
@@ -78,6 +71,23 @@ export function Perfil() {
   // Substituir pelos dados recebidos da API do usuário.
   // Campos numéricos sem registros devem retornar 0.
   // =========================================================
+
+  async function selecionarFoto(uri) {
+    if (fotoCarregando) return;
+
+    try{
+      setFotoCarregando(true);
+
+      const resultado = await atualizarFotoPerfil(uri);
+
+      atualizarFotoUsuario(resultado.avatar_url);
+      setModalSucessoVisivel(true);
+    } catch (error) {
+      console.log("Erro ao atualizar foto:", error.message);
+    } finally {
+      setFotoCarregando(false);
+    }  
+  }
 
   async function abrirSeletorTimes() {
     try {
@@ -307,17 +317,10 @@ export function Perfil() {
             {/* FOTO DE PERFIL - COMPONENTE REUTILIZÁVEL */}
 
             <FotoPerfil
-              foto={fotoPerfil}
+              foto={usuarioAutenticado?.avatar_url || null}
               nome={usuario.nome}
               tamanho={96}
-              onFotoSelecionada={(uri) => {
-                setFotoPerfil(uri);
-                setModalSucessoVisivel(true);
-
-                // FUTURO BACKEND:
-                // Enviar a imagem para a API e salvar
-                // a foto do usuário.
-              }}
+              onFotoSelecionada={selecionarFoto}
             />
 
             {/* NOME */}
