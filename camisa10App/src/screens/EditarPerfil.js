@@ -161,7 +161,7 @@ export function EditarPerfil() {
     email: usuarioAutenticado?.email || "",
     dataNascimento: usuarioAutenticado?.data_nascimento
     ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
-    : new Date(),
+    : null,
   });
 
   useEffect(() => {
@@ -174,7 +174,7 @@ export function EditarPerfil() {
       email: usuarioAutenticado.email || "",
       dataNascimento: usuarioAutenticado.data_nascimento
       ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
-      : anterior.dataNascimento,
+      : null,
     }));
 
     setFotoPerfil(usuarioAutenticado.avatar_url || null);
@@ -236,6 +236,8 @@ export function EditarPerfil() {
     useState(false);
 
   function formatarData(data) {
+    if (!data) return "Selecionar data";
+
     return data.toLocaleDateString("pt-BR");
   }
 
@@ -310,8 +312,8 @@ export function EditarPerfil() {
         email: usuario.email.trim(),
         apelido: usuario.nomeUsuario.trim(),
         data_nascimento: usuario.dataNascimento
-        .toISOString()
-        .split("T")[0],
+          ? usuario.dataNascimento.toISOString().split("T")[0]
+          : null,
       };
 
       await atualizarDadosUsuario(dados);
@@ -319,7 +321,8 @@ export function EditarPerfil() {
       setMensagemSucesso("Seus dados foram atualizados!");
       setModalSucesso(true);
     } catch (error) {
-      console.log("Erro ao atualizar perfil:", error.message);
+      console.log("ERRO COMPLETO AO SALVAR PERFIL:", error);
+      console.log("STACK:", error.stack);
 
       setMensagemSucesso(
         error.message || "Não foi possível atualizar seus dados."

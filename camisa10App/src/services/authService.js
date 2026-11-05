@@ -70,6 +70,24 @@ export async function fazerLogin(email, senha) {
   return resultado;
 }
 
+// Login com Google
+export async function fazerLoginGoogle(idToken) {
+  const resultado = await requisicaoAPI(
+    "/api/auth/google",
+    "POST",
+    { id_token: idToken}
+  );
+
+  if (resultado.access_token) {
+    await SecureStore.setItemAsync(
+      "camisa10_token",
+      resultado.access_token
+    );
+  }
+
+  return resultado; 
+}
+
 // Recupera o token salvo
 export async function obterToken() {
   return await SecureStore.getItemAsync("camisa10_token");

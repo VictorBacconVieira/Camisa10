@@ -33,15 +33,15 @@ import Input from "../components/input";
 
 import { useAuth } from "../context/AuthContext";
 
-// ==================================================
-// USUÁRIO TEMPORÁRIO DE DESENVOLVIMENTO
-// REMOVER QUANDO O BACKEND ESTIVER INTEGRADO
-// ==================================================
+import {
+  GoogleSignin,
+  isSuccessResponse,
+} from "@react-native-google-signin/google-signin"
 
-const USUARIO_TESTE = {
-  email: "admin@gmail.com",
-  senha: "Admin@1234",
-};
+GoogleSignin.configure({
+  webClientId:
+    "407036789216-kolklnt63u97lq8m58gp0idl3ps71ru2.apps.googleusercontent.com",
+});
 
 // ==================================================
 // POP-UP PERSONALIZADO
@@ -301,7 +301,7 @@ export function Login() {
 
   const acaoAlertaRef = useRef(null);
 
-  const { entrar: loginContexto } = useAuth();
+  const { entrar: loginContexto, entrarComGoogle: loginGoogleContexto } = useAuth();
 
   // ==================================================
   // EXIBIR POP-UP
@@ -453,6 +453,58 @@ export function Login() {
     } finally {
       setCarregando(false);
     }
+  }
+
+  // ==================================================
+  // LOGIN COM GOOGLE
+  // ==================================================
+
+  async function entrarComGoogle() {
+    if (carregando) return;
+
+    try {
+      Keyboard.dismiss();
+      setCarregando(true);
+
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
+      });
+
+      const resposta = await GoogleSignin.signIn();
+
+      if (!isSuccessResponse(resposta)) {
+        return;
+      }
+
+      const idToken = resposta.data.idToken;
+
+      if (!idToken) {
+        throw new Error("Não foi possível obter o token do Google.");
+      }
+
+      const autenticado = await loginGoogleContexto(idToken);
+
+      if (autenticado?.access_token) {
+        mostrarAlerta(
+          "Login realizado!",
+          "Bem-vindo ao Camisa10! Prepare-se para entrar em campo.",
+          "sucesso",
+          () => navigation.navigate("Home")
+        );
+      }
+
+    } catch (erro) {
+      console.log("Erro no login Google:", erro);
+
+      mostrarAlerta(
+        "Erro ao entrar com Google",
+        erro?.message || "Não foi possível realizar o login. Tente novamente.",
+        "erro"
+      );
+
+    } finally {
+      setCarregando(false);
+    } 
   }
 
   // ==================================================
@@ -693,9 +745,7 @@ export function Login() {
 
             <Pressable
               className="mt-5 h-[55px] flex-row items-center justify-center rounded-[15px] border border-cartao-borda bg-cartao"
-              onPress={() => {
-                // Implementaremos posteriormente.
-              }}
+              onPress={entrarComGoogle}
             >
 
               <Text

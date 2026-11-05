@@ -4,6 +4,7 @@ import {
     obterUsuarioAutenticado,
     obterToken,
     fazerLogin,
+    fazerLoginGoogle,
     fazerLogout,
     atualizarPerfil,
 } from "../services/authService";
@@ -50,6 +51,15 @@ export function AuthProvider({ children }) {
         return resultado; 
     }
 
+    async function entrarComGoogle(idToken) {
+        const resultado = await fazerLoginGoogle(idToken);
+        const dadosUsuario = await obterUsuarioAutenticado();
+
+        setUsuario(dadosUsuario);
+
+        return resultado;
+    }
+
     async function atualizarDadosUsuario(dados) {
         const resultado = await atualizarPerfil(dados);
 
@@ -79,6 +89,7 @@ export function AuthProvider({ children }) {
                 carregando,
                 autenticado: !!usuario,
                 entrar,
+                entrarComGoogle,
                 sair,
                 setUsuario,
                 atualizarDadosUsuario,
