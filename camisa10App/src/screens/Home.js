@@ -3,7 +3,10 @@ import {
   ScrollView,
   Text,
   View,
+  Image,
 } from "react-native";
+
+import { useEffect, useState } from "react";
 
 import {
   BellIcon,
@@ -23,29 +26,58 @@ import { useNavigation } from "@react-navigation/native";
 
 import { BottomNav } from "../components/bottomNav";
 
+import { obterPlacarPersonalizado } from "../services/authService";
+
 export function Home() {
   const navigation = useNavigation();
 
-  // =========================================================
-  // DADOS TEMPORÁRIOS
-  // =========================================================
-  //
-  // Estes dados são utilizados somente para o frontend.
-  //
-  // FUTURO BACKEND / API:
-  // Substituir estes dados pelas informações recebidas
-  // através da API do Camisa10.
-  //
-  // =========================================================
+  const [placar, setPlacar] = useState(null);
+  const [carregandoPlacar, setCarregandoPlacar] = useState(true);
+  const [erroPlacar, setErroPlacar] = useState(null);
 
-  const proximoJogo = {
-    campeonato: "Brasileirão - Série A",
-    timeCasa: "Santos",
-    timeFora: "Vasco da Gama",
-    data: "Dom, 16/08",
-    horario: "16:00",
-    estadio: "Vila Belmiro",
-  };
+  useEffect(() => {
+    async function carregarPlacar() {
+      try {
+        setCarregandoPlacar(true);
+        setErroPlacar(null);
+
+        const resultado = await obterPlacarPersonalizado();
+
+        setPlacar(resultado);
+      } catch (error) {
+        console.log("Erro ao carregar placar:", error.message);
+        setErroPlacar(error.message);
+      } finally {
+        setCarregandoPlacar(false);
+      }
+    }
+    carregarPlacar();
+  }, []);
+
+  const timeFavorito = placar?.time ?? null;
+
+  const jogoDestaque = placar?.jogo?.jogo ?? null;
+
+  const tipoJogo = placar?.jogo?.tipo ?? null;
+
+  const ehResultado = tipoJogo === "resultado";
+
+  const dataFormatada = jogoDestaque?.data
+    ? new Date(jogoDestaque.data).toLocaleDateString("pt-BR", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    })
+    : null;
+
+  const horarioFormatado = jogoDestaque?.data
+    ? new Date(jogoDestaque.data).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    })
+    : null;
 
   const noticias = [
     {
@@ -227,136 +259,219 @@ export function Home() {
 
           {/* CARD DO JOGO */}
 
-          <Pressable
-            className="mx-3 rounded-[10px] bg-cartao px-3 py-3"
-            onPress={() =>
-              navigation.navigate("Jogos")
-            }
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.85 : 1,
-              transform: [
-                {
-                  scale: pressed ? 0.98 : 1,
-                },
-              ],
-            })}
-          >
-
-            {/* CAMPEONATO */}
-
-            <View className="flex-row items-center">
-
-              {/* FUTURO API:
-                  Substituir pelo escudo/logo do campeonato. */}
-
-              <View className="h-7 w-7 rounded-md bg-white" />
-
+          {carregandoPlacar ? (
+            <View className="mx-3 rounded-[10px] bg-cartao px-3 py-8 items-center">
               <Text
-                className="ml-2 text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
+                className="text-sm text-texto-sec"
+                style={{ fontFamily: "Inter" }}
               >
-                {proximoJogo.campeonato}
+                Carregando informações do seu time...
               </Text>
-
             </View>
 
-            {/* TIMES */}
+          ) : erroPlacar ? (
+            <View className="mx-3 rounded-[10px] bg-cartao px-5 py-8 items-center">
+              <Text
+                className="text-base text-texto text-center"
+                style={{ fontFamily: "Inter" }}
+              >
+                Não foi possível carregar as informações do seu time.
+              </Text>
 
-            <View className="mt-4 flex-row items-center justify-between">
+              <Text
+                className="mt-2 text-sm text-texto-sec text-center"
+                style={{ fontFamily: "Inter" }}
+              >
+                Verifique sua conexão e tente novamente mais tarde.
+              </Text>
+            </View>
+          ) : !timeFavorito ? (
+            <View className="mx-3 rounded-[10px] bg-cartao px-5 py-8 items-center">
+              <Text
+                className="text-base text-texto text-center"
+                style={{ fontFamily: "Inter" }}
+              >
+                Você ainda não escolheu seu time do coração.
+              </Text>
 
-              {/* TIME DA CASA */}
+              <Text
+                className="mt-2 text-sm text-texto-sec text-center"
+                style={{ fontFamily: "Inter" }}
+              >
+                Acesse seu perfil e escolha um time para acompanhar os jogos!
+              </Text>
+            </View>
+          ) : !jogoDestaque ? (
+            <View className="mx-3 rounded-[10px] bg-cartao px-5 py-8 items-center">
+              <Text
+                className="text-base text-texto text-center"
+                style={{ fontFamily: "Inter" }}
+              >
+                Nenhuma partida disponível no momento
+              </Text>
 
-              <View className="w-[105px] items-center">
+              <Text
+                className="mt-2 text-sm text-texto-sec text-center"
+                style={{ fontFamily: "Inter" }}
+              >
+                Estamos buscando os próximos jogos do seu time. Volte mais tarde!
+              </Text>
+            </View>
+          ) : (
 
-                {/* =================================================
-                    ESCUDO TEMPORÁRIO
+            <Pressable
+              className="mx-3 rounded-[10px] bg-cartao px-3 py-3"
+              onPress={() =>
+                navigation.navigate("Jogos")
+              }
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.85 : 1,
+                transform: [
+                  {
+                    scale: pressed ? 0.98 : 1,
+                  },
+                ],
+              })}
+            >
 
-                    FUTURO BACKEND / API:
+              {/* CAMPEONATO */}
 
-                    Substituir este círculo branco pela imagem
-                    do escudo recebida pela API.
-                    ================================================= */}
+              <View className="flex-row items-center">
 
-                <View className="h-20 w-20 rounded-full bg-white" />
+                {jogoDestaque?.logo_competicao ? (
+                  <Image
+                    source={{ uri: jogoDestaque.logo_competicao }}
+                    className="h-7 w-7"
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <View className="h-7 w-7 rounded-md bg-white" />
+                )}
 
                 <Text
-                  className="mt-2 text-center text-lg text-texto"
+                  className="ml-2 text-sm text-texto"
                   style={{
                     fontFamily: "Inter",
                   }}
                 >
-                  {proximoJogo.timeCasa}
+                  {jogoDestaque?.competicao || "Partida em destaque"}
                 </Text>
 
               </View>
 
-              {/* X */}
+              {/* TIMES */}
 
-              <Text
-                className="text-5xl text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                x
-              </Text>
+              <View className="mt-8">
 
-              {/* TIME FORA */}
+                {/* ESCUDOS E PLACAR */}
 
-              <View className="w-[105px] items-center">
+                <View className="flex-row items-center">
 
-                {/* =================================================
-                    ESCUDO TEMPORÁRIO
+                  <View className="flex-1 items-center justify-center">
+                    {jogoDestaque?.escudo_mandante ? (
+                      <Image
+                        source={{ uri: jogoDestaque.escudo_mandante }}
+                        className="h-20 w-20"
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <View className="h-20 w-20 rounded-full bg-white" />
+                    )}
+                  </View>
 
-                    FUTURO BACKEND / API:
+                  <View className="flex-1 items-center justify-center">
+                    <Text
+                      className="text-5xl text-texto"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      {ehResultado &&
+                        jogoDestaque?.gols_mandante !== null &&
+                        jogoDestaque?.gols_visitante !== null
+                        ? `${jogoDestaque.gols_mandante} - ${jogoDestaque.gols_visitante}`
+                        : "x"}
+                    </Text>
+                  </View>
 
-                    Substituir este círculo branco pela imagem
-                    do escudo recebida pela API.
-                    ================================================= */}
+                  <View className="flex-1 items-center justify-center">
+                    {jogoDestaque?.escudo_visitante ? (
+                      <Image
+                        source={{ uri: jogoDestaque.escudo_visitante }}
+                        className="h-20 w-20"
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <View className="h-20 w-20 rounded-full bg-white" />
+                    )}
+                  </View>
 
-                <View className="h-20 w-20 rounded-full bg-white" />
+                </View>
 
-                <Text
-                  className="mt-2 text-center text-lg text-texto"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
-                >
-                  {proximoJogo.timeFora}
-                </Text>
+                {/* NOMES DOS CLUBES */}
+
+                <View className="mt-2 flex-row">
+
+                  {/* MANDANTE */}
+                  <View className="flex-1 items-center">
+                    <Text
+                      className="min-h-[40px] text-center text-sm text-texto"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      {jogoDestaque?.mandante || "A definir"}
+                    </Text>
+                  </View>
+
+                  {/* ESPAÇO CENTRAL DO PLACAR */}
+                  <View className="flex-1" />
+
+                  {/* VISITANTE */}
+                  <View className="flex-1 items-center">
+                    <Text
+                      className="min-h-[40px] text-center text-sm text-texto"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      {jogoDestaque?.visitante || "A definir"}
+                    </Text>
+                  </View>
+
+                </View>
+                {/* DATA / HORÁRIO / ESTÁDIO */}
+
+                <View className="mt-4 items-center">
+
+                  <Text
+                    className="text-[15px] text-texto-sec"
+                    style={{
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    {dataFormatada || "Data a definir"} • {horarioFormatado || "--:--"}
+                  </Text>
+
+                  <Text
+                    className="mt-1 text-[15px] text-texto-sec"
+                    style={{
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    {jogoDestaque?.estadio || "Estádio não informado"}
+                  </Text>
+
+                  <Text
+                    className="mt-1 text-xs text-texto-sec"
+                    style={{
+                      fontFamily: "Inter",
+                    }}
+                  >
+                    {ehResultado ? "Último resultado" : "Próximo jogo"}
+
+                  </Text>
+
+                </View>
 
               </View>
 
-            </View>
-
-            {/* DATA / HORÁRIO / ESTÁDIO */}
-
-            <View className="mt-4 items-center">
-
-              <Text
-                className="text-[15px] text-texto-sec"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                {proximoJogo.data} • {proximoJogo.horario}
-              </Text>
-
-              <Text
-                className="mt-1 text-[15px] text-texto-sec"
-                style={{
-                  fontFamily: "Inter",
-                }}
-              >
-                {proximoJogo.estadio}
-              </Text>
-
-            </View>
-
-          </Pressable>
-
+            </Pressable>
+          )}
         </View>
 
         {/* ================================================= */}
@@ -584,7 +699,7 @@ export function Home() {
 
       <Pressable
         className="absolute bottom-[105px] right-5 h-[60px] w-[60px] items-center justify-center rounded-full bg-verde"
-        onPress={() => { navigation.navigate("Chatbot")}}
+        onPress={() => { navigation.navigate("Chatbot") }}
         style={({ pressed }) => ({
           opacity: pressed ? 0.75 : 1,
           transform: [

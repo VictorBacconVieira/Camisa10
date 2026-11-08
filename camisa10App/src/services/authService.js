@@ -215,3 +215,18 @@ export async function excluirConta(senha) {
     token
   );
 }
+
+export async function obterPlacarPersonalizado() {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    "/api/home/placar",
+    "GET",
+    null,
+    token
+  );
+}
