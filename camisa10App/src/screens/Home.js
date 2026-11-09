@@ -4,6 +4,7 @@ import {
   Text,
   View,
   Image,
+  Linking,
 } from "react-native";
 
 import { useEffect, useState } from "react";
@@ -26,7 +27,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import { BottomNav } from "../components/bottomNav";
 
-import { obterPlacarPersonalizado } from "../services/authService";
+import { obterPlacarPersonalizado, obterNoticias } from "../services/authService";
 
 export function Home() {
   const navigation = useNavigation();
@@ -34,6 +35,10 @@ export function Home() {
   const [placar, setPlacar] = useState(null);
   const [carregandoPlacar, setCarregandoPlacar] = useState(true);
   const [erroPlacar, setErroPlacar] = useState(null);
+
+  const [noticias, setNoticias] = useState([]);
+  const [carregandoNoticias, setCarregandoNoticias] = useState(true);
+  const [erroNoticias, setErroNoticias] = useState(null)
 
   useEffect(() => {
     async function carregarPlacar() {
@@ -52,6 +57,27 @@ export function Home() {
       }
     }
     carregarPlacar();
+  }, []);
+
+  useEffect(() => {
+    async function carregarNoticias() {
+      try {
+        setCarregandoNoticias(true);
+        setErroNoticias(null);
+
+        const resultado = await obterNoticias("todas");
+
+        setNoticias(resultado.noticias || []);
+      } catch (error) {
+        console.error("Erro ao carregar notícias da Home:", error);
+        setErroNoticias(error.message);
+        setNoticias([]);
+      } finally {
+        setCarregandoNoticias(false);
+      }
+    }
+
+    carregarNoticias();
   }, []);
 
   const timeFavorito = placar?.time ?? null;
@@ -79,43 +105,33 @@ export function Home() {
     })
     : null;
 
-  const noticias = [
-    {
-      id: 1,
-      titulo:
-        'Neymar manda recado para Thiago Mendes após ser ignorado: "Soberba"',
-      tempo: "2h atrás",
-      fonte: "Jogada10",
-    },
-    {
-      id: 2,
-      titulo:
-        'Neymar manda recado para Thiago Mendes após ser ignorado: "Soberba"',
-      tempo: "2h atrás",
-      fonte: "Jogada10",
-    },
-  ];
+  function formatarTempo(data) {
+    if (!data) return "";
 
-  // =========================================================
-  // FUTURO BACKEND / API
-  // =========================================================
-  //
-  // Futuramente esta tela poderá receber:
-  //
-  // - Próximos jogos
-  // - Times
-  // - Escudos
-  // - Campeonatos
-  // - Notícias
-  // - Imagens
-  // - Horários
-  // - Estádios
-  //
-  // Exemplo futuro:
-  //
-  // const response = await api.get("/jogos/proximos");
-  //
-  // =========================================================
+    const agora = new Date();
+    const publicacao = new Date(data);
+    const diferenca = Math.floor((agora - publicacao) / 60000);
+
+    if (diferenca < 1) return "Agora";
+    if (diferenca < 60) return `Há ${diferenca} min`;
+
+    const horas = Math.floor(diferenca / 60);
+
+    if (horas < 24) return `Há ${horas}h`;
+
+    const dias = Math.floor(horas / 24);
+    return `Há ${dias} dia${dias > 1 ? "s" : ""}`;
+  }
+
+  async function abrirNoticia(noticia) {
+    if (!noticia?.url) return;
+
+    try {
+      await Linking.openURL(noticia.url);
+    } catch (error) {
+      console.error("Erro ao abrir notícia:", error)
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-fundo" edges={["top", "bottom"]}>
@@ -220,7 +236,7 @@ export function Home() {
                 fontFamily: "Anuphan",
               }}
             >
-              Próximos jogos
+              Central de jogos
             </Text>
 
             {/* VER TODOS */}
@@ -531,86 +547,96 @@ export function Home() {
 
           {/* NOTÍCIAS */}
 
-          {noticias.map((noticia) => (
+          {carregandoNoticias ? (
+            <View className="mx-3 mb-4 rounded-[10px] bg-cartao p-5">
+              <Text className="text-sm text-texto-sec">
+                Carregando notícias...
+              </Text>
+            </View>
+          ) : erroNoticias ? (
+            <View className="mx-3 mb-4 rounded-[10px] bg-cartao p-5">
+              <Text className="text-sm text-texto-sec">
+                Não foi possível carregar as notícias.
+              </Text>
+            </View>
+          ) : noticias.length === 0 ? (
+            <View className="mx-3 mb-4 rounded-[10px] bg-cartao p-5">
+              <Text className="text-sm text-texto-sec">
+                Nenhuma notícia encontrada no momento.
+              </Text>
+            </View>
+          ) : (
+            noticias.slice(0, 2).map((noticia, index) => (
+              <Pressable
+                key={`${noticia.url || noticia.titulo}-${index}`}
+                className="mx-3 mb-4 h-[89px] flex-row rounded-[10px] bg-cartao p-3"
+                onPress={() => abrirNoticia(noticia)}
+                style={({ pressed }) => ({
+                  opacity: pressed ? 0.85 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                })}
+              >
+                {/* IMAGEM DA NOTÍCIA */}
 
-            <Pressable
-              key={noticia.id}
-              className="mx-3 mb-4 h-[89px] flex-row rounded-[10px] bg-cartao p-3"
-              onPress={() => {
-                // FUTURO BACKEND:
-                // Abrir a notícia selecionada.
-              }}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.85 : 1,
-                transform: [
-                  {
-                    scale: pressed ? 0.98 : 1,
-                  },
-                ],
-              })}
-            >
+                {noticia.imagem ? (
+                  <Image
+                    source={{ uri: noticia.imagem }}
+                    className="h-[68px] w-[90px] rounded-[10px]"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="h-[68px] w-[90px] rounded-[10px] bg-cartao-borda items-center justify-center">
+                    <Text className="text-[10px] text-texto-sec">
+                      Sem imagem
+                    </Text>
+                  </View>
+                )}
 
-              {/* =================================================
-                  IMAGEM DA NOTÍCIA
+                {/* INFORMAÇÕES */}
 
-                  FUTURO BACKEND / API:
-
-                  Substituir este placeholder pela imagem
-                  recebida da API.
-                  ================================================= */}
-
-              <View className="h-[68px] w-[90px] rounded-[10px] bg-cartao-borda" />
-
-              {/* INFORMAÇÕES */}
-
-              <View className="ml-3 flex-1 justify-between">
-
-                <Text
-                  numberOfLines={3}
-                  className="text-sm text-texto"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
-                >
-                  {noticia.titulo}
-                </Text>
-
-                <View className="flex-row items-center">
-
-                  {/* FUTURO BACKEND:
-                      Avatar/logo da fonte da notícia. */}
-
-                  <View className="h-[15px] w-[15px] rounded-full bg-white" />
-
+                <View className="ml-3 flex-1 justify-between">
                   <Text
-                    className="ml-1 text-xs text-texto"
-                    style={{
-                      fontFamily: "Inter",
-                    }}
+                    numberOfLines={3}
+                    className="text-sm text-texto"
+                    style={{ fontFamily: "Inter" }}
                   >
-                    {noticia.fonte}
+                    {noticia.titulo}
                   </Text>
 
-                  <Text className="mx-1 text-xs text-texto-sec">
-                    •
-                  </Text>
+                  <View className="flex-row items-center">
+                    {noticia.url && (
+                      <Image
+                        source={{
+                          uri: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(noticia.url)}&sz=64`,
+                        }}
+                        className="h-[15px] w-[15px] rounded-full"
+                        resizeMode="contain"
+                      />
+                    )}
 
-                  <Text
-                    className="text-xs text-texto-sec"
-                    style={{
-                      fontFamily: "Inter",
-                    }}
-                  >
-                    {noticia.tempo}
-                  </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="ml-1 text-xs text-texto"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      {noticia.fonte}
+                    </Text>
 
+                    <Text className="mx-1 text-xs text-texto-sec">
+                      •
+                    </Text>
+
+                    <Text
+                      className="text-xs text-texto-sec"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      {formatarTempo(noticia.publicado_em)}
+                    </Text>
+                  </View>
                 </View>
-
-              </View>
-
-            </Pressable>
-
-          ))}
+              </Pressable>
+            ))
+          )}
 
         </View>
 

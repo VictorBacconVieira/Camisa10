@@ -230,3 +230,19 @@ export async function obterPlacarPersonalizado() {
     token
   );
 }
+
+export async function obterNoticias(categoria = "todas") {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    `/api/news/?categoria=${encodeURIComponent(categoria)}`,
+    "GET",
+    null,
+    token
+  );
+  
+}

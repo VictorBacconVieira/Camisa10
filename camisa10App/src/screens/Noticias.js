@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   Alert,
@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   View,
+  Image,
 } from "react-native";
 
 import {
@@ -21,6 +22,8 @@ import { useNavigation } from "@react-navigation/native";
 
 import { BottomNav } from "../components/bottomNav";
 
+import { obterNoticias } from "../services/authService";
+
 export function Noticias() {
   const navigation = useNavigation();
 
@@ -30,68 +33,37 @@ export function Noticias() {
 
   const [categoriaAtiva, setCategoriaAtiva] = useState("Todas");
   const [busca, setBusca] = useState("");
+  const [noticias, setNoticias] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
+  const [timeFavorito, setTimeFavorito] = useState(null);
+  const [atualizacao, setAtualizacao] = useState(0);
 
-  // FUTURO BACKEND / API:
-  // Substituir esta lista pelas notícias recebidas do backend.
-  //
-  // Estrutura esperada:
-  // id, titulo, imagem, fonte, tempo, categoria, url,
-  // timesRelacionados.
-  //
-  // Os campos imagem e url poderão vir diretamente da API.
+  useEffect(() => {
+    async function carregarNoticias() {
+      try {
+        setCarregando(true);
+        setErro(null);
 
-  const noticias = [
-    {
-      id: 1,
-      titulo:
-        'Neymar manda recado para Thiago Mendes após ser ignorado: "Soberba"',
-      tempo: "2h atrás",
-      fonte: "Jogada10",
-      categoria: "Futebol",
+        const categoria = categoriaAtiva
+          .toLowerCase()
+          .replaceAll(" ", " ");
 
-      // Cadastre aqui o endereço EXATO da matéria.
-      // null significa que o link ainda precisa ser cadastrado.
-      url: null,
+        const resultado = await obterNoticias(categoria);
 
-      imagem: null,
+        setNoticias(resultado.noticias || []);
+        setTimeFavorito(resultado.time || null);
+      } catch (error) {
+        console.error("Erro ao carregar notícias:", error);
+        setErro(error.message);
+        setNoticias([]);
+      } finally {
+        setCarregando(false);
+      }
+    }
 
-      // FUTURA API: preencher com os times relacionados.
-      timesRelacionados: ["Santos"],
-    },
-    {
-      id: 2,
-      titulo:
-        "Mercado da bola movimenta os grandes clubes brasileiros nesta semana",
-      tempo: "4h atrás",
-      fonte: "Camisa10",
-      categoria: "Mercado da Bola",
-      url: "https://ge.globo.com/pr/especial-publicitario/aurora/dicas-de-churrasco/noticia/2026/04/22/churras-do-ge-ex-jogador-do-santos-diz-que-neymar-e-imprescindivel-para-a-selecao-brasileira.ghtml",
-      imagem: null,
-      timesRelacionados: [],
-    },
-    {
-      id: 3,
-      titulo:
-        "Confira os principais jogos que acontecem nesta rodada",
-      tempo: "6h atrás",
-      fonte: "Camisa10",
-      categoria: "Jogos",
-      url: null,
-      imagem: null,
-      timesRelacionados: [],
-    },
-    {
-      id: 4,
-      titulo:
-        "Craques brasileiros são destaque antes da próxima rodada",
-      tempo: "8h atrás",
-      fonte: "Jogada10",
-      categoria: "Futebol",
-      url: null,
-      imagem: null,
-      timesRelacionados: ["Santos"],
-    },
-  ];
+    carregarNoticias();
+  }, [categoriaAtiva, atualizacao]);
 
   // =========================================================
   // CATEGORIAS
@@ -104,11 +76,6 @@ export function Noticias() {
     "Jogos",
   ];
 
-  // FUTURO BACKEND:
-  // Receber o time favorito do perfil do usuário.
-  // Enquanto isso, altere para "Santos" para testar o filtro.
-  const timeFavorito = null;
-
   // =========================================================
   // FILTRO E PESQUISA
   // =========================================================
@@ -116,26 +83,52 @@ export function Noticias() {
   const noticiasFiltradas = noticias.filter((noticia) => {
     const termo = busca.trim().toLowerCase();
 
+    const titulo = (noticia.titulo || "").toLowerCase();
+    const fonte = (noticia.fonte || "").toLowerCase();
+    const descricao = (noticia.descricao || "").toLowerCase();
+
     const correspondeBusca =
-      noticia.titulo.toLowerCase().includes(termo) ||
-      noticia.fonte.toLowerCase().includes(termo) ||
-      noticia.categoria.toLowerCase().includes(termo);
+      titulo.includes(termo) ||
+      fonte.includes(termo) ||
+      descricao.includes(termo);
 
-    let correspondeCategoria = true;
-
-    if (categoriaAtiva === "Mercado da Bola") {
-      correspondeCategoria =
-        noticia.categoria === "Mercado da Bola";
-    } else if (categoriaAtiva === "Jogos") {
-      correspondeCategoria = noticia.categoria === "Jogos";
-    } else if (categoriaAtiva === "Seu Time") {
-      correspondeCategoria =
-        timeFavorito !== null &&
-        noticia.timesRelacionados?.includes(timeFavorito);
-    }
-
-    return correspondeBusca && correspondeCategoria;
+    return correspondeBusca;
   });
+
+  function formatarTempo(data) {
+    if (!data) return "";
+
+    const publicada = new Date(data);
+    const agora = new Date();
+
+    const diferenca = Math.floor(
+      (agora - publicada) / 1000
+    );
+
+    if (diferenca < 60) return "Agora há pouco";
+
+    const minutos = Math.floor(diferenca / 60);
+    if (minutos < 60) return `Há ${minutos} min`;
+
+    const horas = Math.floor(minutos / 60);
+    if (horas < 24) return `Há ${horas}h`;
+
+    const dias = Math.floor(horas / 24);
+    if (dias < 7) return `Há ${dias} dias`;
+
+    return publicada.toLocaleDateString("pt-BR");
+  }
+
+  function obterCategoriaExibicao() {
+    const categoriasExibicao = {
+      todas: "Futebol",
+      "seu time": timeFavorito || "Seu Time",
+      "mercado da bola": "Mercado da Bola",
+      jogos: "Jogos",
+    };
+
+    return categoriasExibicao[categoriaAtiva.toLowerCase()] || "Futebol";
+  }
 
   // =========================================================
   // ABRIR NOTÍCIA NO NAVEGADOR
@@ -144,18 +137,26 @@ export function Noticias() {
   async function abrirNoticia(noticia) {
     if (!noticia?.url) {
       Alert.alert(
-        "Link não cadastrado",
-        "Esta notícia ainda não possui uma URL. Cadastre o endereço da matéria na lista de notícias."
+        "Link indisponível",
+        "Não foi possível encontrar o endereço original desta notícia."
       );
       return;
     }
 
     try {
+      const podeAbrir = await Linking.canOpenURL(noticia.url);
+
+      if (!podeAbrir) {
+        throw new Error("URL não suportada.")
+      }
+
       await Linking.openURL(noticia.url);
     } catch (error) {
+      console.error("Erro ao abrir notícia:", error);
+
       Alert.alert(
         "Não foi possível abrir",
-        "Verifique o endereço cadastrado e tente novamente."
+        "Tente acessar esta notícia novamente mais tarde."
       );
     }
   }
@@ -165,12 +166,6 @@ export function Noticias() {
   // =========================================================
 
   function selecionarCategoria(categoria) {
-    // Mantém o comportamento original do botão Jogos.
-    if (categoria === "Jogos") {
-      navigation.navigate("Jogos");
-      return;
-    }
-
     setCategoriaAtiva(categoria);
   }
 
@@ -300,7 +295,67 @@ export function Noticias() {
             Destaque
           </Text>
 
-          {noticiaDestaque ? (
+          {carregando ? (
+            <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
+              <Text
+                className="text-sm text-texto-sec"
+                style={{ fontFamily: "Inter" }}
+              >
+                Carregando notícias...  
+              </Text>
+            </View>
+          ) : erro ? (
+            <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
+              <Text
+                className="text-sm text-texto-sec"
+                style={{ fontFamily: "Inter" }}
+              >
+                Não foi possível carregar as notícias.
+              </Text>
+
+              <Pressable
+                className="mt-3 self-start rounded-lg bg-verde px-4 py-2"
+                onPress={() => setCategoriaAtiva((atual) => atual)}
+              >
+                <Text className="text-sm font-bold text-texto">
+                  Tentar novamente
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {carregando && (
+            <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
+              <Text
+                className="text-sm text-texto-sec"
+                style={{ fontFamily: "Inter" }}
+              >
+                Carregando notícias
+              </Text>
+            </View>
+          )}
+
+          {erro && !carregando && (
+            <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
+              <Text
+                className="text-sm text-texto-sec"
+                style={{ fontFamily: "Inter" }}
+              >
+                Não foi possível carregar as notícias.
+              </Text>
+
+              <Pressable
+                className="mt-3 self-start rounded-lg bg-verde px-4 py-2"
+                onPress={() => setAtualizacao((valor) => valor + 1)}
+              >
+                <Text className="text-sm font-bold text-texto">
+                  Tentar novamente
+                </Text>
+              </Pressable>
+            </View>
+          )}
+
+          {!carregando && !erro && noticiaDestaque ? (
             <Pressable
               className="overflow-hidden rounded-[12px] bg-cartao"
               onPress={() => abrirNoticia(noticiaDestaque)}
@@ -311,25 +366,30 @@ export function Noticias() {
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
-              {/* FUTURA API:
-                  Exibir noticiaDestaque.imagem aqui.
-                  O bloco cinza é um placeholder visual. */}
 
-              <View className="h-[180px] w-full bg-cartao-borda items-center justify-center">
-                <Text
-                  className="text-xs text-texto-ter"
-                  style={{ fontFamily: "Inter" }}
-                >
-                  Imagem da notícia
-                </Text>
-              </View>
+              {noticiaDestaque.imagem ? (
+                <Image
+                  source={{ uri: noticiaDestaque.imagem }}
+                  className="h-[180px] w-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-[180px] w-full bg-cartao-borda items-center justify-center">
+                  <Text
+                    className="text-xs text-texto-ter"
+                    style={{ fontFamily: "Inter" }}
+                  >
+                    Imagem indisponível
+                  </Text>
+                </View>
+              )}
 
               <View className="p-4">
                 <Text
                   className="mb-2 text-xs font-bold text-verde"
                   style={{ fontFamily: "Inter" }}
                 >
-                  {noticiaDestaque.categoria}
+                  {obterCategoriaExibicao()}
                 </Text>
 
                 <Text
@@ -341,9 +401,16 @@ export function Noticias() {
                 </Text>
 
                 <View className="mt-3 flex-row items-center">
-                  {/* FUTURA API: logo da fonte */}
 
-                  <View className="h-5 w-5 rounded-full bg-white" />
+                  {noticiaDestaque.url && (
+                    <Image
+                      source={{
+                        uri: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(noticiaDestaque.url)}&sz=64`,
+                      }}
+                      className="h-5 w-5 rounded-full"
+                      resizeMode="contain"
+                    />
+                  )}
 
                   <Text
                     className="ml-2 text-xs text-texto-sec"
@@ -360,12 +427,12 @@ export function Noticias() {
                     className="text-xs text-texto-sec"
                     style={{ fontFamily: "Inter" }}
                   >
-                    {noticiaDestaque.tempo}
+                    {formatarTempo(noticiaDestaque.publicado_em)}
                   </Text>
                 </View>
               </View>
             </Pressable>
-          ) : (
+          ) : !carregando && !erro ? (
             <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
               <Text
                 className="text-sm text-texto-sec"
@@ -374,7 +441,7 @@ export function Noticias() {
                 Nenhuma notícia encontrada com esses filtros.
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
 
         {/* ================================================= */}
@@ -392,9 +459,9 @@ export function Noticias() {
           </View>
 
           {ultimasNoticias.length > 0 ? (
-            ultimasNoticias.map((noticia) => (
+            ultimasNoticias.map((noticia, index) => (
               <Pressable
-                key={noticia.id}
+                key={`${noticia.url || noticia.titulo}-${index}`}
                 className="mb-4 flex-row overflow-hidden rounded-[10px] bg-cartao"
                 onPress={() => abrirNoticia(noticia)}
                 accessibilityRole="button"
@@ -404,24 +471,30 @@ export function Noticias() {
                   transform: [{ scale: pressed ? 0.98 : 1 }],
                 })}
               >
-                {/* FUTURA API:
-                    Substituir o placeholder por noticia.imagem. */}
 
-                <View className="h-[105px] w-[115px] items-center justify-center bg-cartao-borda">
-                  <Text
-                    className="text-[10px] text-texto-ter"
-                    style={{ fontFamily: "Inter" }}
-                  >
-                    Imagem
-                  </Text>
-                </View>
+                {noticia.imagem ? (
+                  <Image
+                    source={{ uri: noticia.imagem }}
+                    className="h-[105px] w-[115px]"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="h-[105px] w-[115px] items-center justify-center bg-cartao-borda">
+                    <Text
+                      className="text-[10px] text-texto-ter"
+                      style={{ fontFamily: "Inter" }}
+                    >
+                      Imagem indisponível
+                    </Text>
+                  </View>
+                )}
 
                 <View className="flex-1 p-3 pr-7">
                   <Text
                     className="mb-1 text-xs font-bold text-verde"
                     style={{ fontFamily: "Inter" }}
                   >
-                    {noticia.categoria}
+                    {obterCategoriaExibicao()}
                   </Text>
 
                   <Text
@@ -433,9 +506,16 @@ export function Noticias() {
                   </Text>
 
                   <View className="mt-2 flex-row items-center">
-                    {/* FUTURA API: logo da fonte */}
 
-                    <View className="h-[14px] w-[14px] rounded-full bg-white" />
+                    {noticia.url && (
+                      <Image
+                        source={{
+                          uri: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(noticia.url)}&sz=64`
+                        }}
+                        className="h-[14px] w-[14px] rounded-full"
+                        resizeMode="contain"
+                      />
+                    )}
 
                     <Text
                       numberOfLines={1}
@@ -453,7 +533,7 @@ export function Noticias() {
                       className="text-[10px] text-texto-sec"
                       style={{ fontFamily: "Inter" }}
                     >
-                      {noticia.tempo}
+                      {formatarTempo(noticia.publicado_em)}
                     </Text>
                   </View>
                 </View>
