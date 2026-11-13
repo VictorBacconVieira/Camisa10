@@ -246,3 +246,81 @@ export async function obterNoticias(categoria = "todas") {
   );
   
 }
+
+export async function obterEstatisticasGamificacao() {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    "/api/quiz/estatisticas",
+    "GET",
+    null,
+    token
+  );
+}
+
+export async function obterQuizzes() {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.")
+  }
+
+  return await requisicaoAPI(
+    "/api/quiz/",
+    "GET",
+    null,
+    token
+  );
+}
+
+export async function obterPerguntasQuiz(codigoQuiz) {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    `/api/quiz/${encodeURIComponent(codigoQuiz)}/perguntas`,
+    "GET",
+    null,
+    token
+  );
+}
+
+export async function enviarRespostasQuiz(codigoQuiz, respostas) {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    "/api/quiz/responder",
+    "POST",
+    {
+      codigo_quiz: codigoQuiz,
+      respostas,
+    },
+    token
+  );  
+}
+
+export async function obterSequenciaQuiz() {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    "/api/quiz/sequencia",
+    "GET",
+    null,
+    token
+  );  
+}

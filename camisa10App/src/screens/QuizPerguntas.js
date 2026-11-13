@@ -18,7 +18,10 @@ import {
   CaretRightIcon,
 } from "phosphor-react-native";
 import { BottomNav } from "../components/bottomNav";
-import { quizzes } from "../data/quizPerguntas";
+import {
+  obterPerguntasQuiz,
+  enviarRespostasQuiz,
+} from "../services/authService";
 
 const CORES_CONFETES = [
   "#00C853",
@@ -134,9 +137,14 @@ export function QuizPerguntas() {
 
   const scrollRef = useRef(null);
 
-  const quizSelecionado = quizzes[quizId];
-  const perguntas = quizSelecionado?.perguntas ?? [];
-  const tituloExibicao = titulo || quizSelecionado?.titulo || "Quiz";
+  const [perguntas, setPerguntas] = useState([]);
+  const [carregandoPerguntas, setCarregandoPerguntas] = useState(true);
+  const [erroPerguntas, setErroPerguntas] = useState(null);
+
+  const [respostas, setRespostas] = useState([]);
+  const [resultadoQuiz, setResultadoQuiz] = useState(null);
+  const [erroEnvio, setErroEnvio] = useState(null);
+  const [enviando, setEnviando] = useState(false);
 
   const [indicePergunta, setIndicePergunta] = useState(0);
   const [alternativaSelecionada, setAlternativaSelecionada] = useState(null);
@@ -145,9 +153,44 @@ export function QuizPerguntas() {
   const [xp, setXp] = useState(0);
   const [finalizado, setFinalizado] = useState(false);
 
+  const tituloExibicao = titulo || "Quiz";
+
   const animacaoConteudo = useRef(new Animated.Value(0)).current;
   const animacaoFeedback = useRef(new Animated.Value(0)).current;
   const animacaoProgresso = useRef(new Animated.Value(0)).current;
+
+  async function carregarPerguntas() {
+    try {
+      setCarregandoPerguntas(true);
+      setErroPerguntas(null);
+
+      const dados = await obterPerguntasQuiz(quizId);
+
+      if (!Array.isArray(dados)) {
+        throw new Error("A API retornou um formato de perguntas inválido.");
+      }
+
+      setPerguntas(dados);
+      setRespostas([]);
+      setIndicePergunta(0);
+      setAlternativaSelecionada(null);
+      setRespostaConfirmada(false);
+    } catch (error) {
+      console.error("Erro ao carregar perguntas:", error);
+      setErroPerguntas(error.message);
+    } finally {
+      setCarregandoPerguntas(false);
+    }
+  }
+
+  useEffect(() => {
+    if (quizId) {
+      carregarPerguntas();
+    } else {
+      setErroPerguntas("Código do quiz não informado.");
+      setCarregandoPerguntas(false);
+    }
+  }, [quizId]);
 
   const perguntaAtual = perguntas[indicePergunta];
   const totalPerguntas = perguntas.length;
@@ -239,21 +282,51 @@ export function QuizPerguntas() {
       return;
     }
 
-    setRespostaConfirmada(true);
+    setRespostas((valores) => [
+      ...valores,
+      {
+        pergunta_id: perguntaAtual.id,
+        resposta_selecionada: alternativaSelecionada,
+      },
+    ]);
 
-    if (alternativaSelecionada === perguntaAtual.respostaCorreta) {
-      setAcertos((valor) => valor + 1);
-      setXp((valor) => valor + 1000);
+    setRespostaConfirmada(true);
+  }
+
+  async function finalizarQuiz() {
+    if (enviando || respostas.length !== totalPerguntas) {
+      return;
+    }
+
+    try {
+      setEnviando(true);
+      setErroEnvio(null);
+
+      const resultado = await enviarRespostasQuiz(
+        quizId,
+        respostas
+      );
+
+      setResultadoQuiz(resultado);
+      setAcertos(resultado.acertos);
+      setXp(resultado.xp_total);
+      setFinalizado(true);
+    } catch (error) {
+      console.error("Erro ao enviar respostas:", error);
+      setErroEnvio(error.message);
+    } finally {
+      setEnviando(false);
     }
   }
 
   function proximaPergunta() {
-    if (!respostaConfirmada) return;
+    if (!respostaConfirmada || enviando) return;
 
     if (indicePergunta < totalPerguntas - 1) {
       setIndicePergunta((valor) => valor + 1);
       setAlternativaSelecionada(null);
       setRespostaConfirmada(false);
+      setErroEnvio(null);
 
       requestAnimationFrame(() => {
         scrollRef.current?.scrollTo({
@@ -262,7 +335,7 @@ export function QuizPerguntas() {
         });
       });
     } else {
-      setFinalizado(true);
+      finalizarQuiz();
     }
   }
 
@@ -270,6 +343,9 @@ export function QuizPerguntas() {
     setIndicePergunta(0);
     setAlternativaSelecionada(null);
     setRespostaConfirmada(false);
+    setRespostas([]);
+    setResultadoQuiz(null);
+    setErroEnvio(null);
     setAcertos(0);
     setXp(0);
     setFinalizado(false);
@@ -283,30 +359,76 @@ export function QuizPerguntas() {
   }
 
   function corAlternativa(index) {
-    if (!respostaConfirmada) {
-      return alternativaSelecionada === index
-        ? "#163B2B"
-        : "#111D27";
-    }
-
-    if (index === perguntaAtual.respostaCorreta) return "#123D2B";
-    if (index === alternativaSelecionada) return "#401F25";
-    return "#111D27";
+    return alternativaSelecionada === index
+      ? "#163B2B"
+      : "#111D27";
   }
 
   function corBorda(index) {
-    if (!respostaConfirmada) {
-      return alternativaSelecionada === index
-        ? "#00C853"
-        : "#263541";
-    }
-
-    if (index === perguntaAtual.respostaCorreta) return "#00C853";
-    if (index === alternativaSelecionada) return "#FF5252";
-    return "#263541";
+    return alternativaSelecionada === index
+      ? "#00C853"
+      : "#263541";
   }
 
-  // Tela alternativa para categorias ainda sem perguntas.
+  // Carregamento das perguntas.
+  if (carregandoPerguntas) {
+    return (
+      <SafeAreaView
+        className="flex-1 bg-fundo"
+        edges={["top", "bottom"]}
+      >
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="text-base font-semibold text-white">
+            Carregando perguntas...
+          </Text>
+        </View>
+
+        <BottomNav />
+      </SafeAreaView>
+    );
+  }
+
+  // Erro ao carregar perguntas.
+  if (erroPerguntas) {
+    return (
+      <SafeAreaView
+        className="flex-1 bg-fundo"
+        edges={["top", "bottom"]}
+      >
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="mb-3 text-xl font-bold text-white">
+            Não foi possível carregar o quiz
+          </Text>
+
+          <Text className="text-center leading-6 text-gray-400">
+            {erroPerguntas}
+          </Text>
+
+          <Pressable
+            onPress={carregarPerguntas}
+            className="mt-6 rounded-xl bg-[#00C853] px-6 py-4"
+          >
+            <Text className="font-bold text-black">
+              Tentar novamente
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => navigation.goBack()}
+            className="mt-3 rounded-xl border border-[#263541] px-6 py-4"
+          >
+            <Text className="font-semibold text-white">
+              Voltar aos quizzes
+            </Text>
+          </Pressable>
+        </View>
+
+        <BottomNav />
+      </SafeAreaView>
+    );
+  }
+
+  // Quiz sem perguntas cadastradas.
   if (perguntas.length === 0) {
     return (
       <SafeAreaView
@@ -338,7 +460,7 @@ export function QuizPerguntas() {
   }
 
   // Tela de resultado.
-  if (finalizado) {
+  if (finalizado && resultadoQuiz) {
     return (
       <SafeAreaView
         className="flex-1 bg-fundo"
@@ -346,7 +468,18 @@ export function QuizPerguntas() {
       >
         {atingiuMeta && <Confetes />}
 
-        <View className="flex-1 items-center justify-center px-6">
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+            paddingTop: 30,
+            paddingBottom: 140,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
           <TrophyIcon
             size={72}
             color={atingiuMeta ? "#39FF14" : "#FF5252"}
@@ -365,9 +498,94 @@ export function QuizPerguntas() {
             +{xp.toLocaleString("pt-BR")} XP
           </Text>
 
+          <View className="mt-8 w-full">
+            <Text className="mb-4 text-lg font-bold text-white">
+              Correção das respostas
+            </Text>
+
+            {resultadoQuiz.resultados?.map((resultado, index) => {
+              const pergunta = perguntas.find(
+                (item) => item.id === resultado.pergunta_id
+              );
+
+              const alternativaCorreta =
+                pergunta?.alternativas?.[resultado.resposta_correta];
+
+              const alternativaEscolhida =
+                pergunta?.alternativas?.[resultado.resposta_selecionada];
+
+              return (
+                <View
+                  key={resultado.pergunta_id}
+                  className="mb-3 rounded-xl border p-4"
+                  style={{
+                    backgroundColor: resultado.correta
+                      ? "#123D2B"
+                      : "#401F25",
+                    borderColor: resultado.correta
+                      ? "#00C853"
+                      : "#FF5252",
+                  }}
+                >
+                  <View className="mb-2 flex-row items-center">
+                    {resultado.correta ? (
+                      <CheckCircleIcon
+                        size={22}
+                        color="#39FF14"
+                        weight="fill"
+                      />
+                    ) : (
+                      <XCircleIcon
+                        size={22}
+                        color="#FF7777"
+                        weight="fill"
+                      />
+                    )}
+
+                    <Text
+                      className="ml-2 flex-1 font-bold"
+                      style={{
+                        color: resultado.correta
+                          ? "#39FF14"
+                          : "#FF7777",
+                      }}
+                    >
+                      Pergunta {index + 1} —{" "}
+                      {resultado.correta ? "Correta" : "Incorreta"}
+                    </Text>
+
+                    <Text className="font-bold text-white">
+                      +{resultado.xp_ganho} XP
+                    </Text>
+                  </View>
+
+                  <Text className="mb-2 font-semibold text-white">
+                    {pergunta?.enunciado}
+                  </Text>
+
+                  <Text className="text-sm text-gray-200">
+                    Sua resposta: {alternativaEscolhida ?? "Não identificada"}
+                  </Text>
+
+                  {!resultado.correta && (
+                    <Text className="mt-1 text-sm font-semibold text-[#39FF14]">
+                      Resposta correta: {alternativaCorreta ?? "Não identificada"}
+                    </Text>
+                  )}
+
+                  {!!resultado.explicacao && (
+                    <Text className="mt-3 leading-6 text-gray-200">
+                      {resultado.explicacao}
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+
           <Pressable
             onPress={reiniciarQuiz}
-            className="mt-8 w-full items-center rounded-xl bg-[#00C853] py-4"
+            className="mt-5 w-full items-center rounded-xl bg-[#00C853] py-4"
           >
             <Text className="font-bold text-black">
               Jogar novamente
@@ -382,7 +600,7 @@ export function QuizPerguntas() {
               Voltar aos quizzes
             </Text>
           </Pressable>
-        </View>
+        </ScrollView>
 
         <BottomNav />
       </SafeAreaView>
@@ -460,12 +678,11 @@ export function QuizPerguntas() {
           </Text>
 
           <Text className="mb-7 text-2xl font-bold leading-9 text-white">
-            {perguntaAtual.pergunta}
+            {perguntaAtual?.enunciado}
           </Text>
 
-          {perguntaAtual.alternativas.map((alternativa, index) => {
+          {perguntaAtual?.alternativas?.map((alternativa, index) => {
             const selecionada = alternativaSelecionada === index;
-            const correta = index === perguntaAtual.respostaCorreta;
 
             return (
               <Pressable
@@ -476,47 +693,25 @@ export function QuizPerguntas() {
                 style={{
                   backgroundColor: corAlternativa(index),
                   borderColor: corBorda(index),
-                  borderWidth:
-                    selecionada || (respostaConfirmada && correta)
-                      ? 1.5
-                      : 1,
+                  borderWidth: selecionada ? 1.5 : 1,
                 }}
               >
                 <View
                   className="mr-3 h-9 w-9 items-center justify-center rounded-lg"
                   style={{
-                    backgroundColor:
-                      respostaConfirmada && correta
-                        ? "#00C853"
-                        : respostaConfirmada && selecionada
-                          ? "#FF5252"
-                          : selecionada
-                            ? "#00C853"
-                            : "#263541",
+                    backgroundColor: selecionada
+                      ? "#00C853"
+                      : "#263541",
                   }}
                 >
-                  {respostaConfirmada && correta ? (
-                    <CheckCircleIcon
-                      size={21}
-                      color="#071018"
-                      weight="fill"
-                    />
-                  ) : respostaConfirmada && selecionada ? (
-                    <XCircleIcon
-                      size={21}
-                      color="#FFFFFF"
-                      weight="fill"
-                    />
-                  ) : (
-                    <Text
-                      className="font-bold"
-                      style={{
-                        color: selecionada ? "#071018" : "#F5F7F8",
-                      }}
-                    >
-                      {String.fromCharCode(65 + index)}
-                    </Text>
-                  )}
+                  <Text
+                    className="font-bold"
+                    style={{
+                      color: selecionada ? "#071018" : "#F5F7F8",
+                    }}
+                  >
+                    {String.fromCharCode(65 + index)}
+                  </Text>
                 </View>
 
                 <Text className="flex-1 text-base font-medium text-white">
@@ -527,44 +722,39 @@ export function QuizPerguntas() {
           })}
         </Animated.View>
 
-        {/* Feedback da resposta */}
+        {/* Feedback de resposta registrada */}
         {respostaConfirmada && (
           <Animated.View
             style={[
               estiloFeedback,
               {
-                backgroundColor:
-                  alternativaSelecionada === perguntaAtual.respostaCorreta
-                    ? "#123D2B"
-                    : "#401F25",
-                borderColor:
-                  alternativaSelecionada === perguntaAtual.respostaCorreta
-                    ? "#00C853"
-                    : "#FF5252",
+                backgroundColor: "#16232D",
+                borderColor: "#00C853",
               },
             ]}
             className="mt-3 rounded-xl border p-4"
           >
-            <Text
-              className="text-base font-bold"
-              style={{
-                color:
-                  alternativaSelecionada === perguntaAtual.respostaCorreta
-                    ? "#39FF14"
-                    : "#FF7777",
-              }}
-            >
-              {alternativaSelecionada === perguntaAtual.respostaCorreta
-                ? "Resposta correta! +1.000 XP"
-                : "Resposta incorreta!"}
+            <Text className="text-base font-bold text-[#39FF14]">
+              Resposta registrada!
             </Text>
 
-            {!!perguntaAtual.explicacao && (
-              <Text className="mt-2 leading-6 text-gray-200">
-                {perguntaAtual.explicacao}
-              </Text>
-            )}
+            <Text className="mt-2 leading-6 text-gray-200">
+              A correção e a explicação serão exibidas ao finalizar o quiz.
+            </Text>
           </Animated.View>
+        )}
+
+        {/* Erro ao enviar respostas */}
+        {erroEnvio && (
+          <View className="mt-4 rounded-xl border border-[#FF5252] bg-[#401F25] p-4">
+            <Text className="font-semibold text-[#FF7777]">
+              Não foi possível finalizar o quiz.
+            </Text>
+
+            <Text className="mt-2 leading-6 text-gray-200">
+              {erroEnvio}
+            </Text>
+          </View>
         )}
 
         {/* Botões */}
@@ -590,20 +780,35 @@ export function QuizPerguntas() {
           </Pressable>
         ) : (
           <Pressable
+            disabled={enviando}
             onPress={proximaPergunta}
-            className="mt-6 flex-row items-center justify-center rounded-xl bg-[#00C853] py-4"
+            className="mt-6 flex-row items-center justify-center rounded-xl py-4"
+            style={{
+              backgroundColor: enviando ? "#263541" : "#00C853",
+            }}
           >
-            <Text className="mr-2 text-base font-bold text-[#071018]">
-              {indicePergunta === totalPerguntas - 1
-                ? "Ver resultado"
-                : "Próxima pergunta"}
+            <Text
+              className="mr-2 text-base font-bold"
+              style={{
+                color: enviando ? "#82909A" : "#071018",
+              }}
+            >
+              {enviando
+                ? "Enviando respostas..."
+                : indicePergunta === totalPerguntas - 1
+                  ? erroEnvio
+                    ? "Tentar enviar novamente"
+                    : "Ver resultado"
+                  : "Próxima pergunta"}
             </Text>
 
-            <CaretRightIcon
-              size={20}
-              color="#071018"
-              weight="bold"
-            />
+            {!enviando && (
+              <CaretRightIcon
+                size={20}
+                color="#071018"
+                weight="bold"
+              />
+            )}
           </Pressable>
         )}
       </ScrollView>
@@ -612,3 +817,5 @@ export function QuizPerguntas() {
     </SafeAreaView>
   );
 }
+
+export default QuizPerguntas;

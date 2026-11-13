@@ -9,7 +9,7 @@ import {
   Image,
 } from "react-native";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   BellIcon,
@@ -40,6 +40,8 @@ import { obterTimesDisponiveis } from "../services/authService";
 
 import { atualizarFotoPerfil } from "../services/authService";
 
+import { obterEstatisticasGamificacao, obterSequenciaQuiz } from "../services/authService";
+
 export function Perfil() {
   const navigation = useNavigation();
 
@@ -57,25 +59,69 @@ export function Perfil() {
     atualizarFotoUsuario,
   } = useAuth();
 
+  const [estatisticas, setEstatisticas] = useState(null);
+  const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(true);
+  const [erroEstatisticas, setErroEstatisticas] = useState(null);
+
+  const [sequenciaQuiz, setSequenciaQuiz] = useState(null);
+  const [carregandoSequencia, setCarregandoSequencia] = useState(true);
+
   const [timesDisponiveis, setTimesDisponiveis] = useState([]);
   const [carregandoTimes, setCarregandoTimes] = useState(false);
   const [modalTimesVisivel, setModalTimesVisivel] = useState(false);
 
-  // =========================================================
-  // DADOS TEMPORÁRIOS DO USUÁRIO
-  // =========================================================
-  // FRONTEND:
-  // Valores temporários para testar a interface.
-  //
-  // FUTURO BACKEND:
-  // Substituir pelos dados recebidos da API do usuário.
-  // Campos numéricos sem registros devem retornar 0.
-  // =========================================================
+  useEffect(() => {
+    async function carregarEstatisticas() {
+      try {
+        setCarregandoEstatisticas(true);
+        setErroEstatisticas(null);
+
+        const dados = await obterEstatisticasGamificacao();
+
+        setEstatisticas(dados);
+      } catch (error) {
+        console.error("Erro ao carregar estatísticas:", error);
+        setErroEstatisticas(error.message);
+      } finally {
+        setCarregandoEstatisticas(false);
+      }
+    }
+    if (usuarioAutenticado) {
+      carregarEstatisticas();
+    }
+  }, [usuarioAutenticado]);
+
+  useEffect(() => {
+    async function carregarSequencia() {
+      try {
+        setCarregandoSequencia(true);
+
+        const dados = await obterSequenciaQuiz();
+
+        setSequenciaQuiz(dados);
+      } catch (error) {
+        console.error("Erro ao carregar sequência:", error);
+      } finally {
+        setCarregandoSequencia(false);
+      }
+    }
+
+    if (usuarioAutenticado) {
+      carregarSequencia();
+
+      const unsubscribe = navigation.addListener(
+        "focus",
+        carregarSequencia
+      );
+
+      return unsubscribe;
+    }
+  }, [usuarioAutenticado, navigation]);
 
   async function selecionarFoto(uri) {
     if (fotoCarregando) return;
 
-    try{
+    try {
       setFotoCarregando(true);
 
       const resultado = await atualizarFotoPerfil(uri);
@@ -86,7 +132,7 @@ export function Perfil() {
       console.log("Erro ao atualizar foto:", error.message);
     } finally {
       setFotoCarregando(false);
-    }  
+    }
   }
 
   async function abrirSeletorTimes() {
@@ -119,45 +165,28 @@ export function Perfil() {
   const usuario = {
     nome: usuarioAutenticado?.nome || "Usuário",
 
-    // XP acumulado pelo usuário.
-    // Exemplo: 0, 10000, 11000, 12000...
-    xpTotal: 451000,
+    // Dados reais recebidos do backend.
+    xpTotal: estatisticas?.xp_total ?? 0,
+    quizzes: estatisticas?.quizzes_concluidos ?? 0,
 
-    quizzes: 49,
-    sequenciaAtual: 5,
+    // Sequências recebidas do backend.
+    sequenciaAtual: sequenciaQuiz?.sequencia_atual ?? 0,
+    maiorSequencia: sequenciaQuiz?.maior_sequencia ?? 0,
 
     timeFavorito: usuarioAutenticado?.time_coracao?.nome || "Nenhum",
     notificacoes: "Ativadas",
     acessibilidade: "Ver mais",
     tema: "Escuro",
 
-    // =====================================================
-    // DADOS DAS CONQUISTAS
-    // =====================================================
-    // FRONTEND:
-    // Valores temporários para testar os desbloqueios.
-    //
-    // FUTURO BACKEND:
-    // Substituir pelos dados recebidos da API.
-    // =====================================================
+    // Acertos reais registrados pelo backend.
+    respostasCorretas: estatisticas?.acertos ?? 0,
 
-    respostasCorretas: 101,
-    escalacoesCorretas: 9,
+    // Aguardando integração do sistema de escalações.
+    escalacoesCorretas: null,
   };
 
   // =========================================================
-  // SISTEMA DE NÍVEIS
-  // =========================================================
-  // Nível 1 -> 2: 10.000 XP
-  // Nível 2 -> 3: 11.000 XP
-  // Nível 3 -> 4: 12.000 XP
-  // Nível 4 -> 5: 13.000 XP
-  //
-  // A cada nível, o requisito aumenta em 1.000 XP.
-  //
-  // FUTURO BACKEND:
-  // Receber o XP total acumulado do usuário pela API.
-  // O XP total nunca deve ser zerado ao subir de nível.
+  // SISTEMA DE NÍVEIS — DADOS RECEBIDOS DO BACKEND
   // =========================================================
 
   const xpTotal = Math.max(
@@ -165,45 +194,17 @@ export function Perfil() {
     Number(usuario.xpTotal) || 0
   );
 
-  // Calcula o XP total necessário para alcançar determinado nível.
-  function calcularXpNivel(nivel) {
-    if (nivel <= 1) return 0;
+  const nivelAtual = estatisticas?.nivel ?? 1;
 
-    const quantidadeNiveis = nivel - 1;
+  const xpInicioNivel = estatisticas?.xp_inicio_nivel ?? 0;
 
-    return (
-      quantidadeNiveis * 10000 +
-      ((quantidadeNiveis - 1) * quantidadeNiveis * 1000) / 2
-    );
-  }
+  const xpProximoNivel = estatisticas?.xp_proximo_nivel ?? 10000;
 
-  // Descobre o nível atual com base no XP acumulado.
-  let nivelAtual = 1;
+  const xpAtualNivel = estatisticas?.xp_atual_nivel ?? 0;
 
-  while (xpTotal >= calcularXpNivel(nivelAtual + 1)) {
-    nivelAtual++;
-  }
+  const xpNecessarioNivel = estatisticas?.xp_necessario_nivel ?? 10000;
 
-  // XP total necessário para alcançar o nível atual.
-  const xpInicioNivel = calcularXpNivel(nivelAtual);
-
-  // XP total necessário para alcançar o próximo nível.
-  const xpProximoNivel = calcularXpNivel(nivelAtual + 1);
-
-  // XP conquistado dentro do nível atual.
-  const xpAtualNivel = xpTotal - xpInicioNivel;
-
-  // XP necessário para completar o nível atual.
-  const xpNecessarioNivel = xpProximoNivel - xpInicioNivel;
-
-  // Progresso da barra.
-  const progressoNivel = Math.min(
-    100,
-    Math.max(
-      0,
-      (xpAtualNivel / xpNecessarioNivel) * 100
-    )
-  );
+  const progressoNivel = estatisticas?.progresso_nivel ?? 0
 
   // =========================================================
   // REGRAS DAS CONQUISTAS
@@ -232,17 +233,14 @@ export function Perfil() {
       id: "olheiro",
       nome: "Olheiro",
       descricao: "Acertou 10 escalações",
-      progresso: Math.max(
-        0,
-        Number(usuario.escalacoesCorretas) || 0
-      ),
+      progresso: usuario.escalacoesCorretas,
       requisito: 10,
       Icone: EyeIcon,
     },
     {
       id: "campeao",
       nome: "Campeão",
-      descricao: "Venceu 50 quizzes",
+      descricao: "Concluiu 50 quizzes",
       progresso: Math.max(
         0,
         Number(usuario.quizzes) || 0
@@ -256,7 +254,7 @@ export function Perfil() {
       descricao: "Sequência de 15 dias",
       progresso: Math.max(
         0,
-        Number(usuario.sequenciaAtual) || 0
+        Number(usuario.maiorSequencia) || 0
       ),
       requisito: 15,
       Icone: FireIcon,
@@ -264,6 +262,7 @@ export function Perfil() {
   ].map((conquista) => ({
     ...conquista,
     desbloqueada:
+      conquista.progresso !== null &&
       conquista.progresso >= conquista.requisito,
   }));
 
@@ -393,9 +392,12 @@ export function Perfil() {
                   fontFamily: "Inter",
                 }}
               >
-                Faltam{" "}
-                {(xpProximoNivel - xpTotal).toLocaleString("pt-BR")}
-                {" XP para o próximo nível"}
+                {carregandoEstatisticas
+                  ? "Carregando estatísticas..."
+                  : erroEstatisticas
+                    ? "Não foi possível carregar as estatísticas."
+                    : `Faltam ${(xpProximoNivel - xpTotal).toLocaleString("pt-BR")} XP para o próximo nível`
+                }
               </Text>
             </View>
           </View>
@@ -514,7 +516,10 @@ export function Perfil() {
                 fontFamily: "Inter",
               }}
             >
-              {(Number(usuario.sequenciaAtual) || 0).toLocaleString("pt-BR")}
+              {carregandoSequencia
+                ? "..."
+                : (Number(usuario.sequenciaAtual) || 0).toLocaleString("pt-BR")
+              }
             </Text>
 
             <Text
@@ -549,8 +554,8 @@ export function Perfil() {
               <Pressable
                 key={conquista.id}
                 className={`mt-2 flex-row items-center rounded-lg border bg-cartao px-3 py-3 ${conquista.desbloqueada
-                    ? "border-verde"
-                    : "border-cartao-borda"
+                  ? "border-verde"
+                  : "border-cartao-borda"
                   }`}
                 onPress={() => {
                   // FUTURO:
@@ -586,8 +591,8 @@ export function Perfil() {
                 <View className="ml-3 flex-1">
                   <Text
                     className={`text-sm ${conquista.desbloqueada
-                        ? "text-texto"
-                        : "text-texto-ter"
+                      ? "text-texto"
+                      : "text-texto-ter"
                       }`}
                     style={{
                       fontFamily: "Inter",
@@ -609,16 +614,17 @@ export function Perfil() {
 
                   <Text
                     className={`mt-1 text-[10px] ${conquista.desbloqueada
-                        ? "text-verde"
-                        : "text-texto-ter"
+                      ? "text-verde"
+                      : "text-texto-ter"
                       }`}
                     style={{
                       fontFamily: "Inter",
                     }}
                   >
-                    {conquista.progresso.toLocaleString("pt-BR")}
-                    {" / "}
-                    {conquista.requisito.toLocaleString("pt-BR")}
+                    {conquista.progresso === null
+                      ? "Em breve"
+                      : `${conquista.progresso.toLocaleString("pt-Br")} / ${conquista.requisito.toLocaleString("pt-BR")}`
+                    }
                   </Text>
                 </View>
 
