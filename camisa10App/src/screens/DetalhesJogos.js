@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   View,
@@ -90,6 +89,7 @@ const PARTIDA = {
         { n: 9, nome: "Pedro", pos: "ATA", x: 50, y: 18 },
         { n: 11, nome: "Bruno Henrique", pos: "ATA", x: 85, y: 25 },
       ],
+
       reservas: [
         { n: 25, nome: "Matheus Cunha", pos: "GOL" },
         { n: 26, nome: "Wesley", pos: "DEF" },
@@ -117,6 +117,7 @@ const PARTIDA = {
         { n: 10, nome: "Rony", pos: "ATA", x: 50, y: 25 },
         { n: 9, nome: "Endrick", pos: "ATA", x: 85, y: 28 },
       ],
+
       reservas: [
         { n: 14, nome: "Lomba", pos: "GOL" },
         { n: 12, nome: "Mayke", pos: "DEF" },
@@ -130,14 +131,60 @@ const PARTIDA = {
     },
   },
 
+  // FUTURO BACKEND / API:
+  // Os eventos deverão trazer tipo, minuto, equipe, jogador,
+  // assistência, jogador que entra/sai e cartão recebido.
+
   eventos: [
-    { minuto: "12'", tipo: "gol", equipe: "Flamengo", jogador: "Pedro", descricao: "Gol" },
-    { minuto: "28'", tipo: "cartao", equipe: "Palmeiras", jogador: "Aníbal Moreno", descricao: "Cartão amarelo" },
-    { minuto: "41'", tipo: "gol", equipe: "Palmeiras", jogador: "Raphael Veiga", descricao: "Gol" },
-    { minuto: "45+2'", tipo: "cartao", equipe: "Flamengo", jogador: "Pulgar", descricao: "Cartão amarelo" },
-    { minuto: "63'", tipo: "substituicao", equipe: "Flamengo", jogador: "Gabigol", descricao: "Entrou no lugar de Pedro" },
-    { minuto: "78'", tipo: "gol", equipe: "Flamengo", jogador: "Arrascaeta", descricao: "Gol" },
-    { minuto: "84'", tipo: "substituicao", equipe: "Palmeiras", jogador: "Flaco López", descricao: "Entrou no lugar de Rony" },
+    {
+      minuto: "12",
+      tipo: "gol",
+      equipe: "Flamengo",
+      jogador: "Pedro",
+      assistencia: "Gerson",
+    },
+    {
+      minuto: "28",
+      tipo: "cartao",
+      cartao: "amarelo",
+      equipe: "Palmeiras",
+      jogador: "Aníbal Moreno",
+    },
+    {
+      minuto: "41",
+      tipo: "gol",
+      equipe: "Palmeiras",
+      jogador: "Raphael Veiga",
+      assistencia: "Rony",
+    },
+    {
+      minuto: "45+2",
+      tipo: "cartao",
+      cartao: "amarelo",
+      equipe: "Flamengo",
+      jogador: "Pulgar",
+    },
+    {
+      minuto: "63",
+      tipo: "substituicao",
+      equipe: "Flamengo",
+      entrou: "Gabigol",
+      saiu: "Pedro",
+    },
+    {
+      minuto: "78",
+      tipo: "gol",
+      equipe: "Flamengo",
+      jogador: "Arrascaeta",
+      assistencia: "Bruno Henrique",
+    },
+    {
+      minuto: "84",
+      tipo: "substituicao",
+      equipe: "Palmeiras",
+      entrou: "Flaco López",
+      saiu: "Rony",
+    },
   ],
 
   classificacao: [
@@ -233,44 +280,510 @@ function LogoTime({ logo, nome, tamanho = 76 }) {
 
 // =========================================================
 // COMPONENTE: ESTATÍSTICA
+// BARRA PROPORCIONAL + DESTAQUE DE MELHOR RESULTADO
 // =========================================================
 
 function Estatistica({ titulo, valores }) {
   const [mandante, visitante] = valores;
+
   const total = mandante + visitante || 1;
-  const porcentagem = (mandante / total) * 1000;
+  const porcentagemMandante = (mandante / total) * 100;
+  const porcentagemVisitante = (visitante / total) * 100;
+
+  // Em faltas e cartões, menor quantidade é melhor.
+  const menorMelhor = ["Faltas", "Cartões amarelos"].includes(titulo);
+
+  const mandanteMelhor = menorMelhor
+    ? mandante < visitante
+    : mandante > visitante;
+
+  const visitanteMelhor = menorMelhor
+    ? visitante < mandante
+    : visitante > mandante;
+
+  const empate = mandante === visitante;
 
   return (
     <View className="mb-5">
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-[#F5F7F8] font-bold text-sm">
+        <Text
+          className={`text-sm font-extrabold ${
+            mandanteMelhor || empate
+              ? "text-[#00C853]"
+              : "text-[#F5F7F8]"
+          }`}
+        >
           {mandante}
         </Text>
 
-        <Text className="text-[#A8B2B9] text-xs">
+        <Text className="text-[#A8B2B9] text-xs text-center">
           {titulo}
         </Text>
 
-        <Text className="text-[#F5F7F8] font-bold text-sm">
+        <Text
+          className={`text-sm font-extrabold ${
+            visitanteMelhor || empate
+              ? "text-[#00C853]"
+              : "text-[#F5F7F8]"
+          }`}
+        >
           {visitante}
         </Text>
       </View>
 
-      <View className="flex-row h-2.5 rounded-full overflow-hidden bg-[#26343E]">
+      {/* BARRA PROPORCIONAL */}
+
+      <View
+        className="flex-row h-3 rounded-full overflow-hidden"
+        style={{ backgroundColor: "#26343E" }}
+      >
         <View
-          className="h-full bg-[#00C853] rounded-full"
-          style={{ width: `${porcentagem}%` }}
+          style={{
+            width: `${porcentagemMandante}%`,
+            backgroundColor: "#00C853",
+          }}
         />
 
-        <View className="flex-1 bg-[#FFC107]" />
+        <View
+          style={{
+            width: `${porcentagemVisitante}%`,
+            backgroundColor: "#FFC107",
+          }}
+        />
       </View>
     </View>
   );
 }
 
 // =========================================================
+// COMPONENTE: EVENTO DA PARTIDA
+// =========================================================
+
+function IconeEvento({ evento }) {
+  if (evento.tipo === "gol") {
+    return (
+      <View className="w-8 h-8 items-center justify-center">
+        <SoccerBallIcon size={22} color="#F5F7F8" weight="fill" />
+      </View>
+    );
+  }
+
+  if (evento.tipo === "cartao") {
+    const vermelho = evento.cartao === "vermelho";
+
+    return (
+      <View
+        className={`w-5 h-7 rounded-sm ${
+          vermelho ? "bg-[#E53935]" : "bg-[#FFC107]"
+        }`}
+      />
+    );
+  }
+
+  if (evento.tipo === "substituicao") {
+    return (
+      <View className="items-center justify-center">
+        <Text className="text-[#00C853] text-lg font-extrabold">↑</Text>
+        <Text className="text-[#E53935] text-lg font-extrabold -mt-2">↓</Text>
+      </View>
+    );
+  }
+
+  return null;
+}
+
+// =========================================================
+// COMPONENTE: TEXTO DO EVENTO
+// =========================================================
+
+function ConteudoEvento({ evento }) {
+  if (evento.tipo === "gol") {
+    return (
+      <View>
+        <Text className="text-[#F5F7F8] text-sm font-bold">
+          {evento.jogador || "Autor não informado"}
+        </Text>
+
+        {evento.assistencia ? (
+          <Text className="text-[#6F7B83] text-xs mt-1">
+            Assistência: {evento.assistencia}
+          </Text>
+        ) : null}
+
+      </View>
+    );
+  }
+
+  if (evento.tipo === "cartao") {
+    const vermelho = evento.cartao === "vermelho";
+
+    return (
+      <View>
+        <Text className="text-[#F5F7F8] text-sm font-bold">
+          {evento.jogador || "Jogador não informado"}
+        </Text>
+
+        <Text
+          className={`text-xs mt-1 ${
+            vermelho ? "text-[#E53935]" : "text-[#FFC107]"
+          }`}
+        >
+          Cartão {vermelho ? "vermelho" : "amarelo"}
+        </Text>
+
+        {evento.descricao ? (
+          <Text className="text-[#6F7B83] text-xs mt-1">
+            {evento.descricao}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
+  if (evento.tipo === "substituicao") {
+    return (
+      <View>
+        <Text className="text-[#00C853] text-sm font-bold">
+          {evento.entrou || evento.jogador || "Jogador"}
+        </Text>
+
+        <Text className="text-[#A8B2B9] text-sm mt-1">
+          {evento.saiu || evento.substituido || "Substituição"}
+        </Text>
+
+      </View>
+    );
+  }
+
+  return (
+    <Text className="text-[#F5F7F8] text-sm">
+      {evento.descricao || "Evento"}
+    </Text>
+  );
+}
+
+// =========================================================
+// COMPONENTE: EVENTO NA TIMELINE
+// MANDANTE ESQUERDA / VISITANTE DIREITA
+// =========================================================
+
+function LinhaEvento({ evento, lado }) {
+  const ladoMandante = lado === "mandante";
+
+  return (
+    <View className="flex-row items-center min-h-[78px]">
+      {/* LADO ESQUERDO */}
+
+      <View className="flex-1 items-end pr-2">
+        {ladoMandante ? (
+          <View className="flex-row items-center justify-end">
+            <View className="flex-1 items-end mr-2">
+              <ConteudoEvento evento={evento} />
+            </View>
+
+            <IconeEvento evento={evento} />
+          </View>
+        ) : null}
+      </View>
+
+      {/* MINUTO E LINHA CENTRAL */}
+
+      <View className="w-[54px] items-center justify-center self-stretch">
+        <View className="absolute top-0 bottom-0 w-[2px] bg-[#26343E]" />
+
+        <View className="bg-[#111D27] px-1 items-center justify-center z-10">
+          <Text
+            className={`text-sm font-extrabold ${
+              evento.cartao === "vermelho"
+                ? "text-[#E53935]"
+                : "text-[#F5F7F8]"
+            }`}
+          >
+            {evento.minuto}'
+          </Text>
+        </View>
+      </View>
+
+      {/* LADO DIREITO */}
+
+      <View className="flex-1 items-start pl-2">
+        {!ladoMandante ? (
+          <View className="flex-row items-center justify-start">
+            <IconeEvento evento={evento} />
+
+            <View className="flex-1 ml-2">
+              <ConteudoEvento evento={evento} />
+            </View>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+// =========================================================
+// COMPONENTE: SEPARADOR DE TEMPO
+// =========================================================
+
+function SeparadorTempo({ titulo, placar }) {
+  return (
+    <View className="flex-row items-center my-4">
+      <View className="flex-1 h-[1px] bg-[#26343E]" />
+
+      <View className="bg-[#071018] border border-[#344652] rounded-full px-4 py-2 mx-2">
+        <Text className="text-[#A8B2B9] text-xs font-semibold">
+          {titulo}{placar ? ` • ${placar}` : ""}
+        </Text>
+      </View>
+
+      <View className="flex-1 h-[1px] bg-[#26343E]" />
+    </View>
+  );
+}
+
+// =========================================================
+// COMPONENTE: EVENTOS DA PARTIDA
+// DESTAQUES / TODOS
+// =========================================================
+
+
+function EventosPartida({ jogo }) {
+  const [abaEventos, setAbaEventos] = useState("todos");
+
+  // FUTURO BACKEND / API:
+  // Buscar eventos oficiais, minutos, atletas, assistências,
+  // cartões, substituições e placar por período.
+
+  const eventos = jogo.eventos || [];
+
+  // Converte minutos normais e acréscimos para ordenação.
+  // Ex.: 45+2 -> 47 | 90+5 -> 95
+  const converterMinuto = (minuto) => {
+    const texto = String(minuto ?? "0").replace("'", "").trim();
+    const [base, acrescimo] = texto.split("+");
+
+    const minutoBase = Number(base) || 0;
+    const minutoAcrescimo = Number(acrescimo) || 0;
+
+    return minutoBase + minutoAcrescimo;
+  };
+
+  // Ordena do mais recente para o mais antigo.
+  const eventosOrdenados = [...eventos].sort(
+    (a, b) =>
+      converterMinuto(b.minuto) - converterMinuto(a.minuto)
+  );
+
+  // Destaques: gols.
+  // FUTURO: incluir outros eventos importantes.
+  const eventosDestaque = eventosOrdenados.filter(
+    (evento) => evento.tipo === "gol"
+  );
+
+  const listaEventos =
+    abaEventos === "destaques"
+      ? eventosDestaque
+      : eventosOrdenados;
+
+  // Separa os eventos por tempo.
+  const segundoTempo = listaEventos.filter(
+    (evento) => converterMinuto(evento.minuto) > 45
+  );
+
+  const primeiroTempo = listaEventos.filter(
+    (evento) => converterMinuto(evento.minuto) <= 45
+  );
+
+  // Renderiza os eventos de cada equipe na timeline.
+  const renderLista = (lista) => {
+    return lista.map((evento, index) => {
+      const ladoEvento =
+        evento.equipe === jogo.mandante
+          ? "mandante"
+          : "visitante";
+
+      return (
+        <LinhaEvento
+          key={`${evento.minuto}-${evento.tipo}-${evento.jogador || evento.entrou}-${index}`}
+          evento={evento}
+          lado={ladoEvento}
+        />
+      );
+    });
+  };
+
+  return (
+    <Card className="p-0 overflow-hidden">
+      {/* TÍTULO */}
+
+      <View className="p-4 pb-3">
+        <TituloSecao
+          titulo="Eventos da Partida"
+          subtitulo="Acompanhe os principais acontecimentos"
+          icone={SoccerBallIcon}
+        />
+      </View>
+
+      {/* ABAS */}
+
+      <View className="flex-row border-b border-[#26343E]">
+        {[
+          { id: "destaques", nome: "Destaques" },
+          { id: "todos", nome: "Todos" },
+        ].map((aba) => {
+          const ativa = abaEventos === aba.id;
+
+          return (
+            <Pressable
+              key={aba.id}
+              onPress={() => setAbaEventos(aba.id)}
+              className="flex-1 py-4 items-center justify-center"
+              style={{
+                borderBottomWidth: ativa ? 2 : 0,
+                borderBottomColor: "#00C853",
+              }}
+            >
+              <Text
+                className={`text-sm font-bold ${
+                  ativa
+                    ? "text-[#F5F7F8]"
+                    : "text-[#6F7B83]"
+                }`}
+              >
+                {aba.nome}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {/* PLACAR */}
+
+      <View className="px-4 pt-4">
+        <View className="bg-[#16232D] rounded-xl p-3 flex-row items-center justify-center">
+          <Text className="text-[#F5F7F8] font-bold text-xs">
+            {jogo.mandante}
+          </Text>
+
+          <Text className="text-[#00C853] text-lg font-extrabold mx-3">
+            {jogo.gols_mandante} - {jogo.gols_visitante}
+          </Text>
+
+          <Text className="text-[#F5F7F8] font-bold text-xs">
+            {jogo.visitante}
+          </Text>
+        </View>
+      </View>
+
+      {/* IDENTIFICAÇÃO DOS LADOS */}
+
+      <View className="flex-row px-4 mt-4 mb-2">
+        <View className="flex-1 items-end pr-3">
+          <Text className="text-[#00C853] text-[10px] font-extrabold">
+            {jogo.mandante}
+          </Text>
+        </View>
+
+        <View className="w-[54px]" />
+
+        <View className="flex-1 items-start pl-3">
+          <Text className="text-[#FFC107] text-[10px] font-extrabold">
+            {jogo.visitante}
+          </Text>
+        </View>
+      </View>
+
+      {/* TIMELINE */}
+
+      <View className="px-2 pb-4">
+        {listaEventos.length === 0 ? (
+          <View className="py-10 items-center">
+            <SoccerBallIcon size={30} color="#6F7B83" />
+
+            <Text className="text-[#6F7B83] text-xs mt-3">
+              Nenhum evento disponível.
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* SEGUNDO TEMPO */}
+
+            {segundoTempo.length > 0 ? (
+              <>
+                <SeparadorTempo
+                  titulo="Fim do Jogo"
+                  placar={`${jogo.gols_mandante} - ${jogo.gols_visitante}`}
+                />
+
+                {renderLista(segundoTempo)}
+              </>
+            ) : null}
+
+            {/* INTERVALO */}
+
+            {abaEventos === "todos" &&
+            primeiroTempo.length > 0 &&
+            segundoTempo.length > 0 ? (
+              <SeparadorTempo titulo="Intervalo" />
+            ) : null}
+
+            {/* PRIMEIRO TEMPO */}
+
+            {primeiroTempo.length > 0 ? (
+              <>
+                {renderLista(primeiroTempo)}
+              </>
+            ) : null}
+          </>
+        )}
+      </View>
+
+      {/* LEGENDA */}
+
+      {abaEventos === "todos" ? (
+        <View className="border-t border-[#26343E] p-3">
+          <View className="flex-row justify-center flex-wrap gap-4">
+            <View className="flex-row items-center">
+              <View className="w-3 h-4 rounded-sm bg-[#FFC107] mr-2" />
+              <Text className="text-[#6F7B83] text-[10px]">
+                Amarelo
+              </Text>
+            </View>
+
+            <View className="flex-row items-center">
+              <View className="w-3 h-4 rounded-sm bg-[#E53935] mr-2" />
+              <Text className="text-[#6F7B83] text-[10px]">
+                Vermelho
+              </Text>
+            </View>
+
+            <View className="flex-row items-center">
+              <Text className="text-[#00C853] font-extrabold mr-1">
+                ↑
+              </Text>
+
+              <Text className="text-[#6F7B83] text-[10px]">
+                Entrada
+              </Text>
+
+              <Text className="text-[#E53935] font-extrabold ml-3 mr-1">
+                ↓
+              </Text>
+
+              <Text className="text-[#6F7B83] text-[10px]">
+                Saída
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+
+// =========================================================
 // COMPONENTE: JOGADOR NO CAMPO
-// POSICIONAMENTO CENTRALIZADO
 // =========================================================
 
 function JogadorCampo({ jogador }) {
@@ -286,8 +799,6 @@ function JogadorCampo({ jogador }) {
         zIndex: 10,
       }}
     >
-      {/* BOLINHA */}
-
       <View
         style={{
           width: 36,
@@ -305,8 +816,6 @@ function JogadorCampo({ jogador }) {
           {jogador.n}
         </Text>
       </View>
-
-      {/* NOME */}
 
       <View
         style={{
@@ -331,7 +840,6 @@ function JogadorCampo({ jogador }) {
 
 // =========================================================
 // COMPONENTE: CAMPO DE FUTEBOL
-// LINHAS SIMÉTRICAS E CENTRALIZADAS
 // =========================================================
 
 function CampoFutebol({ jogadores }) {
@@ -372,7 +880,7 @@ function CampoFutebol({ jogadores }) {
         ))}
       </View>
 
-      {/* CONTORNO DO CAMPO */}
+      {/* CONTORNO */}
 
       <View
         style={{
@@ -430,7 +938,7 @@ function CampoFutebol({ jogadores }) {
         }}
       />
 
-      {/* GRANDE ÁREA SUPERIOR */}
+      {/* ÁREA SUPERIOR */}
 
       <View
         style={{
@@ -443,8 +951,6 @@ function CampoFutebol({ jogadores }) {
           borderColor: "rgba(255,255,255,0.7)",
         }}
       />
-
-      {/* PEQUENA ÁREA SUPERIOR */}
 
       <View
         style={{
@@ -458,7 +964,7 @@ function CampoFutebol({ jogadores }) {
         }}
       />
 
-      {/* GRANDE ÁREA INFERIOR */}
+      {/* ÁREA INFERIOR */}
 
       <View
         style={{
@@ -471,8 +977,6 @@ function CampoFutebol({ jogadores }) {
           borderColor: "rgba(255,255,255,0.7)",
         }}
       />
-
-      {/* PEQUENA ÁREA INFERIOR */}
 
       <View
         style={{
@@ -500,7 +1004,6 @@ function CampoFutebol({ jogadores }) {
 
 // =========================================================
 // TELA DETALHES DOS JOGOS
-// EXPORTAÇÃO NOMEADA — SEM DEFAULT
 // =========================================================
 
 export function DetalhesJogos({ route, navigation }) {
@@ -509,10 +1012,8 @@ export function DetalhesJogos({ route, navigation }) {
   const [abaSelecionada, setAbaSelecionada] = useState("Detalhes");
   const [equipeEscalacao, setEquipeEscalacao] = useState("mandante");
   const [tipoEscalacao, setTipoEscalacao] = useState("titulares");
-  const [mostrarTodosEventos, setMostrarTodosEventos] = useState(false);
 
   // ACERTE A ESCALAÇÃO
-  // Cada equipe mantém seu próprio progresso.
 
   const [desafios, setDesafios] = useState({
     mandante: {
@@ -646,10 +1147,55 @@ export function DetalhesJogos({ route, navigation }) {
 
   // =======================================================
   // ABA DETALHES
+  // ORDEM: EVENTOS → ESTATÍSTICAS → INFORMAÇÕES
   // =======================================================
 
   const renderDetalhes = () => (
     <View className="gap-4">
+
+      {/* EVENTOS DA PARTIDA */}
+
+      <EventosPartida jogo={jogo} />
+
+      {/* ESTATÍSTICAS */}
+
+      <Card>
+        <TituloSecao
+          titulo="Estatísticas"
+          subtitulo="Comparativo entre as equipes"
+          icone={ChartBarIcon}
+        />
+
+        <View className="flex-row justify-between mb-5">
+          <Text className="text-[#00C853] text-xs font-bold">
+            {jogo.mandante}
+          </Text>
+
+          <Text className="text-[#FFC107] text-xs font-bold">
+            {jogo.visitante}
+          </Text>
+        </View>
+
+        <Estatistica titulo="Posse de bola" valores={jogo.estatisticas.posse} />
+        <Estatistica titulo="Finalizações" valores={jogo.estatisticas.finalizacoes} />
+        <Estatistica titulo="No gol" valores={jogo.estatisticas.chutesGol} />
+        <Estatistica titulo="Escanteios" valores={jogo.estatisticas.escanteios} />
+        <Estatistica titulo="Faltas" valores={jogo.estatisticas.faltas} />
+        <Estatistica titulo="Cartões amarelos" valores={jogo.estatisticas.amarelos} />
+
+        {/* LEGENDA */}
+
+        <View className="flex-row items-center justify-center mt-1">
+          <View className="w-2 h-2 rounded-full bg-[#00C853] mr-2" />
+
+          <Text className="text-[#6F7B83] text-[10px]">
+            Melhor resultado na estatística
+          </Text>
+        </View>
+      </Card>
+
+      {/* INFORMAÇÕES DA PARTIDA */}
+
       <Card>
         <TituloSecao
           titulo="Informações da partida"
@@ -725,33 +1271,6 @@ export function DetalhesJogos({ route, navigation }) {
           </Text>
         </View>
       </Card>
-
-      {/* ESTATÍSTICAS */}
-
-      <Card>
-        <TituloSecao
-          titulo="Estatísticas"
-          subtitulo="Comparativo entre as equipes"
-          icone={ChartBarIcon}
-        />
-
-        <View className="flex-row justify-between mb-5">
-          <Text className="text-[#00C853] text-xs font-bold">
-            {jogo.mandante}
-          </Text>
-
-          <Text className="text-[#FFC107] text-xs font-bold">
-            {jogo.visitante}
-          </Text>
-        </View>
-
-        <Estatistica titulo="Posse de bola" valores={jogo.estatisticas.posse} />
-        <Estatistica titulo="Finalizações" valores={jogo.estatisticas.finalizacoes} />
-        <Estatistica titulo="No gol" valores={jogo.estatisticas.chutesGol} />
-        <Estatistica titulo="Escanteios" valores={jogo.estatisticas.escanteios} />
-        <Estatistica titulo="Faltas" valores={jogo.estatisticas.faltas} />
-        <Estatistica titulo="Cartões amarelos" valores={jogo.estatisticas.amarelos} />
-      </Card>
     </View>
   );
 
@@ -796,11 +1315,7 @@ export function DetalhesJogos({ route, navigation }) {
           </View>
 
           <View className="bg-[#FFC107]/10 rounded-xl p-3">
-            <TrophyIcon
-              size={25}
-              color="#FFC107"
-              weight="fill"
-            />
+            <TrophyIcon size={25} color="#FFC107" weight="fill" />
           </View>
         </View>
 
@@ -835,6 +1350,7 @@ export function DetalhesJogos({ route, navigation }) {
         {listaJogadores.map((jogador) => {
           const idJogador = `${jogador.n}-${jogador.nome}`;
           const selecionado = selecionados.includes(idJogador);
+
           const titular = equipe.titulares.some(
             (item) => `${item.n}-${item.nome}` === idJogador
           );
@@ -852,8 +1368,6 @@ export function DetalhesJogos({ route, navigation }) {
                   : "bg-[#16232D] border-[#26343E]"
               }`}
             >
-              {/* NÚMERO */}
-
               <View
                 className={`w-9 h-9 rounded-xl items-center justify-center mr-3 ${
                   selecionado ? "bg-[#00C853]" : "bg-[#26343E]"
@@ -869,8 +1383,6 @@ export function DetalhesJogos({ route, navigation }) {
                   {jogador.n}
                 </Text>
               </View>
-
-              {/* NOME E POSIÇÃO */}
 
               <View className="flex-1">
                 <Text
@@ -888,8 +1400,6 @@ export function DetalhesJogos({ route, navigation }) {
                 </Text>
               </View>
 
-              {/* INDICADOR */}
-
               <View
                 className={`w-6 h-6 rounded-full border items-center justify-center ${
                   selecionado
@@ -903,8 +1413,6 @@ export function DetalhesJogos({ route, navigation }) {
                   </Text>
                 ) : null}
               </View>
-
-              {/* RESULTADO INDIVIDUAL */}
 
               {confirmado ? (
                 <View className="ml-2">
@@ -923,17 +1431,13 @@ export function DetalhesJogos({ route, navigation }) {
           );
         })}
 
-        {/* RESULTADO DO DESAFIO */}
+        {/* RESULTADO */}
 
         {confirmado ? (
           <View className="bg-[#16232D] border border-[#00C853]/30 rounded-xl p-4 mt-3">
             <View className="items-center">
               <View className="w-14 h-14 rounded-full bg-[#00C853]/10 items-center justify-center mb-3">
-                <TrophyIcon
-                  size={28}
-                  color="#FFC107"
-                  weight="fill"
-                />
+                <TrophyIcon size={28} color="#FFC107" weight="fill" />
               </View>
 
               <Text className="text-[#00C853] font-extrabold text-xl text-center">
@@ -961,7 +1465,7 @@ export function DetalhesJogos({ route, navigation }) {
 
                 {acertos === 11 ? (
                   <Text className="text-[#00C853] font-bold text-xs text-center mt-2">
-                    Bônus de 500 XP por escalação perfeita!
+                    Bônus de 5.000 XP por escalação perfeita!
                   </Text>
                 ) : null}
               </View>
@@ -1031,7 +1535,11 @@ export function DetalhesJogos({ route, navigation }) {
         <View className="flex-row bg-[#111D27] border border-[#26343E] rounded-2xl p-1">
           {["mandante", "visitante"].map((time) => {
             const selecionado = equipeEscalacao === time;
-            const nome = time === "mandante" ? jogo.mandante : jogo.visitante;
+
+            const nome =
+              time === "mandante"
+                ? jogo.mandante
+                : jogo.visitante;
 
             return (
               <Pressable
@@ -1047,7 +1555,9 @@ export function DetalhesJogos({ route, navigation }) {
               >
                 <Text
                   className={`text-xs font-bold ${
-                    selecionado ? "text-[#071018]" : "text-[#A8B2B9]"
+                    selecionado
+                      ? "text-[#071018]"
+                      : "text-[#A8B2B9]"
                   }`}
                 >
                   {nome}
@@ -1125,7 +1635,7 @@ export function DetalhesJogos({ route, navigation }) {
 
         {renderDesafioEscalacao(equipe)}
 
-        {/* LISTA DE TITULARES OU RESERVAS */}
+        {/* LISTA */}
 
         <Card>
           <TituloSecao
@@ -1176,16 +1686,23 @@ export function DetalhesJogos({ route, navigation }) {
   // =======================================================
 
   const renderTempoReal = () => {
-    const eventos = [...jogo.eventos].reverse();
+    const converterMinuto = (minuto) => {
+      const texto = String(minuto ?? "0").replace("'", "").trim();
+      const [base, acrescimo] = texto.split("+");
 
-    const visiveis = mostrarTodosEventos
-      ? eventos
-      : eventos.slice(0, 5);
+      return (Number(base) || 0) + (Number(acrescimo) || 0);
+    };
 
-    const iconeEvento = (tipo) => {
-      if (tipo === "gol") return "⚽";
-      if (tipo === "cartao") return "🟨";
-      if (tipo === "substituicao") return "🔄";
+    const eventos = [...jogo.eventos].sort(
+      (a, b) => converterMinuto(b.minuto) - converterMinuto(a.minuto)
+    );
+
+    const iconeEvento = (evento) => {
+      if (evento.tipo === "gol") return "⚽";
+      if (evento.tipo === "cartao") {
+        return evento.cartao === "vermelho" ? "🟥" : "🟨";
+      }
+      if (evento.tipo === "substituicao") return "🔄";
       return "•";
     };
 
@@ -1197,7 +1714,7 @@ export function DetalhesJogos({ route, navigation }) {
           icone={ClockIcon}
         />
 
-        {/* PLACAR RESUMIDO */}
+        {/* PLACAR */}
 
         <View className="bg-[#16232D] rounded-xl p-3 flex-row items-center justify-center mb-5">
           <Text className="text-[#F5F7F8] font-bold text-xs">
@@ -1213,34 +1730,51 @@ export function DetalhesJogos({ route, navigation }) {
           </Text>
         </View>
 
-        {visiveis.map((evento, index) => (
-          <View key={`${evento.minuto}-${evento.jogador}`} className="flex-row">
+        {eventos.map((evento, index) => (
+          <View key={`${evento.minuto}-${evento.tipo}-${index}`} className="flex-row">
             {/* MINUTO */}
 
             <View className="w-12 items-center">
               <Text className="text-[#00C853] font-extrabold text-xs">
-                {evento.minuto}
+                {evento.minuto}'
               </Text>
 
-              {index !== visiveis.length - 1 ? (
+              {index !== eventos.length - 1 ? (
                 <View className="w-[2px] flex-1 bg-[#26343E] my-2" />
               ) : null}
             </View>
 
-            {/* MARCADOR */}
+            {/* EVENTO */}
 
             <View className="flex-1 flex-row pb-5">
               <View className="w-10 h-10 rounded-xl bg-[#16232D] border border-[#26343E] items-center justify-center">
-                <Text>{iconeEvento(evento.tipo)}</Text>
+                <Text>{iconeEvento(evento)}</Text>
               </View>
 
               <View className="flex-1 ml-3">
                 <Text className="text-[#F5F7F8] font-bold text-sm">
-                  {evento.jogador}
+                  {evento.jogador || evento.entrou || "Evento"}
                 </Text>
 
+                {evento.assistencia ? (
+                  <Text className="text-[#6F7B83] text-xs mt-1">
+                    Assistência: {evento.assistencia}
+                  </Text>
+                ) : null}
+
+                {evento.saiu ? (
+                  <Text className="text-[#A8B2B9] text-xs mt-1">
+                    Saiu: {evento.saiu}
+                  </Text>
+                ) : null}
+
                 <Text className="text-[#A8B2B9] text-xs mt-1">
-                  {evento.descricao}
+                  {evento.descricao ||
+                    (evento.tipo === "gol"
+                      ? "Gol"
+                      : evento.tipo === "cartao"
+                      ? `Cartão ${evento.cartao || "recebido"}`
+                      : "Substituição")}
                 </Text>
 
                 <Text className="text-[#6F7B83] text-xs mt-1">
@@ -1250,19 +1784,6 @@ export function DetalhesJogos({ route, navigation }) {
             </View>
           </View>
         ))}
-
-        {eventos.length > 5 ? (
-          <Pressable
-            onPress={() => setMostrarTodosEventos(!mostrarTodosEventos)}
-            className="bg-[#16232D] border border-[#26343E] rounded-xl py-3 items-center"
-          >
-            <Text className="text-[#00C853] font-bold text-xs">
-              {mostrarTodosEventos
-                ? "Mostrar menos"
-                : "Ver todos os eventos"}
-            </Text>
-          </Pressable>
-        ) : null}
       </Card>
     );
   };
