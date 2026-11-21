@@ -7,6 +7,7 @@ import { Cadastro } from "./src/screens/Cadastro";
 import { Home } from "./src/screens/Home";
 import { Noticias } from "./src/screens/Noticias";
 import { Jogos } from "./src/screens/Jogos";
+import { DetalhesJogos } from "./src/screens/DetalhesJogos";
 import { Quiz } from "./src/screens/Quiz";
 import { QuizPerguntas } from "./src/screens/QuizPerguntas";
 import { Perfil } from "./src/screens/Perfil";
@@ -37,6 +38,7 @@ function NavegacaoPrincipal() {
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Noticias" component={Noticias} />
         <Stack.Screen name="Jogos" component={Jogos} />
+        <Stack.Screen name="DetalhesJogos" component={DetalhesJogos} />
         <Stack.Screen name="Quiz" component={Quiz} />
         <Stack.Screen name="QuizPerguntas" component={QuizPerguntas} />
         <Stack.Screen name="Perfil" component={Perfil} />

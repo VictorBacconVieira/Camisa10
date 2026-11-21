@@ -1,9 +1,11 @@
+
 import {
   ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -14,6 +16,8 @@ import {
   CalendarBlankIcon,
   CaretDownIcon,
   CaretRightIcon,
+  MagnifyingGlassIcon,
+  XIcon,
 } from "phosphor-react-native";
 
 import { useNavigation } from "@react-navigation/native";
@@ -23,7 +27,7 @@ import { BottomNav } from "../components/bottomNav";
 import { CalendarioPersonalizado } from "../components/calendarioPersonalizado";
 
 const API_URL =
-  "https://scary-incantation-q7v4974ww77q2jp7-8000.app.github.dev";
+  "https://turbo-telegram-5g5p4q94vpx6hxp7-8000.app.github.dev";
 
 const STATUS_AO_VIVO = ["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "INT"];
 const STATUS_FINALIZADO = ["FT", "AET", "PEN", "FT_PEN"];
@@ -45,6 +49,7 @@ export function Jogos() {
   const [erro, setErro] = useState(null);
   const [atualizacao, setAtualizacao] = useState(0);
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [pesquisa, setPesquisa] = useState("");
 
   const hoje = new Date();
   const amanha = new Date();
@@ -221,6 +226,34 @@ export function Jogos() {
   });
 
   // =========================================================
+  // PESQUISA POR PAÍS, COMPETIÇÃO OU TIME
+  // =========================================================
+
+  const normalizarPesquisa = (texto) =>
+    String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+
+  const termoPesquisa = normalizarPesquisa(pesquisa);
+
+  const jogosPesquisados = jogosPorStatus.filter((jogo) => {
+    if (!termoPesquisa) return true;
+
+    const camposPesquisa = [
+      jogo.pais,
+      jogo.competicao,
+      jogo.mandante,
+      jogo.visitante,
+    ];
+
+    return camposPesquisa.some((campo) =>
+      normalizarPesquisa(campo).includes(termoPesquisa)
+    );
+  });
+
+  // =========================================================
   // ESTILOS DOS FILTROS DE DATA
   // =========================================================
 
@@ -243,6 +276,7 @@ export function Jogos() {
     { id: "finalizados", nome: "Finalizados" },
     { id: "agendados", nome: "Agendados" },
   ];
+
   // =========================================================
   // TELA
   // =========================================================
@@ -273,6 +307,34 @@ export function Jogos() {
           >
             Jogos
           </Text>
+        </View>
+
+        {/* PESQUISA DE JOGOS */}
+        <View className="mx-4 mb-3">
+          <View className="h-[50px] flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-4">
+            <MagnifyingGlassIcon size={21} color="#A8B2B9" weight="regular" />
+
+            <TextInput
+              className="ml-3 flex-1 text-sm text-texto"
+              style={{ fontFamily: "Inter" }}
+              placeholder="País, competição ou time..."
+              placeholderTextColor="#6F7B83"
+              value={pesquisa}
+              onChangeText={setPesquisa}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+
+            {pesquisa.length > 0 && (
+              <Pressable
+                onPress={() => setPesquisa("")}
+                className="ml-2 h-8 w-8 items-center justify-center rounded-full"
+              >
+                <XIcon size={18} color="#A8B2B9" weight="bold" />
+              </Pressable>
+            )}
+          </View>
         </View>
 
         {/* SELETOR DE DATA */}
@@ -474,8 +536,8 @@ export function Jogos() {
           >
             {carregando
               ? "Buscando partidas..."
-              : `${jogosPorStatus.length} ${
-                  jogosPorStatus.length === 1
+              : `${jogosPesquisados.length} ${
+                  jogosPesquisados.length === 1
                     ? "partida encontrada"
                     : "partidas encontradas"
                 }`}
@@ -527,7 +589,7 @@ export function Jogos() {
             </View>
           )}
 
-          {!carregando && !erro && jogosPorStatus.length === 0 && (
+          {!carregando && !erro && jogosPesquisados.length === 0 && (
             <View className="mb-4 items-center rounded-xl bg-cartao px-5 py-8">
               <CalendarBlankIcon size={36} color="#A8B2B9" weight="regular" />
 
@@ -542,7 +604,9 @@ export function Jogos() {
                 className="mt-1 text-center text-sm text-texto-sec"
                 style={{ fontFamily: "Inter" }}
               >
-                Não há partidas cadastradas para esta data e situação.
+                {pesquisa.trim()
+                  ? "Nenhuma partida corresponde à sua pesquisa."
+                  : "Não há partidas cadastradas para esta data e situação."}
               </Text>
 
               <Pressable
@@ -559,11 +623,12 @@ export function Jogos() {
                   Ver todos os jogos
                 </Text>
               </Pressable>
-            </View>
+          </View>
           )}
+
           {!carregando &&
             !erro &&
-            jogosPorStatus.map((jogo) => {
+            jogosPesquisados.map((jogo) => {
               const status = normalizarStatus(jogo.status);
               const finalizado = STATUS_FINALIZADO.includes(status);
               const aoVivo = STATUS_AO_VIVO.includes(status);
@@ -583,10 +648,7 @@ export function Jogos() {
                 <Pressable
                   key={jogo.id}
                   className="mb-4 rounded-[12px] bg-cartao px-4 py-4"
-                  onPress={() => {
-                    // Futuramente, navegar para os detalhes da partida.
-                    // navigation.navigate("DetalhesPartida", { jogoId: jogo.id });
-                  }}
+                  onPress={() => navigation.navigate("DetalhesJogos", { jogo })}
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.88 : 1,
                     transform: [{ scale: pressed ? 0.99 : 1 }],
