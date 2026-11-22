@@ -43,6 +43,7 @@ export function Home() {
 
   const {configuracoes, alterarTamanhoTexto, alternarAcessibilidade, fontScale} = useAccessibility();
   const [modalAcessibilidade, setModalAcessibilidade] = useState(false);
+  const escalaEscudo = configuracoes.tamanhoTexto === "grande" ? 1.15 : configuracoes.tamanhoTexto === "muitoGrande" ? 1.3 : 1;
 
   useEffect(() => {
     async function carregarPlacar() {
@@ -187,7 +188,7 @@ export function Home() {
               })}
             >
               <PersonArmsSpreadIcon
-                size={25}
+                size={35}
                 color={cores.icon}
                 weight="regular"
               />
@@ -306,11 +307,12 @@ export function Home() {
                 {jogoDestaque?.logo_competicao ? (
                   <Image
                     source={{ uri: jogoDestaque.logo_competicao }}
-                    className="h-7 w-7"
-                    resizeMode="contain"
-                  />
+                    style={{ width: 30 * escalaEscudo, height: 30 * escalaEscudo,}}
+                    resizeMode="contain"/>
                 ) : (
-                  <View className="h-7 w-7 rounded-md bg-white" />
+                  <View
+                    style={{ width: 30 * escalaEscudo, height: 30 * escalaEscudo, borderRadius: 6,}}
+                    className="bg-white"/>
                 )}
 
                 <Texto tamanho={14} className="ml-2 text-texto">
@@ -329,11 +331,11 @@ export function Home() {
 
                   <View className="flex-1 items-center justify-center">
                     {jogoDestaque?.escudo_mandante ? (
-                      <Image
-                        source={{ uri: jogoDestaque.escudo_mandante }}
-                        className="h-20 w-20"
-                        resizeMode="contain"
-                      />
+                            <Image
+                              source={{ uri: jogoDestaque.escudo_mandante }}
+                              style={{width: 80 * escalaEscudo, height: 80 * escalaEscudo,}}
+                              resizeMode="contain"
+                            />
                     ) : (
                       <View className="h-20 w-20 rounded-full bg-white" />
                     )}
@@ -353,7 +355,7 @@ export function Home() {
                     {jogoDestaque?.escudo_visitante ? (
                       <Image
                         source={{ uri: jogoDestaque.escudo_visitante }}
-                        className="h-20 w-20"
+                        style={{width: 80 * escalaEscudo, height: 80 * escalaEscudo,}}
                         resizeMode="contain"
                       />
                     ) : (
@@ -612,7 +614,7 @@ export function Home() {
       {/* ===================================================== */}
 
       <Pressable
-        className="absolute bottom-[105px] right-5 h-[60px] w-[60px] items-center justify-center rounded-full bg-verde"
+        className="absolute bottom-[105px] right-5 h-[80px] w-[80px] items-center justify-center rounded-full bg-verde"
         onPress={() => { navigation.navigate("Chatbot") }}
         style={({ pressed }) => ({
           opacity: pressed ? 0.75 : 1,
@@ -625,7 +627,7 @@ export function Home() {
       >
 
         <Text
-          className="text-2xl font-bold text-texto"
+          className="text-5xl font-bold text-texto"
           style={{
             fontFamily: "Inter",
           }}

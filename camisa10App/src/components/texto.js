@@ -1,3 +1,4 @@
+
 import { Text } from "react-native";
 import { useAccessibility } from "../context/AccessibilityContext";
 
@@ -16,9 +17,12 @@ export function Texto({
       : "Anuphan",
   };
 
-  // TAMANHO DO TEXTO
+  // TAMANHO E ALTURA DO TEXTO
   if (typeof tamanho === "number") {
-    estiloAcessibilidade.fontSize = tamanho * fontScale;
+    const fontSize = tamanho * fontScale;
+
+    estiloAcessibilidade.fontSize = fontSize;
+    estiloAcessibilidade.lineHeight = Math.ceil(fontSize * 1.25);
   }
 
   return (
