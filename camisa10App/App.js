@@ -12,10 +12,15 @@ import { Quiz } from "./src/screens/Quiz";
 import { QuizPerguntas } from "./src/screens/QuizPerguntas";
 import { Perfil } from "./src/screens/Perfil";
 import { EditarPerfil } from "./src/screens/EditarPerfil";
+import { Acessibilidade } from "./src/screens/Acessibilidade"
 import { Chatbot } from "./src/screens/Chatbot";
 
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
 import { ThemeProvider } from "./src/context/ThemeContext";
+import { AccessibilityProvider } from "./src/context/AccessibilityContext";
+
+import { useFonts } from "expo-font";
+import { Anuphan_400Regular, Anuphan_700Bold, } from "@expo-google-fonts/anuphan";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +47,7 @@ function NavegacaoPrincipal() {
         <Stack.Screen name="QuizPerguntas" component={QuizPerguntas} />
         <Stack.Screen name="Perfil" component={Perfil} />
         <Stack.Screen name="EditarPerfil" component={EditarPerfil} />
+        <Stack.Screen name="Acessibilidade" component={Acessibilidade} />
         <Stack.Screen name="Chatbot" component={Chatbot} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -49,10 +55,19 @@ function NavegacaoPrincipal() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Anuphan: Anuphan_400Regular,
+    AnuphanBold: Anuphan_700Bold,
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
     <ThemeProvider>
       <AuthProvider>
-        <NavegacaoPrincipal/>
+        <AccessibilityProvider>
+          <NavegacaoPrincipal />
+        </AccessibilityProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -1,24 +1,22 @@
 import {
   Pressable,
   ScrollView,
-  Text,
   View,
+  Text,
   Image,
   Linking,
+  Modal,
+  Switch,
 } from "react-native";
+
+import { Texto } from "../components/texto";
 
 import { useEffect, useState } from "react";
 
 import {
-  BellIcon,
+  PersonArmsSpreadIcon,
   CaretRightIcon,
-  HouseIcon,
-  ListIcon,
-  MagnifyingGlassIcon,
-  NewspaperIcon,
   QuestionIcon,
-  SoccerBallIcon,
-  UserIcon,
 } from "phosphor-react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,10 +27,11 @@ import { BottomNav } from "../components/bottomNav";
 
 import { obterPlacarPersonalizado, obterNoticias } from "../services/authService";
 import { useTheme } from "../context/ThemeContext";
+import { useAccessibility } from "../context/AccessibilityContext";
 
 export function Home() {
   const navigation = useNavigation();
-  const { temaAtivo, cores, alterarTema } = useTheme();
+  const {cores, altoContraste, alternarAltoContraste,} = useTheme();
 
   const [placar, setPlacar] = useState(null);
   const [carregandoPlacar, setCarregandoPlacar] = useState(true);
@@ -41,6 +40,9 @@ export function Home() {
   const [noticias, setNoticias] = useState([]);
   const [carregandoNoticias, setCarregandoNoticias] = useState(true);
   const [erroNoticias, setErroNoticias] = useState(null)
+
+  const {configuracoes, alterarTamanhoTexto, alternarAcessibilidade, fontScale} = useAccessibility();
+  const [modalAcessibilidade, setModalAcessibilidade] = useState(false);
 
   useEffect(() => {
     async function carregarPlacar() {
@@ -170,38 +172,11 @@ export function Home() {
             className="absolute right-4 flex-row items-center"
           >
 
-            {/* PESQUISA */}
-
-            <Pressable
-              className="mr-2 h-10 w-10 items-center justify-center"
-              onPress={() => {
-                // FUTURO:
-                // Abrir pesquisa.
-              }}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.6 : 1,
-                transform: [
-                  {
-                    scale: pressed ? 0.9 : 1,
-                  },
-                ],
-              })}
-            >
-              <MagnifyingGlassIcon
-                size={25}
-                color={cores.icon}
-                weight="regular"
-              />
-            </Pressable>
-
             {/* NOTIFICAÇÕES */}
 
             <Pressable
               className="h-10 w-10 items-center justify-center"
-              onPress={() => {
-                // FUTURO:
-                // Abrir notificações.
-              }}
+              onPress={() => setModalAcessibilidade(true)}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.6 : 1,
                 transform: [
@@ -211,7 +186,7 @@ export function Home() {
                 ],
               })}
             >
-              <BellIcon
+              <PersonArmsSpreadIcon
                 size={25}
                 color={cores.icon}
                 weight="regular"
@@ -232,14 +207,12 @@ export function Home() {
 
           <View className="mb-3 flex-row items-center justify-between px-5">
 
-            <Text
-              className="text-xl text-texto"
-              style={{
-                fontFamily: "Anuphan",
-              }}
+            <Texto
+              tamanho={20}
+              className="text-texto text-xl"
             >
               Central de jogos
-            </Text>
+            </Texto>
 
             {/* VER TODOS */}
 
@@ -257,14 +230,9 @@ export function Home() {
                 ],
               })}
             >
-              <Text
-                className="text-[15px] text-texto-sec"
-                style={{
-                  fontFamily: "Anuphan",
-                }}
-              >
+              <Texto tamanho={15} className="text-texto-sec">
                 Ver todos
-              </Text>
+              </Texto>
 
               <CaretRightIcon
                 size={19}
@@ -279,61 +247,40 @@ export function Home() {
 
           {carregandoPlacar ? (
             <View className="mx-3 rounded-[10px] bg-cartao px-3 py-8 items-center">
-              <Text
-                className="text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={14} className="text-texto-sec">
                 Carregando informações do seu time...
-              </Text>
+              </Texto>
             </View>
 
           ) : erroPlacar ? (
             <View className="mx-3 rounded-[10px] bg-cartao px-5 py-8 items-center">
-              <Text
-                className="text-base text-texto text-center"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={16} className="text-texto text-center">
                 Não foi possível carregar as informações do seu time.
-              </Text>
+              </Texto>
 
-              <Text
-                className="mt-2 text-sm text-texto-sec text-center"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={14} className="mt-2 text-texto-sec text-center">
                 Verifique sua conexão e tente novamente mais tarde.
-              </Text>
+              </Texto>
             </View>
           ) : !timeFavorito ? (
             <View className="mx-3 rounded-[10px] bg-cartao px-5 py-8 items-center">
-              <Text
-                className="text-base text-texto text-center"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={16} className="text-texto text-center">
                 Você ainda não escolheu seu time do coração.
-              </Text>
+              </Texto>
 
-              <Text
-                className="mt-2 text-sm text-texto-sec text-center"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={14} className="mt-2 text-texto-sec text-center">
                 Acesse seu perfil e escolha um time para acompanhar os jogos!
-              </Text>
+              </Texto>
             </View>
           ) : !jogoDestaque ? (
             <View className="mx-3 rounded-[10px] bg-cartao px-5 py-8 items-center">
-              <Text
-                className="text-base text-texto text-center"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={16} className="text-texto text-center">
                 Nenhuma partida disponível no momento
-              </Text>
+              </Texto>
 
-              <Text
-                className="mt-2 text-sm text-texto-sec text-center"
-                style={{ fontFamily: "Inter" }}
-              >
+              <Texto tamanho={14} className="mt-2 text-texto-sec text-center">
                 Estamos buscando os próximos jogos do seu time. Volte mais tarde!
-              </Text>
+              </Texto>
             </View>
           ) : (
 
@@ -366,14 +313,9 @@ export function Home() {
                   <View className="h-7 w-7 rounded-md bg-white" />
                 )}
 
-                <Text
-                  className="ml-2 text-sm text-texto"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
-                >
+                <Texto tamanho={14} className="ml-2 text-texto">
                   {jogoDestaque?.competicao || "Partida em destaque"}
-                </Text>
+                </Texto>
 
               </View>
 
@@ -398,16 +340,13 @@ export function Home() {
                   </View>
 
                   <View className="flex-1 items-center justify-center">
-                    <Text
-                      className="text-5xl text-texto"
-                      style={{ fontFamily: "Inter" }}
-                    >
+                    <Texto tamanho={48} className="text-texto">
                       {ehResultado &&
                         jogoDestaque?.gols_mandante !== null &&
                         jogoDestaque?.gols_visitante !== null
                         ? `${jogoDestaque.gols_mandante} - ${jogoDestaque.gols_visitante}`
                         : "x"}
-                    </Text>
+                    </Texto>
                   </View>
 
                   <View className="flex-1 items-center justify-center">
@@ -430,12 +369,9 @@ export function Home() {
 
                   {/* MANDANTE */}
                   <View className="flex-1 items-center">
-                    <Text
-                      className="min-h-[40px] text-center text-sm text-texto"
-                      style={{ fontFamily: "Inter" }}
-                    >
+                    <Texto tamanho={14} className="min-h-[40px] text-center text-texto">
                       {jogoDestaque?.mandante || "A definir"}
-                    </Text>
+                    </Texto>
                   </View>
 
                   {/* ESPAÇO CENTRAL DO PLACAR */}
@@ -443,12 +379,9 @@ export function Home() {
 
                   {/* VISITANTE */}
                   <View className="flex-1 items-center">
-                    <Text
-                      className="min-h-[40px] text-center text-sm text-texto"
-                      style={{ fontFamily: "Inter" }}
-                    >
+                    <Texto tamanho={14} className="min-h-[40px] text-center text-texto">
                       {jogoDestaque?.visitante || "A definir"}
-                    </Text>
+                    </Texto>
                   </View>
 
                 </View>
@@ -456,33 +389,17 @@ export function Home() {
 
                 <View className="mt-4 items-center">
 
-                  <Text
-                    className="text-[15px] text-texto-sec"
-                    style={{
-                      fontFamily: "Inter",
-                    }}
-                  >
+                  <Texto tamanho={15} className="text-texto-sec text-center">
                     {dataFormatada || "Data a definir"} • {horarioFormatado || "--:--"}
-                  </Text>
+                  </Texto>
 
-                  <Text
-                    className="mt-1 text-[15px] text-texto-sec"
-                    style={{
-                      fontFamily: "Inter",
-                    }}
-                  >
+                  <Texto tamanho={15} className="mt-1 text-texto-sec text-center">
                     {jogoDestaque?.estadio || "Estádio não informado"}
-                  </Text>
+                  </Texto>
 
-                  <Text
-                    className="mt-1 text-xs text-texto-sec"
-                    style={{
-                      fontFamily: "Inter",
-                    }}
-                  >
+                  <Texto tamanho={12} className="mt-1 text-texto-sec">
                     {ehResultado ? "Último resultado" : "Próximo jogo"}
-
-                  </Text>
+                  </Texto>
 
                 </View>
 
@@ -502,14 +419,11 @@ export function Home() {
 
           <View className="mb-3 flex-row items-center justify-between px-5">
 
-            <Text
-              className="text-xl text-texto"
-              style={{
-                fontFamily: "Anuphan",
-              }}
-            >
-              Últimas notícias
-            </Text>
+            <Texto
+              tamanho={20}
+              className="text-texto">
+              Últimas Notícias
+            </Texto>
 
             {/* VER TODAS */}
 
@@ -528,14 +442,11 @@ export function Home() {
               })}
             >
 
-              <Text
-                className="text-[15px] text-texto-sec"
-                style={{
-                  fontFamily: "Anuphan",
-                }}
-              >
+              <Texto
+                tamanho={15}
+                className="text-texto-sec">
                 Ver todas
-              </Text>
+              </Texto>
 
               <CaretRightIcon
                 size={19}
@@ -551,27 +462,27 @@ export function Home() {
 
           {carregandoNoticias ? (
             <View className="mx-3 mb-4 rounded-[10px] bg-cartao p-5">
-              <Text className="text-sm text-texto-sec">
+              <Texto tamanho={14} className="text-texto-sec">
                 Carregando notícias...
-              </Text>
+              </Texto>
             </View>
           ) : erroNoticias ? (
             <View className="mx-3 mb-4 rounded-[10px] bg-cartao p-5">
-              <Text className="text-sm text-texto-sec">
+              <Texto tamanho={14} className="text-texto-sec">
                 Não foi possível carregar as notícias.
-              </Text>
+              </Texto>
             </View>
           ) : noticias.length === 0 ? (
             <View className="mx-3 mb-4 rounded-[10px] bg-cartao p-5">
-              <Text className="text-sm text-texto-sec">
+              <Texto tamanho={14} className="text-texto-sec">
                 Nenhuma notícia encontrada no momento.
-              </Text>
+              </Texto>
             </View>
           ) : (
             noticias.slice(0, 2).map((noticia, index) => (
               <Pressable
                 key={`${noticia.url || noticia.titulo}-${index}`}
-                className="mx-3 mb-4 h-[89px] flex-row rounded-[10px] bg-cartao p-3"
+                className="mx-3 mb-4 min-h-[89px] flex-row rounded-[10px] bg-cartao p-3"
                 onPress={() => abrirNoticia(noticia)}
                 style={({ pressed }) => ({
                   opacity: pressed ? 0.85 : 1,
@@ -588,24 +499,20 @@ export function Home() {
                   />
                 ) : (
                   <View className="h-[68px] w-[90px] rounded-[10px] bg-cartao-borda items-center justify-center">
-                    <Text className="text-[10px] text-texto-sec">
+                    <Texto tamanho={10} className="text-texto-sec text-center">
                       Sem imagem
-                    </Text>
+                    </Texto>
                   </View>
                 )}
 
                 {/* INFORMAÇÕES */}
 
                 <View className="ml-3 flex-1 justify-between">
-                  <Text
-                    numberOfLines={3}
-                    className="text-sm text-texto"
-                    style={{ fontFamily: "Inter" }}
-                  >
+                  <Texto tamanho={14} numberOfLines={3} className="text-texto">
                     {noticia.titulo}
-                  </Text>
+                  </Texto>
 
-                  <View className="flex-row items-center">
+                  <View className="flex-row flex-wrap items-center">
                     {noticia.url && (
                       <Image
                         source={{
@@ -616,24 +523,17 @@ export function Home() {
                       />
                     )}
 
-                    <Text
-                      numberOfLines={1}
-                      className="ml-1 text-xs text-texto"
-                      style={{ fontFamily: "Inter" }}
-                    >
+                    <Texto tamanho={12} numberOfLines={1} className="ml-1 text-texto">
                       {noticia.fonte}
-                    </Text>
+                    </Texto>
 
                     <Text className="mx-1 text-xs text-texto-sec">
                       •
                     </Text>
 
-                    <Text
-                      className="text-xs text-texto-sec"
-                      style={{ fontFamily: "Inter" }}
-                    >
+                    <Texto tamanho={12} className="text-texto-sec">
                       {formatarTempo(noticia.publicado_em)}
-                    </Text>
+                    </Texto>
                   </View>
                 </View>
               </Pressable>
@@ -648,14 +548,11 @@ export function Home() {
 
         <View className="mt-2 px-5">
 
-          <Text
-            className="text-xl text-texto"
-            style={{
-              fontFamily: "Anuphan",
-            }}
-          >
+          <Texto
+            tamanho={20}
+            className="text-texto">
             Desafio do dia
-          </Text>
+          </Texto>
 
           <Pressable
             className="mt-3 rounded-[10px] bg-cartao p-4"
@@ -686,24 +583,13 @@ export function Home() {
 
               <View className="ml-4 flex-1">
 
-                <Text
-                  className="text-base font-bold text-texto"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
-                >
+                <Texto tamanho={16} className="text-texto">
                   Quiz do dia
-                </Text>
+                </Texto>
 
-                <Text
-                  className="mt-1 text-sm text-texto-sec"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
-                >
-                  Teste seus conhecimentos
-                  sobre futebol!
-                </Text>
+                <Texto tamanho={14} className="mt-1 text-texto-sec">
+                  Teste seus conhecimentos sobre futebol!
+                </Texto>
 
               </View>
 
@@ -748,6 +634,189 @@ export function Home() {
         </Text>
 
       </Pressable>
+
+      
+
+      {/* ================================================= */}
+      {/* MODAL DE ACESSIBILIDADE */}
+      {/* ================================================= */}
+
+      <Modal
+        visible={modalAcessibilidade}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => setModalAcessibilidade(false)}
+      >
+        <View
+          className="flex-1 justify-end"
+          style={{
+            backgroundColor: cores.overlay,
+          }}
+        >
+          {/* FUNDO CLICÁVEL */}
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setModalAcessibilidade(false)}
+          />
+
+          {/* CONTEÚDO */}
+          <View
+            className="rounded-t-3xl px-5 pb-8 pt-5"
+            style={{
+              backgroundColor: cores.surface,
+              borderTopWidth: 1,
+              borderColor: cores.border,
+            }}
+          >
+            {/* CABEÇALHO */}
+            <View className="mb-5 flex-row items-center justify-between">
+              <View className="flex-1">
+                <Texto
+                  tamanho={20}
+                  style={{ color: cores.text }}
+                >
+                  Acessibilidade
+                </Texto>
+
+                <Texto
+                  tamanho={12}
+                  className="mt-1"
+                  style={{ color: cores.textSecondary }}
+                >
+                  Ajustes rápidos para sua experiência
+                </Texto>
+              </View>
+
+              <Pressable
+                onPress={() => setModalAcessibilidade(false)}
+                className="h-10 w-10 items-center justify-center rounded-full"
+                style={{
+                  backgroundColor: cores.surfaceSecondary,
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Fechar acessibilidade"
+              >
+                <Text
+                  style={{
+                    color: cores.text,
+                    fontSize: 24,
+                  }}
+                >
+                  ×
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* TAMANHO DO TEXTO */}
+            <Texto tamanho={15} className="mb-3" style={{ color: cores.text }}>
+              Tamanho do texto
+            </Texto>
+
+            <View className="mb-5 flex-row gap-2">
+              {[
+                { id: "normal", titulo: "Normal" },
+                { id: "grande", titulo: "Grande" },
+                { id: "muitoGrande", titulo: "Muito grande" },
+              ].map((item) => {
+                const selecionado =
+                  configuracoes.tamanhoTexto === item.id;
+
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => alterarTamanhoTexto(item.id)}
+                    className="flex-1 items-center justify-center rounded-xl px-2 py-3"
+                    style={{
+                      backgroundColor: selecionado
+                        ? cores.primary + "20"
+                        : cores.surfaceSecondary,
+                      borderWidth: 1,
+                      borderColor: selecionado
+                        ? cores.primary
+                        : cores.border,
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                      selected: selecionado,
+                    }}
+                  >
+                    <Texto tamanho={12} style={{color: cores.text, textAlign: "center",}}>
+                      {item.titulo}
+                    </Texto>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* NEGRITO */}
+            <View className="flex-row items-center justify-between py-3">
+              <View className="flex-1 pr-3">
+                <Texto tamanho={14} style={{ color: cores.text }}>
+                  Texto em negrito
+                </Texto>
+
+                <Texto tamanho={11}style={{ color: cores.textSecondary }}>
+                  Destaca os textos da interface
+                </Texto>
+              </View>
+
+              <Switch
+                value={configuracoes.textoNegrito}
+                onValueChange={() =>
+                  alternarAcessibilidade("textoNegrito")
+                }
+                trackColor={{
+                  false: cores.border,
+                  true: cores.primary,
+                }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            {/* ALTO CONTRASTE */}
+            <View className="flex-row items-center justify-between py-3">
+              <View className="flex-1 pr-3">
+                <Texto tamanho={14} style={{ color: cores.text }}>
+                  Alto contraste
+                </Texto>
+
+                <Texto tamanho={11} style={{ color: cores.textSecondary }}>
+                  Facilita a visualização dos elementos
+                </Texto>
+              </View>
+
+              <Switch
+                value={altoContraste}
+                onValueChange={alternarAltoContraste}
+                trackColor={{
+                  false: cores.border,
+                  true: cores.primary,
+                }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            {/* ABRIR CONFIGURAÇÕES COMPLETAS */}
+            <Pressable
+              className="mt-5 items-center justify-center rounded-xl py-4"
+              style={{
+                backgroundColor: cores.primary,
+              }}
+              onPress={() => {
+                setModalAcessibilidade(false);
+                navigation.navigate("Acessibilidade");
+              }}
+            >
+              <Texto tamanho={14} style={{ color: "#FFFFFF" }}>
+                Configurações completas
+              </Texto>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+
 
       {/* ===================================================== */}
       {/* BARRA DE NAVEGAÇÃO */}

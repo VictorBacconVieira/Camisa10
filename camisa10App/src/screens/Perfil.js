@@ -15,7 +15,7 @@ import {
   CaretRightIcon,
   SealQuestionIcon,
   EyeIcon,
-  GearIcon,
+  PersonArmsSpreadIcon,
   PaletteIcon,
   PencilSimpleIcon,
   SignOutIcon,
@@ -784,15 +784,12 @@ export function Perfil() {
 
             <Pressable
               className="h-16 flex-row items-center px-3"
-              onPress={() => {
-                // FUTURO:
-                // Abrir configurações de acessibilidade.
-              }}
+              onPress={() => navigation.navigate("Acessibilidade")}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <GearIcon
+              <PersonArmsSpreadIcon
                 size={25}
                 color={cores.icon}
                 weight="regular"
