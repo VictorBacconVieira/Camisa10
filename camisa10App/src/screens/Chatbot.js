@@ -22,7 +22,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 
+import { useTheme } from "../context/ThemeContext";
+
 export function Chatbot() {
+  const { temaAtivo, cores, alterarTema } = useTheme();
   const navigation = useNavigation();
 
   const scrollRef = useRef(null);
@@ -232,7 +235,7 @@ export function Chatbot() {
               accessibilityRole="button"
               accessibilityLabel="Voltar"
             >
-              <ArrowLeftIcon size={23} color="#F5F7F8" />
+              <ArrowLeftIcon size={23} color={cores.icon} />
             </Pressable>
 
             <View className="mr-3 h-10 w-10 items-center justify-center rounded-full border border-verde-claro bg-cartao">

@@ -6,29 +6,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'verde': {
-          DEFAULT: '#00C853',
-          claro: '#39FF14',
-          escuro: '#007A35'
+        verde: {
+          DEFAULT: "#00C853",
+          claro: "#39FF14",
+          escuro: "#007A35",
         },
 
-        'texto': {
-          DEFAULT: '#F5F7F8',
-          sec: '#A8B2B9',
-          ter: '#6F7B83'
+        texto: {
+          DEFAULT: "var(--color-texto)",
+          sec: "var(--color-texto-sec)",
+          ter: "var(--color-texto-ter)",
         },
 
-        'cartao': {
-          DEFAULT: '#16232D',
-          escuro: '#111D27',
-          borda: '#26343E'
+        cartao: {
+          DEFAULT: "var(--color-cartao)",
+          escuro: "var(--color-cartao-escuro)",
+          borda: "var(--color-cartao-borda)",
         },
 
-        'fundo': '#071018',
-        'vermelho': '#E53935',
-        'amarelo': '#FFC107'
+        fundo: "var(--color-fundo)",
+        vermelho: "#E53935",
+        amarelo: "#FFC107",
       },
-
     },
   },
 

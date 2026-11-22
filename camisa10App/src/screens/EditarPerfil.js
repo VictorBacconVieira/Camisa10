@@ -29,7 +29,13 @@ import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
 import { CalendarioPersonalizado } from "../components/calendarioPersonalizado";
 import { useAuth } from "../context/AuthContext";
-import { atualizarFotoPerfil, alterarSenha as alterarSenhaAPI, excluirConta as excluirContaAPI, } from "../services/authService";
+import {
+  atualizarFotoPerfil,
+  alterarSenha as alterarSenhaAPI,
+  excluirConta as excluirContaAPI,
+} from "../services/authService";
+import { useTheme } from "../context/ThemeContext";
+
 // =====================================================
 // COMPONENTE: CAMPO DE TEXTO
 // Declarado fora de EditarPerfil para preservar o foco.
@@ -43,11 +49,13 @@ function Campo({
   keyboardType = "default",
   autoCapitalize = "sentences",
 }) {
+  const { cores } = useTheme();
+
   return (
     <View style={{ marginBottom: 18 }}>
       <Text
         style={{
-          color: "#A8B2B9",
+          color: cores.textSecondary,
           fontSize: 13,
           marginBottom: 8,
           fontWeight: "600",
@@ -60,17 +68,17 @@ function Campo({
         value={valor}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#6F7B83"
+        placeholderTextColor={cores.textTertiary}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         style={{
-          backgroundColor: "#111D27",
+          backgroundColor: cores.surface,
           borderWidth: 1,
-          borderColor: "#26343E",
+          borderColor: cores.border,
           borderRadius: 12,
           paddingHorizontal: 15,
           paddingVertical: 14,
-          color: "#F5F7F8",
+          color: cores.text,
           fontSize: 15,
         }}
       />
@@ -91,11 +99,13 @@ function CampoSenha({
   alternarVisibilidade,
   placeholder,
 }) {
+  const { cores } = useTheme();
+
   return (
     <View style={{ marginBottom: 17 }}>
       <Text
         style={{
-          color: "#A8B2B9",
+          color: cores.textSecondary,
           fontSize: 13,
           marginBottom: 8,
           fontWeight: "600",
@@ -106,9 +116,9 @@ function CampoSenha({
 
       <View
         style={{
-          backgroundColor: "#111D27",
+          backgroundColor: cores.surface,
           borderWidth: 1,
-          borderColor: "#26343E",
+          borderColor: cores.border,
           borderRadius: 12,
           flexDirection: "row",
           alignItems: "center",
@@ -119,12 +129,12 @@ function CampoSenha({
           value={valor}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#6F7B83"
+          placeholderTextColor={cores.textTertiary}
           secureTextEntry={!mostrar}
           autoCapitalize="none"
           style={{
             flex: 1,
-            color: "#F5F7F8",
+            color: cores.text,
             paddingVertical: 14,
             fontSize: 15,
           }}
@@ -132,9 +142,9 @@ function CampoSenha({
 
         <Pressable onPress={alternarVisibilidade}>
           {mostrar ? (
-            <EyeSlashIcon size={21} color="#A8B2B9" />
+            <EyeSlashIcon size={21} color={cores.icon} />
           ) : (
-            <EyeIcon size={21} color="#A8B2B9" />
+            <EyeIcon size={21} color={cores.icon} />
           )}
         </Pressable>
       </View>
@@ -147,8 +157,10 @@ function CampoSenha({
 // =====================================================
 
 export function EditarPerfil() {
+  const { cores } = useTheme();
   const navigation = useNavigation();
-  const { 
+
+  const {
     usuario: usuarioAutenticado,
     atualizarDadosUsuario,
     atualizarFotoUsuario,
@@ -160,8 +172,8 @@ export function EditarPerfil() {
     nomeUsuario: usuarioAutenticado?.apelido || "",
     email: usuarioAutenticado?.email || "",
     dataNascimento: usuarioAutenticado?.data_nascimento
-    ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
-    : null,
+      ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
+      : null,
   });
 
   useEffect(() => {
@@ -173,12 +185,11 @@ export function EditarPerfil() {
       nomeUsuario: usuarioAutenticado.apelido || "",
       email: usuarioAutenticado.email || "",
       dataNascimento: usuarioAutenticado.data_nascimento
-      ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
-      : null,
+        ? new Date(`${usuarioAutenticado.data_nascimento}T12:00:00`)
+        : null,
     }));
 
     setFotoPerfil(usuarioAutenticado.avatar_url || null);
-
   }, [usuarioAutenticado]);
 
   const [fotoPerfil, setFotoPerfil] = useState(
@@ -221,7 +232,8 @@ export function EditarPerfil() {
   // =====================================================
 
   const [senhaExclusao, setSenhaExclusao] = useState("");
-  const [mostrarSenhaExclusao, setMostrarSenhaExclusao] = useState(false);
+  const [mostrarSenhaExclusao, setMostrarSenhaExclusao] =
+    useState(false);
 
   const [confirmacaoExclusao, setConfirmacaoExclusao] =
     useState("");
@@ -284,7 +296,7 @@ export function EditarPerfil() {
       setModalSucesso(true);
     } finally {
       setFotoCarregando(false);
-    } 
+    }
   }
 
   async function salvarAlteracoes() {
@@ -378,7 +390,6 @@ export function EditarPerfil() {
       fecharModalSenha();
       setMensagemSucesso("Senha alterada com sucesso!");
       setModalSucesso(true);
-
     } catch (erro) {
       console.error("ERRO AO ALTERAR SENHA:", erro);
       setErroSenha(erro.message || "Não foi possível alterar a senha.");
@@ -407,12 +418,10 @@ export function EditarPerfil() {
     setErroExclusao("");
 
     if (confirmacaoExclusao.trim() !== "EXCLUIR") {
-      setErroExclusao(
-        'Digite exatamente "EXCLUIR" para confirmar.'
-      );
+      setErroExclusao('Digite exatamente "EXCLUIR" para confirmar.');
       return;
     }
-    
+
     if (!senhaExclusao) {
       setErroExclusao("Informe sua senha atual para continuar.");
       return;
@@ -443,7 +452,10 @@ export function EditarPerfil() {
   return (
     <SafeAreaView
       edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: "#071018" }}
+      style={{
+        flex: 1,
+        backgroundColor: cores.background,
+      }}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -468,17 +480,17 @@ export function EditarPerfil() {
               width: 42,
               height: 42,
               borderRadius: 12,
-              backgroundColor: "#16232D",
+              backgroundColor: cores.surfaceSecondary,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <ArrowLeftIcon size={22} color="#F5F7F8" />
+            <ArrowLeftIcon size={22} color={cores.icon} />
           </Pressable>
 
           <Text
             style={{
-              color: "#F5F7F8",
+              color: cores.text,
               fontSize: 21,
               fontWeight: "bold",
               marginLeft: 15,
@@ -503,7 +515,7 @@ export function EditarPerfil() {
         <View style={{ paddingHorizontal: 20 }}>
           <Text
             style={{
-              color: "#F5F7F8",
+              color: cores.text,
               fontSize: 17,
               fontWeight: "bold",
               marginBottom: 18,
@@ -515,18 +527,14 @@ export function EditarPerfil() {
           <Campo
             label="Nome completo"
             valor={usuario.nome}
-            onChangeText={(valor) =>
-              atualizarCampo("nome", valor)
-            }
+            onChangeText={(valor) => atualizarCampo("nome", valor)}
             placeholder="Digite seu nome completo"
           />
 
           <Campo
             label="Nome de usuário"
             valor={usuario.nomeUsuario}
-            onChangeText={(valor) =>
-              atualizarCampo("nomeUsuario", valor)
-            }
+            onChangeText={(valor) => atualizarCampo("nomeUsuario", valor)}
             placeholder="Digite seu nome de usuário"
             autoCapitalize="none"
           />
@@ -534,9 +542,7 @@ export function EditarPerfil() {
           <Campo
             label="E-mail"
             valor={usuario.email}
-            onChangeText={(valor) =>
-              atualizarCampo("email", valor)
-            }
+            onChangeText={(valor) => atualizarCampo("email", valor)}
             placeholder="Digite seu e-mail"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -547,7 +553,7 @@ export function EditarPerfil() {
           <View style={{ marginBottom: 25 }}>
             <Text
               style={{
-                color: "#A8B2B9",
+                color: cores.textSecondary,
                 fontSize: 13,
                 marginBottom: 8,
                 fontWeight: "600",
@@ -559,9 +565,9 @@ export function EditarPerfil() {
             <Pressable
               onPress={() => setMostrarCalendario(true)}
               style={{
-                backgroundColor: "#111D27",
+                backgroundColor: cores.surface,
                 borderWidth: 1,
-                borderColor: "#26343E",
+                borderColor: cores.border,
                 borderRadius: 12,
                 paddingHorizontal: 15,
                 paddingVertical: 15,
@@ -570,11 +576,11 @@ export function EditarPerfil() {
                 justifyContent: "space-between",
               }}
             >
-              <Text style={{ color: "#F5F7F8", fontSize: 15 }}>
+              <Text style={{ color: cores.text, fontSize: 15 }}>
                 {formatarData(usuario.dataNascimento)}
               </Text>
 
-              <CalendarBlankIcon size={21} color="#00C853" />
+              <CalendarBlankIcon size={21} color={cores.primary} />
             </Pressable>
           </View>
 
@@ -583,14 +589,14 @@ export function EditarPerfil() {
           <View
             style={{
               borderTopWidth: 1,
-              borderTopColor: "#26343E",
+              borderTopColor: cores.border,
               paddingTop: 23,
               marginBottom: 25,
             }}
           >
             <Text
               style={{
-                color: "#F5F7F8",
+                color: cores.text,
                 fontSize: 17,
                 fontWeight: "bold",
                 marginBottom: 8,
@@ -601,7 +607,7 @@ export function EditarPerfil() {
 
             <Text
               style={{
-                color: "#A8B2B9",
+                color: cores.textSecondary,
                 fontSize: 13,
                 lineHeight: 19,
                 marginBottom: 15,
@@ -614,20 +620,20 @@ export function EditarPerfil() {
             <Pressable
               onPress={abrirModalSenha}
               style={{
-                backgroundColor: "#16232D",
+                backgroundColor: cores.surfaceSecondary,
                 borderWidth: 1,
-                borderColor: "#26343E",
+                borderColor: cores.border,
                 borderRadius: 12,
                 padding: 16,
                 flexDirection: "row",
                 alignItems: "center",
               }}
             >
-              <LockKeyIcon size={22} color="#00C853" />
+              <LockKeyIcon size={22} color={cores.primary} />
 
               <Text
                 style={{
-                  color: "#F5F7F8",
+                  color: cores.text,
                   fontSize: 15,
                   fontWeight: "600",
                   marginLeft: 12,
@@ -637,7 +643,7 @@ export function EditarPerfil() {
                 Alterar senha
               </Text>
 
-              <Text style={{ color: "#00C853", fontSize: 20 }}>
+              <Text style={{ color: cores.primary, fontSize: 20 }}>
                 ›
               </Text>
             </Pressable>
@@ -648,7 +654,7 @@ export function EditarPerfil() {
           <Pressable
             onPress={salvarAlteracoes}
             style={{
-              backgroundColor: "#00C853",
+              backgroundColor: cores.primary,
               paddingVertical: 16,
               borderRadius: 13,
               alignItems: "center",
@@ -657,7 +663,7 @@ export function EditarPerfil() {
           >
             <Text
               style={{
-                color: "#071018",
+                color: cores.background,
                 fontSize: 16,
                 fontWeight: "bold",
               }}
@@ -671,14 +677,14 @@ export function EditarPerfil() {
           <View
             style={{
               borderTopWidth: 1,
-              borderTopColor: "#26343E",
+              borderTopColor: cores.border,
               paddingTop: 24,
               marginBottom: 20,
             }}
           >
             <Text
               style={{
-                color: "#E53935",
+                color: cores.danger,
                 fontSize: 17,
                 fontWeight: "bold",
                 marginBottom: 9,
@@ -689,7 +695,7 @@ export function EditarPerfil() {
 
             <Text
               style={{
-                color: "#A8B2B9",
+                color: cores.textSecondary,
                 fontSize: 13,
                 lineHeight: 20,
                 marginBottom: 16,
@@ -703,7 +709,7 @@ export function EditarPerfil() {
               onPress={abrirModalExcluir}
               style={{
                 borderWidth: 1,
-                borderColor: "#E53935",
+                borderColor: cores.danger,
                 borderRadius: 12,
                 padding: 15,
                 flexDirection: "row",
@@ -711,11 +717,11 @@ export function EditarPerfil() {
                 justifyContent: "center",
               }}
             >
-              <TrashIcon size={20} color="#E53935" />
+              <TrashIcon size={20} color={cores.danger} />
 
               <Text
                 style={{
-                  color: "#E53935",
+                  color: cores.danger,
                   fontWeight: "bold",
                   fontSize: 15,
                   marginLeft: 9,
@@ -741,18 +747,18 @@ export function EditarPerfil() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.75)",
+            backgroundColor: cores.overlay,
             justifyContent: "center",
             paddingHorizontal: 22,
           }}
         >
           <View
             style={{
-              backgroundColor: "#16232D",
+              backgroundColor: cores.surfaceSecondary,
               borderRadius: 20,
               padding: 22,
               borderWidth: 1,
-              borderColor: "#26343E",
+              borderColor: cores.border,
             }}
           >
             <View
@@ -765,7 +771,7 @@ export function EditarPerfil() {
             >
               <Text
                 style={{
-                  color: "#F5F7F8",
+                  color: cores.text,
                   fontSize: 19,
                   fontWeight: "bold",
                 }}
@@ -774,13 +780,13 @@ export function EditarPerfil() {
               </Text>
 
               <Pressable onPress={fecharModalSenha}>
-                <XIcon size={23} color="#A8B2B9" />
+                <XIcon size={23} color={cores.icon} />
               </Pressable>
             </View>
 
             <Text
               style={{
-                color: "#A8B2B9",
+                color: cores.textSecondary,
                 fontSize: 13,
                 lineHeight: 19,
                 marginBottom: 22,
@@ -848,13 +854,13 @@ export function EditarPerfil() {
               >
                 <WarningCircleIcon
                   size={20}
-                  color="#E53935"
+                  color={cores.danger}
                   weight="fill"
                 />
 
                 <Text
                   style={{
-                    color: "#F5F7F8",
+                    color: cores.text,
                     fontSize: 12,
                     flex: 1,
                     marginLeft: 9,
@@ -869,7 +875,7 @@ export function EditarPerfil() {
             <Pressable
               onPress={alterarSenha}
               style={{
-                backgroundColor: "#00C853",
+                backgroundColor: cores.primary,
                 borderRadius: 12,
                 paddingVertical: 15,
                 alignItems: "center",
@@ -878,7 +884,7 @@ export function EditarPerfil() {
             >
               <Text
                 style={{
-                  color: "#071018",
+                  color: cores.background,
                   fontWeight: "bold",
                   fontSize: 15,
                 }}
@@ -903,18 +909,18 @@ export function EditarPerfil() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.8)",
+            backgroundColor: cores.overlay,
             justifyContent: "center",
             paddingHorizontal: 22,
           }}
         >
           <View
             style={{
-              backgroundColor: "#16232D",
+              backgroundColor: cores.surfaceSecondary,
               borderRadius: 20,
               padding: 23,
               borderWidth: 1,
-              borderColor: "#E53935",
+              borderColor: cores.danger,
             }}
           >
             <View
@@ -923,11 +929,11 @@ export function EditarPerfil() {
                 marginBottom: 15,
               }}
             >
-              <TrashIcon size={38} color="#E53935" />
+              <TrashIcon size={38} color={cores.danger} />
 
               <Text
                 style={{
-                  color: "#E53935",
+                  color: cores.danger,
                   fontSize: 20,
                   fontWeight: "bold",
                   marginTop: 12,
@@ -939,7 +945,7 @@ export function EditarPerfil() {
 
             <Text
               style={{
-                color: "#F5F7F8",
+                color: cores.text,
                 fontSize: 14,
                 textAlign: "center",
                 lineHeight: 21,
@@ -952,7 +958,7 @@ export function EditarPerfil() {
 
             <Text
               style={{
-                color: "#A8B2B9",
+                color: cores.textSecondary,
                 fontSize: 13,
                 marginBottom: 9,
               }}
@@ -967,15 +973,15 @@ export function EditarPerfil() {
                 setErroExclusao("");
               }}
               placeholder="Digite EXCLUIR"
-              placeholderTextColor="#6F7B83"
+              placeholderTextColor={cores.textTertiary}
               autoCapitalize="characters"
               style={{
-                backgroundColor: "#111D27",
+                backgroundColor: cores.surface,
                 borderWidth: 1,
-                borderColor: "#E53935",
+                borderColor: cores.danger,
                 borderRadius: 11,
                 padding: 14,
-                color: "#F5F7F8",
+                color: cores.text,
                 marginBottom: 12,
               }}
             />
@@ -983,7 +989,10 @@ export function EditarPerfil() {
             <CampoSenha
               label="Senha atual"
               valor={senhaExclusao}
-              onChangeText={setSenhaExclusao}
+              onChangeText={(valor) => {
+                setSenhaExclusao(valor);
+                setErroExclusao("");
+              }}
               mostrar={mostrarSenhaExclusao}
               alternarVisibilidade={() =>
                 setMostrarSenhaExclusao(!mostrarSenhaExclusao)
@@ -994,7 +1003,7 @@ export function EditarPerfil() {
             {!!erroExclusao && (
               <Text
                 style={{
-                  color: "#E53935",
+                  color: cores.danger,
                   fontSize: 12,
                   marginBottom: 13,
                 }}
@@ -1006,7 +1015,7 @@ export function EditarPerfil() {
             <Pressable
               onPress={excluirConta}
               style={{
-                backgroundColor: "#E53935",
+                backgroundColor: cores.danger,
                 paddingVertical: 14,
                 borderRadius: 11,
                 alignItems: "center",
@@ -1033,7 +1042,7 @@ export function EditarPerfil() {
             >
               <Text
                 style={{
-                  color: "#A8B2B9",
+                  color: cores.textSecondary,
                   fontWeight: "600",
                 }}
               >
@@ -1057,7 +1066,7 @@ export function EditarPerfil() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.75)",
+            backgroundColor: cores.overlay,
             justifyContent: "center",
             alignItems: "center",
             paddingHorizontal: 25,
@@ -1065,24 +1074,24 @@ export function EditarPerfil() {
         >
           <View
             style={{
-              backgroundColor: "#16232D",
+              backgroundColor: cores.surfaceSecondary,
               borderRadius: 20,
               padding: 28,
               alignItems: "center",
               width: "100%",
               borderWidth: 1,
-              borderColor: "#26343E",
+              borderColor: cores.border,
             }}
           >
             <CheckCircleIcon
               size={52}
-              color="#00C853"
+              color={cores.primary}
               weight="fill"
             />
 
             <Text
               style={{
-                color: "#F5F7F8",
+                color: cores.text,
                 fontSize: 18,
                 fontWeight: "bold",
                 marginTop: 15,
@@ -1095,7 +1104,7 @@ export function EditarPerfil() {
             <Pressable
               onPress={() => setModalSucesso(false)}
               style={{
-                backgroundColor: "#00C853",
+                backgroundColor: cores.primary,
                 borderRadius: 11,
                 paddingVertical: 12,
                 paddingHorizontal: 35,
@@ -1104,7 +1113,7 @@ export function EditarPerfil() {
             >
               <Text
                 style={{
-                  color: "#071018",
+                  color: cores.background,
                   fontWeight: "bold",
                 }}
               >

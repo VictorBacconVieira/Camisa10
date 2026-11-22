@@ -1,4 +1,3 @@
-
 import {
   Pressable,
   ScrollView,
@@ -35,15 +34,16 @@ import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
 
 import { useAuth } from "../context/AuthContext";
-
 import { obterTimesDisponiveis } from "../services/authService";
-
 import { atualizarFotoPerfil } from "../services/authService";
-
 import { obterEstatisticasGamificacao, obterSequenciaQuiz } from "../services/authService";
+
+import { useTheme } from "../context/ThemeContext";
 
 export function Perfil() {
   const navigation = useNavigation();
+
+  const { temaAtivo, cores, alterarTema } = useTheme();
 
   const [modalSucessoVisivel, setModalSucessoVisivel] =
     useState(false);
@@ -176,7 +176,7 @@ export function Perfil() {
     timeFavorito: usuarioAutenticado?.time_coracao?.nome || "Nenhum",
     notificacoes: "Ativadas",
     acessibilidade: "Ver mais",
-    tema: "Escuro",
+    tema: temaAtivo === "dark" ? "Escuro" : "Claro",
 
     // Acertos reais registrados pelo backend.
     respostasCorretas: estatisticas?.acertos ?? 0,
@@ -268,7 +268,8 @@ export function Perfil() {
 
   return (
     <SafeAreaView
-      className="flex-1 bg-fundo"
+      className="flex-1"
+      style={{ backgroundColor: cores.background }}
       edges={["top", "bottom"]}
     >
       <ScrollView
@@ -293,14 +294,14 @@ export function Perfil() {
           >
             <ArrowLeftIcon
               size={25}
-              color="#F5F7F8"
+              color={cores.icon}
               weight="regular"
             />
           </Pressable>
 
           <Text
-            className="ml-3 text-[26px] text-texto"
-            style={{ fontFamily: "Anuphan" }}
+            className="ml-3 text-[26px]"
+            style={{ fontFamily: "Anuphan", color: cores.text,}}
           >
             Perfil
           </Text>
@@ -310,7 +311,9 @@ export function Perfil() {
         {/* ÁREA DO PERFIL */}
         {/* ================================================= */}
 
-        <View className="mt-3 bg-fundo px-5">
+        <View className="mt-3 px-5"
+        style={{ backgroundColor: cores.background }}>
+
           <View className="items-center">
 
             {/* FOTO DE PERFIL - COMPONENTE REUTILIZÁVEL */}
@@ -670,7 +673,7 @@ export function Perfil() {
             >
               <PencilSimpleIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
 
@@ -703,7 +706,7 @@ export function Perfil() {
             >
               <SoccerBallIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
 
@@ -747,7 +750,7 @@ export function Perfil() {
             >
               <BellIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
 
@@ -791,7 +794,7 @@ export function Perfil() {
             >
               <GearIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
 
@@ -825,17 +828,14 @@ export function Perfil() {
 
             <Pressable
               className="h-16 flex-row items-center px-3"
-              onPress={() => {
-                // FUTURO:
-                // Alternar entre tema claro/escuro.
-              }}
+              onPress={() => alterarTema(temaAtivo === "dark" ? "light" : "dark")}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
             >
               <PaletteIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
 
@@ -857,8 +857,18 @@ export function Perfil() {
                 {usuario.tema || "Escuro"}
               </Text>
 
-              <View className="h-[22px] w-[42px] justify-center rounded-full bg-verde px-1">
-                <View className="h-[18px] w-[18px] self-end rounded-full bg-white" />
+              <View
+                className="h-[22px] w-[42px] justify-center rounded-full px-1"
+                style={{
+                  backgroundColor: temaAtivo === "dark" ? cores.primary : cores.border,
+                }}
+              >
+                <View
+                  className="h-[18px] w-[18px] rounded-full bg-white"
+                  style={{
+                    alignSelf: temaAtivo === "dark" ? "flex-end" : "flex-start",
+                  }}
+                />
               </View>
             </Pressable>
           </View>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 
 import {
@@ -11,12 +10,12 @@ import {
 } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
+import { useTheme } from "../context/ThemeContext";
 
 import {
   CameraIcon,
   ImagesIcon,
   XIcon,
-  CheckCircleIcon,
   WarningCircleIcon,
   UserIcon,
 } from "phosphor-react-native";
@@ -27,6 +26,8 @@ export function FotoPerfil({
   onFotoSelecionada,
   tamanho = 112,
 }) {
+  const { cores } = useTheme();
+
   const [modalVisivel, setModalVisivel] = useState(false);
   const [mensagemErro, setMensagemErro] = useState("");
 
@@ -106,9 +107,9 @@ export function FotoPerfil({
             width: tamanho,
             height: tamanho,
             borderRadius: tamanho / 2,
-            backgroundColor: "#16232D",
+            backgroundColor: cores.surfaceSecondary,
             borderWidth: 3,
-            borderColor: "#00C853",
+            borderColor: cores.primary,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -122,13 +123,13 @@ export function FotoPerfil({
                 borderRadius: tamanho / 2,
               }}
             />
-            ) : (
+          ) : (
             <UserIcon
-                size={tamanho * 0.45}
-                color="#00C853"
-                weight="regular"
+              size={tamanho * 0.45}
+              color={cores.primary}
+              weight="regular"
             />
-            )}
+          )}
 
           <View
             style={{
@@ -138,16 +139,16 @@ export function FotoPerfil({
               width: 34,
               height: 34,
               borderRadius: 17,
-              backgroundColor: "#00C853",
+              backgroundColor: cores.primary,
               borderWidth: 3,
-              borderColor: "#071018",
+              borderColor: cores.background,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <CameraIcon
               size={17}
-              color="#071018"
+              color={cores.background}
               weight="bold"
             />
           </View>
@@ -155,7 +156,7 @@ export function FotoPerfil({
 
         <Text
           style={{
-            color: "#A8B2B9",
+            color: cores.textSecondary,
             fontSize: 13,
             marginTop: 12,
           }}
@@ -175,7 +176,7 @@ export function FotoPerfil({
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.78)",
+            backgroundColor: cores.overlay,
             justifyContent: "center",
             paddingHorizontal: 24,
           }}
@@ -193,11 +194,11 @@ export function FotoPerfil({
 
           <View
             style={{
-              backgroundColor: "#16232D",
+              backgroundColor: cores.surface,
               borderRadius: 22,
               padding: 22,
               borderWidth: 1,
-              borderColor: "#26343E",
+              borderColor: cores.border,
             }}
           >
             <View
@@ -210,7 +211,7 @@ export function FotoPerfil({
             >
               <Text
                 style={{
-                  color: "#F5F7F8",
+                  color: cores.text,
                   fontSize: 19,
                   fontWeight: "bold",
                 }}
@@ -219,13 +220,13 @@ export function FotoPerfil({
               </Text>
 
               <Pressable onPress={fecharModal}>
-                <XIcon size={23} color="#A8B2B9" />
+                <XIcon size={23} color={cores.icon} />
               </Pressable>
             </View>
 
             <Text
               style={{
-                color: "#A8B2B9",
+                color: cores.textSecondary,
                 fontSize: 13,
                 marginBottom: 22,
               }}
@@ -238,9 +239,9 @@ export function FotoPerfil({
             <Pressable
               onPress={selecionarGaleria}
               style={{
-                backgroundColor: "#111D27",
+                backgroundColor: cores.surfaceSecondary,
                 borderWidth: 1,
-                borderColor: "#26343E",
+                borderColor: cores.border,
                 borderRadius: 14,
                 padding: 16,
                 flexDirection: "row",
@@ -260,7 +261,7 @@ export function FotoPerfil({
               >
                 <ImagesIcon
                   size={23}
-                  color="#00C853"
+                  color={cores.primary}
                   weight="fill"
                 />
               </View>
@@ -268,7 +269,7 @@ export function FotoPerfil({
               <View style={{ marginLeft: 13, flex: 1 }}>
                 <Text
                   style={{
-                    color: "#F5F7F8",
+                    color: cores.text,
                     fontSize: 14,
                     fontWeight: "bold",
                   }}
@@ -278,7 +279,7 @@ export function FotoPerfil({
 
                 <Text
                   style={{
-                    color: "#A8B2B9",
+                    color: cores.textSecondary,
                     fontSize: 12,
                     marginTop: 3,
                   }}
@@ -294,9 +295,9 @@ export function FotoPerfil({
               <Pressable
                 onPress={tirarFoto}
                 style={{
-                  backgroundColor: "#111D27",
+                  backgroundColor: cores.surfaceSecondary,
                   borderWidth: 1,
-                  borderColor: "#26343E",
+                  borderColor: cores.border,
                   borderRadius: 14,
                   padding: 16,
                   flexDirection: "row",
@@ -315,7 +316,7 @@ export function FotoPerfil({
                 >
                   <CameraIcon
                     size={23}
-                    color="#00C853"
+                    color={cores.primary}
                     weight="fill"
                   />
                 </View>
@@ -323,7 +324,7 @@ export function FotoPerfil({
                 <View style={{ marginLeft: 13, flex: 1 }}>
                   <Text
                     style={{
-                      color: "#F5F7F8",
+                      color: cores.text,
                       fontSize: 14,
                       fontWeight: "bold",
                     }}
@@ -333,7 +334,7 @@ export function FotoPerfil({
 
                   <Text
                     style={{
-                      color: "#A8B2B9",
+                      color: cores.textSecondary,
                       fontSize: 12,
                       marginTop: 3,
                     }}
@@ -361,13 +362,13 @@ export function FotoPerfil({
               >
                 <WarningCircleIcon
                   size={20}
-                  color="#E53935"
+                  color={cores.danger}
                   weight="fill"
                 />
 
                 <Text
                   style={{
-                    color: "#F5F7F8",
+                    color: cores.text,
                     fontSize: 12,
                     lineHeight: 18,
                     flex: 1,
@@ -391,7 +392,7 @@ export function FotoPerfil({
             >
               <Text
                 style={{
-                  color: "#A8B2B9",
+                  color: cores.textSecondary,
                   fontWeight: "600",
                 }}
               >

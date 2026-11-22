@@ -9,10 +9,12 @@ import {
 } from "phosphor-react-native";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 export function BottomNav() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { cores } = useTheme();
 
   function BotaoNavegacao({
     nome,
@@ -36,7 +38,7 @@ export function BottomNav() {
       >
         <Icon
           size={26}
-          color={ativo ? "#00C853" : "#F5F7F8"}
+          color={ativo ? cores.primary : cores.icon}
           weight={ativo ? "fill" : "regular"}
         />
 

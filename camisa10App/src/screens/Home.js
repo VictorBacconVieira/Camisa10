@@ -28,9 +28,11 @@ import { useNavigation } from "@react-navigation/native";
 import { BottomNav } from "../components/bottomNav";
 
 import { obterPlacarPersonalizado, obterNoticias } from "../services/authService";
+import { useTheme } from "../context/ThemeContext";
 
 export function Home() {
   const navigation = useNavigation();
+  const { temaAtivo, cores, alterarTema } = useTheme();
 
   const [placar, setPlacar] = useState(null);
   const [carregandoPlacar, setCarregandoPlacar] = useState(true);
@@ -187,7 +189,7 @@ export function Home() {
             >
               <MagnifyingGlassIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
             </Pressable>
@@ -211,7 +213,7 @@ export function Home() {
             >
               <BellIcon
                 size={25}
-                color="#F5F7F8"
+                color={cores.icon}
                 weight="regular"
               />
             </Pressable>

@@ -1,11 +1,13 @@
 import { Pressable, Text, View } from "react-native";
 import { CheckIcon } from "phosphor-react-native";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Checkbox({
   checked,
   onPress,
   children,
 }) {
+  const { cores } = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -22,7 +24,7 @@ export default function Checkbox({
         {checked && (
           <CheckIcon
             size={14}
-            color="#FFFFFF"
+            color={cores.background}
             weight="bold"
           />
         )}

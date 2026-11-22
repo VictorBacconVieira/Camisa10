@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Modal,
@@ -13,6 +12,8 @@ import {
   CheckIcon,
   XIcon,
 } from "phosphor-react-native";
+
+import { useTheme } from "../context/ThemeContext";
 
 const MESES = [
   "Janeiro",
@@ -31,12 +32,7 @@ const MESES = [
 
 const DIAS_SEMANA = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
 
-const COR_VERDE = "#00C853";
-const COR_FUNDO = "#111D27";
-const COR_CARTAO = "#16232D";
-const COR_BORDA = "#26343E";
-const COR_TEXTO = "#F5F7F8";
-const COR_SECUNDARIA = "#A8B2B9";
+
 
 function mesmoDia(data1, data2) {
   return (
@@ -60,6 +56,8 @@ export function CalendarioPersonalizado({
   onCancel,
   onConfirm,
 }) {
+  const { cores } = useTheme();
+
   const [dataSelecionada, setDataSelecionada] = useState(
     initialDate || new Date()
   );
@@ -152,7 +150,7 @@ export function CalendarioPersonalizado({
         <Pressable
           className="absolute inset-0"
           onPress={onCancel}
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.78)" }}
+          style={{ backgroundColor: cores.overlay }}
         />
 
         {/* Cartão principal */}
@@ -160,8 +158,8 @@ export function CalendarioPersonalizado({
           className="w-full overflow-hidden rounded-[28px] border"
           style={{
             maxWidth: 380,
-            backgroundColor: COR_FUNDO,
-            borderColor: COR_BORDA,
+            backgroundColor: cores.surface,
+            borderColor: cores.border,
             borderRadius: 28,
           }}
         >
@@ -174,7 +172,7 @@ export function CalendarioPersonalizado({
               >
                 <CalendarBlankIcon
                   size={25}
-                  color={COR_VERDE}
+                  color={cores.primary}
                   weight="fill"
                 />
               </View>
@@ -182,14 +180,14 @@ export function CalendarioPersonalizado({
               <View>
                 <Text
                   className="text-lg font-bold"
-                  style={{ color: COR_TEXTO }}
+                  style={{ color: cores.text }}
                 >
                   Escolher data
                 </Text>
 
                 <Text
                   className="mt-0.5 text-xs"
-                  style={{ color: COR_SECUNDARIA }}
+                  style={{ color: cores.textSecondary }}
                 >
                   Selecione o dia dos jogos
                 </Text>
@@ -199,11 +197,11 @@ export function CalendarioPersonalizado({
             <Pressable
               onPress={onCancel}
               className="h-10 w-10 items-center justify-center rounded-full"
-              style={{ backgroundColor: COR_CARTAO }}
+              style={{ backgroundColor: cores.surfaceSecondary }}
               accessibilityRole="button"
               accessibilityLabel="Fechar calendário"
             >
-              <XIcon size={21} color={COR_SECUNDARIA} />
+              <XIcon size={21} color={cores.textSecondary} />
             </Pressable>
           </View>
 
@@ -212,13 +210,13 @@ export function CalendarioPersonalizado({
             <Pressable
               onPress={() => navegarMes(-1)}
               className="h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: COR_CARTAO }}
+              style={{ backgroundColor: cores.surfaceSecondary }}
               accessibilityRole="button"
               accessibilityLabel="Mês anterior"
             >
               <CaretLeftIcon
                 size={22}
-                color={COR_TEXTO}
+                color={cores.text}
                 weight="bold"
               />
             </Pressable>
@@ -226,14 +224,14 @@ export function CalendarioPersonalizado({
             <View className="items-center">
               <Text
                 className="text-lg font-bold"
-                style={{ color: COR_TEXTO }}
+                style={{ color: cores.text }}
               >
                 {MESES[mesExibido]}
               </Text>
 
               <Text
                 className="mt-0.5 text-sm"
-                style={{ color: COR_VERDE }}
+                style={{ color: cores.primary }}
               >
                 {anoExibido}
               </Text>
@@ -242,13 +240,13 @@ export function CalendarioPersonalizado({
             <Pressable
               onPress={() => navegarMes(1)}
               className="h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: COR_CARTAO }}
+              style={{ backgroundColor: cores.surfaceSecondary }}
               accessibilityRole="button"
               accessibilityLabel="Próximo mês"
             >
               <CaretRightIcon
                 size={22}
-                color={COR_TEXTO}
+                color={cores.text}
                 weight="bold"
               />
             </Pressable>
@@ -264,7 +262,7 @@ export function CalendarioPersonalizado({
               >
                 <Text
                   className="text-[10px] font-bold"
-                  style={{ color: COR_SECUNDARIA }}
+                  style={{ color: cores.textSecondary }}
                 >
                   {dia}
                 </Text>
@@ -309,11 +307,11 @@ export function CalendarioPersonalizado({
                     className="h-full w-full items-center justify-center rounded-xl"
                     style={{
                       backgroundColor: selecionado
-                        ? COR_VERDE
+                        ? cores.primary
                         : "transparent",
                       borderWidth:
                         ehHoje && !selecionado ? 1 : 0,
-                      borderColor: COR_VERDE,
+                      borderColor: cores.primary,
                     }}
                     accessibilityRole="button"
                     accessibilityLabel={`${data.getDate()} de ${MESES[mesExibido]} de ${anoExibido}`}
@@ -326,7 +324,7 @@ export function CalendarioPersonalizado({
                       style={{
                         color: selecionado
                           ? "#071018"
-                          : COR_TEXTO,
+                          : cores.text,
                       }}
                     >
                       {data.getDate()}
@@ -341,28 +339,28 @@ export function CalendarioPersonalizado({
           <View
             className="mx-5 mt-4 flex-row items-center rounded-2xl px-4 py-3"
             style={{
-              backgroundColor: COR_CARTAO,
+              backgroundColor: cores.surfaceSecondary,
               borderWidth: 1,
-              borderColor: COR_BORDA,
+              borderColor: cores.border,
             }}
           >
             <CalendarBlankIcon
               size={20}
-              color={COR_VERDE}
+              color={cores.primary}
               weight="fill"
             />
 
             <View className="ml-3 flex-1">
               <Text
                 className="text-[11px]"
-                style={{ color: COR_SECUNDARIA }}
+                style={{ color: cores.textSecondary }}
               >
                 Data selecionada
               </Text>
 
               <Text
                 className="mt-0.5 text-sm font-bold"
-                style={{ color: COR_TEXTO }}
+                style={{ color: cores.text }}
               >
                 {dataSelecionada.getDate()} de{" "}
                 {MESES[dataSelecionada.getMonth()]} de{" "}
@@ -377,14 +375,14 @@ export function CalendarioPersonalizado({
               onPress={onCancel}
               className="h-12 flex-1 items-center justify-center rounded-2xl border"
               style={{
-                backgroundColor: COR_CARTAO,
-                borderColor: COR_BORDA,
+                backgroundColor: cores.surfaceSecondary,
+                borderColor: cores.border,
               }}
               accessibilityRole="button"
             >
               <Text
                 className="font-semibold"
-                style={{ color: COR_TEXTO }}
+                style={{ color: cores.text }}
               >
                 Cancelar
               </Text>
@@ -393,7 +391,7 @@ export function CalendarioPersonalizado({
             <Pressable
               onPress={confirmarSelecao}
               className="h-12 flex-1 flex-row items-center justify-center rounded-2xl"
-              style={{ backgroundColor: COR_VERDE }}
+              style={{ backgroundColor: cores.primary }}
               accessibilityRole="button"
             >
               <CheckIcon

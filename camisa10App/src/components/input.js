@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { Pressable, TextInput, View } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 
 const Input = forwardRef(function Input(
   {
@@ -20,17 +21,23 @@ const Input = forwardRef(function Input(
   },
   ref
 ) {
+  const { cores } = useTheme();
+
   return (
     <View className="h-12 flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-3">
       {Icon && (
-        <Icon size={21} color="#A8B2B9" weight="regular" />
+        <Icon
+          size={21}
+          color={cores.textSecondary}
+          weight="regular"
+        />
       )}
 
       <TextInput
         ref={ref}
         className="ml-3 flex-1 text-sm text-texto"
         placeholder={placeholder}
-        placeholderTextColor="#6F7B83"
+        placeholderTextColor={cores.textTertiary}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
@@ -48,7 +55,11 @@ const Input = forwardRef(function Input(
           onPress={onRightIconPress}
           className="ml-2 p-1"
         >
-          <RightIcon size={21} color="#A8B2B9" weight="regular" />
+          <RightIcon
+            size={21}
+            color={cores.textSecondary}
+            weight="regular"
+          />
         </Pressable>
       )}
     </View>
