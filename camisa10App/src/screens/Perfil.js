@@ -1,7 +1,6 @@
 import {
   Pressable,
   ScrollView,
-  Text,
   TextInput,
   View,
   Modal,
@@ -32,18 +31,40 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
+import { Texto } from "../components/texto";
 
 import { useAuth } from "../context/AuthContext";
 import { obterTimesDisponiveis } from "../services/authService";
 import { atualizarFotoPerfil } from "../services/authService";
-import { obterEstatisticasGamificacao, obterSequenciaQuiz } from "../services/authService";
+import {
+  obterEstatisticasGamificacao,
+  obterSequenciaQuiz,
+} from "../services/authService";
 
 import { useTheme } from "../context/ThemeContext";
+import { useAccessibility } from "../context/AccessibilityContext";
 
 export function Perfil() {
   const navigation = useNavigation();
 
   const { temaAtivo, cores, alterarTema } = useTheme();
+
+  const { fontScale, configuracoes } = useAccessibility();
+
+  // =========================================================
+  // ESCALA DOS ÍCONES
+  // =========================================================
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.2
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.4
+        : 1;
+
+  // =========================================================
+  // ESTADOS
+  // =========================================================
 
   const [modalSucessoVisivel, setModalSucessoVisivel] =
     useState(false);
@@ -60,15 +81,21 @@ export function Perfil() {
   } = useAuth();
 
   const [estatisticas, setEstatisticas] = useState(null);
-  const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(true);
+  const [carregandoEstatisticas, setCarregandoEstatisticas] =
+    useState(true);
   const [erroEstatisticas, setErroEstatisticas] = useState(null);
 
   const [sequenciaQuiz, setSequenciaQuiz] = useState(null);
-  const [carregandoSequencia, setCarregandoSequencia] = useState(true);
+  const [carregandoSequencia, setCarregandoSequencia] =
+    useState(true);
 
   const [timesDisponiveis, setTimesDisponiveis] = useState([]);
   const [carregandoTimes, setCarregandoTimes] = useState(false);
   const [modalTimesVisivel, setModalTimesVisivel] = useState(false);
+
+  // =========================================================
+  // ESTATÍSTICAS
+  // =========================================================
 
   useEffect(() => {
     async function carregarEstatisticas() {
@@ -86,10 +113,15 @@ export function Perfil() {
         setCarregandoEstatisticas(false);
       }
     }
+
     if (usuarioAutenticado) {
       carregarEstatisticas();
     }
   }, [usuarioAutenticado]);
+
+  // =========================================================
+  // SEQUÊNCIA DO QUIZ
+  // =========================================================
 
   useEffect(() => {
     async function carregarSequencia() {
@@ -118,6 +150,10 @@ export function Perfil() {
     }
   }, [usuarioAutenticado, navigation]);
 
+  // =========================================================
+  // FOTO DE PERFIL
+  // =========================================================
+
   async function selecionarFoto(uri) {
     if (fotoCarregando) return;
 
@@ -134,6 +170,10 @@ export function Perfil() {
       setFotoCarregando(false);
     }
   }
+
+  // =========================================================
+  // TIME FAVORITO
+  // =========================================================
 
   async function abrirSeletorTimes() {
     try {
@@ -161,6 +201,10 @@ export function Perfil() {
       console.log("Erro ao atualizar time favorito:", error.message);
     }
   }
+
+  // =========================================================
+  // DADOS DO USUÁRIO
+  // =========================================================
 
   const usuario = {
     nome: usuarioAutenticado?.nome || "Usuário",
@@ -202,19 +246,13 @@ export function Perfil() {
 
   const xpAtualNivel = estatisticas?.xp_atual_nivel ?? 0;
 
-  const xpNecessarioNivel = estatisticas?.xp_necessario_nivel ?? 10000;
+  const xpNecessarioNivel =
+    estatisticas?.xp_necessario_nivel ?? 10000;
 
-  const progressoNivel = estatisticas?.progresso_nivel ?? 0
+  const progressoNivel = estatisticas?.progresso_nivel ?? 0;
 
   // =========================================================
   // REGRAS DAS CONQUISTAS
-  // =========================================================
-  // Cada conquista verifica o progresso do usuário.
-  //
-  // FUTURO BACKEND:
-  // Os valores serão recebidos da API.
-  // O backend poderá também informar quais conquistas
-  // foram desbloqueadas pelo usuário.
   // =========================================================
 
   const conquistas = [
@@ -266,6 +304,10 @@ export function Perfil() {
       conquista.progresso >= conquista.requisito,
   }));
 
+  // =========================================================
+  // COMPONENTE
+  // =========================================================
+
   return (
     <SafeAreaView
       className="flex-1"
@@ -279,7 +321,9 @@ export function Perfil() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {/* ================================================= */}
         {/* BOTÃO DE VOLTAR */}
+        {/* ================================================= */}
 
         <View className="flex-row items-center px-5 pb-3 pt-4">
           <Pressable
@@ -293,30 +337,31 @@ export function Perfil() {
             })}
           >
             <ArrowLeftIcon
-              size={25}
+              size={25 * escalaIcone}
               color={cores.icon}
               weight="regular"
             />
           </Pressable>
 
-          <Text
-            className="ml-3 text-[26px]"
-            style={{ fontFamily: "Anuphan", color: cores.text,}}
+          <Texto
+            tamanho={26}
+            className="ml-3"
+            style={{ color: cores.text }}
           >
             Perfil
-          </Text>
+          </Texto>
         </View>
 
         {/* ================================================= */}
         {/* ÁREA DO PERFIL */}
         {/* ================================================= */}
 
-        <View className="mt-3 px-5"
-        style={{ backgroundColor: cores.background }}>
-
+        <View
+          className="mt-3 px-5"
+          style={{ backgroundColor: cores.background }}
+        >
           <View className="items-center">
-
-            {/* FOTO DE PERFIL - COMPONENTE REUTILIZÁVEL */}
+            {/* FOTO DE PERFIL */}
 
             <FotoPerfil
               foto={usuarioAutenticado?.avatar_url || null}
@@ -327,57 +372,49 @@ export function Perfil() {
 
             {/* NOME */}
 
-            <Text
-              className="mt-3 text-2xl text-texto"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={24}
+              className="mt-3 text-center text-texto"
             >
               {usuario.nome}
-            </Text>
+            </Texto>
 
             {/* NÍVEL */}
 
             <View className="mt-1 flex-row items-center">
               <StarIcon
-                size={17}
+                size={17 * escalaIcone}
                 color="#FFC107"
                 weight="fill"
               />
 
-              <Text
-                className="ml-1 text-sm text-texto-sec"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="ml-1 text-texto-sec"
               >
                 Nível {nivelAtual}
-              </Text>
+              </Texto>
             </View>
 
             {/* XP */}
 
             <View className="mt-5 w-full">
-              <View className="flex-row justify-between">
-                <Text
-                  className="text-[11px] text-texto-ter"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
+              <View className="flex-row flex-wrap justify-between">
+                <Texto
+                  tamanho={11}
+                  className="text-texto-ter"
                 >
                   XP
-                </Text>
+                </Texto>
 
-                <Text
-                  className="text-[11px] text-verde"
-                  style={{
-                    fontFamily: "Inter",
-                  }}
+                <Texto
+                  tamanho={11}
+                  className="text-verde"
                 >
                   {xpAtualNivel.toLocaleString("pt-BR")}
                   {" / "}
                   {xpNecessarioNivel.toLocaleString("pt-BR")}
-                </Text>
+                </Texto>
               </View>
 
               <View className="mt-2 h-[6px] overflow-hidden rounded-full bg-cartao-borda">
@@ -389,19 +426,18 @@ export function Perfil() {
                 />
               </View>
 
-              <Text
-                className="mt-1 text-right text-[10px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={10}
+                className="mt-1 text-right text-texto-ter"
               >
                 {carregandoEstatisticas
                   ? "Carregando estatísticas..."
                   : erroEstatisticas
                     ? "Não foi possível carregar as estatísticas."
-                    : `Faltam ${(xpProximoNivel - xpTotal).toLocaleString("pt-BR")} XP para o próximo nível`
-                }
-              </Text>
+                    : `Faltam ${(
+                        xpProximoNivel - xpTotal
+                      ).toLocaleString("pt-BR")} XP para o próximo nível`}
+              </Texto>
             </View>
           </View>
         </View>
@@ -411,128 +447,108 @@ export function Perfil() {
         {/* ================================================= */}
 
         <View className="mt-6 flex-row px-5">
-
           {/* QUIZZES */}
 
           <Pressable
-            className="mr-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-4"
+            className="mr-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao px-1 py-4"
             onPress={() => {
               // FUTURO:
               // Abrir histórico de quizzes.
             }}
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
-              transform: [
-                { scale: pressed ? 0.97 : 1 },
-              ],
+              transform: [{ scale: pressed ? 0.97 : 1 }],
             })}
           >
             <TrophyIcon
-              size={25}
+              size={25 * escalaIcone}
               color="#00C853"
               weight="regular"
             />
 
-            <Text
-              className="mt-1 text-base font-bold text-verde"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={16}
+              className="mt-1 text-center font-bold text-verde"
             >
               {(Number(usuario.quizzes) || 0).toLocaleString("pt-BR")}
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-[11px] text-texto-ter"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={11}
+              className="text-center text-texto-ter"
             >
               Quizzes
-            </Text>
+            </Texto>
           </Pressable>
 
           {/* XP TOTAL */}
 
           <Pressable
-            className="mx-1 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-4"
+            className="mx-1 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao px-1 py-4"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes de XP.
             }}
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
-              transform: [
-                { scale: pressed ? 0.97 : 1 },
-              ],
+              transform: [{ scale: pressed ? 0.97 : 1 }],
             })}
           >
             <StarIcon
-              size={25}
+              size={25 * escalaIcone}
               color="#FFC107"
               weight="fill"
             />
 
-            <Text
-              className="mt-1 text-base font-bold text-verde"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={16}
+              className="mt-1 text-center font-bold text-verde"
             >
               {xpTotal.toLocaleString("pt-BR")}
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-[11px] text-texto-ter"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={11}
+              className="text-center text-texto-ter"
             >
               XP Total
-            </Text>
+            </Texto>
           </Pressable>
 
           {/* SEQUÊNCIA */}
 
           <Pressable
-            className="ml-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao py-4"
+            className="ml-2 flex-1 items-center rounded-lg border border-cartao-borda bg-cartao px-1 py-4"
             onPress={() => {
               // FUTURO:
               // Abrir detalhes da sequência.
             }}
             style={({ pressed }) => ({
               opacity: pressed ? 0.75 : 1,
-              transform: [
-                { scale: pressed ? 0.97 : 1 },
-              ],
+              transform: [{ scale: pressed ? 0.97 : 1 }],
             })}
           >
             <FireIcon
-              size={25}
+              size={25 * escalaIcone}
               color="#E53935"
               weight="regular"
             />
 
-            <Text
-              className="mt-1 text-base font-bold text-verde"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={16}
+              className="mt-1 text-center font-bold text-verde"
             >
               {carregandoSequencia
                 ? "..."
-                : (Number(usuario.sequenciaAtual) || 0).toLocaleString("pt-BR")
-              }
-            </Text>
+                : (Number(usuario.sequenciaAtual) || 0).toLocaleString("pt-BR")}
+            </Texto>
 
-            <Text
-              className="text-[11px] text-texto-ter"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={11}
+              className="text-center text-texto-ter"
             >
               Sequência Atual
-            </Text>
+            </Texto>
           </Pressable>
         </View>
 
@@ -541,14 +557,12 @@ export function Perfil() {
         {/* ================================================= */}
 
         <View className="mt-7 px-5">
-          <Text
-            className="text-lg text-texto"
-            style={{
-              fontFamily: "Inter",
-            }}
+          <Texto
+            tamanho={18}
+            className="text-texto"
           >
             Conquistas
-          </Text>
+          </Texto>
 
           {conquistas.map((conquista) => {
             const Icone = conquista.Icone;
@@ -556,10 +570,11 @@ export function Perfil() {
             return (
               <Pressable
                 key={conquista.id}
-                className={`mt-2 flex-row items-center rounded-lg border bg-cartao px-3 py-3 ${conquista.desbloqueada
-                  ? "border-verde"
-                  : "border-cartao-borda"
-                  }`}
+                className={`mt-2 flex-row items-center rounded-lg border bg-cartao px-3 py-3 ${
+                  conquista.desbloqueada
+                    ? "border-verde"
+                    : "border-cartao-borda"
+                }`}
                 onPress={() => {
                   // FUTURO:
                   // Poderemos abrir os detalhes da conquista.
@@ -570,16 +585,14 @@ export function Perfil() {
                     : conquista.desbloqueada
                       ? 1
                       : 0.55,
-                  transform: [
-                    { scale: pressed ? 0.98 : 1 },
-                  ],
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
                 })}
               >
                 {/* ÍCONE */}
 
                 <View className="h-10 w-10 items-center justify-center rounded-md bg-cartao-borda">
                   <Icone
-                    size={24}
+                    size={24 * escalaIcone}
                     color={
                       conquista.desbloqueada
                         ? "#00C853"
@@ -592,43 +605,38 @@ export function Perfil() {
                 {/* INFORMAÇÕES */}
 
                 <View className="ml-3 flex-1">
-                  <Text
-                    className={`text-sm ${conquista.desbloqueada
-                      ? "text-texto"
-                      : "text-texto-ter"
-                      }`}
-                    style={{
-                      fontFamily: "Inter",
-                    }}
+                  <Texto
+                    tamanho={14}
+                    className={
+                      conquista.desbloqueada
+                        ? "text-texto"
+                        : "text-texto-ter"
+                    }
                   >
                     {conquista.nome}
-                  </Text>
+                  </Texto>
 
-                  <Text
-                    className="text-[11px] text-texto-ter"
-                    style={{
-                      fontFamily: "Inter",
-                    }}
+                  <Texto
+                    tamanho={11}
+                    className="text-texto-ter"
                   >
                     {conquista.descricao}
-                  </Text>
+                  </Texto>
 
                   {/* PROGRESSO */}
 
-                  <Text
-                    className={`mt-1 text-[10px] ${conquista.desbloqueada
-                      ? "text-verde"
-                      : "text-texto-ter"
-                      }`}
-                    style={{
-                      fontFamily: "Inter",
-                    }}
+                  <Texto
+                    tamanho={10}
+                    className={`mt-1 ${
+                      conquista.desbloqueada
+                        ? "text-verde"
+                        : "text-texto-ter"
+                    }`}
                   >
                     {conquista.progresso === null
                       ? "Em breve"
-                      : `${conquista.progresso.toLocaleString("pt-Br")} / ${conquista.requisito.toLocaleString("pt-BR")}`
-                    }
-                  </Text>
+                      : `${conquista.progresso.toLocaleString("pt-BR")} / ${conquista.requisito.toLocaleString("pt-BR")}`}
+                  </Texto>
                 </View>
 
                 {/* STATUS */}
@@ -636,7 +644,7 @@ export function Perfil() {
                 {conquista.desbloqueada && (
                   <View className="ml-2">
                     <CheckCircleIcon
-                      size={21}
+                      size={21 * escalaIcone}
                       color="#00C853"
                       weight="fill"
                     />
@@ -652,84 +660,75 @@ export function Perfil() {
         {/* ================================================= */}
 
         <View className="mt-7 px-5">
-          <Text
-            className="text-lg text-texto"
-            style={{
-              fontFamily: "Inter",
-            }}
+          <Texto
+            tamanho={18}
+            className="text-texto"
           >
             Configurações
-          </Text>
+          </Texto>
 
           {/* EDITAR PERFIL */}
 
           <View className="mt-2 overflow-hidden rounded-lg border border-cartao-borda bg-cartao">
             <Pressable
-              className="h-16 flex-row items-center px-3"
+              className="min-h-16 flex-row items-center px-3 py-3"
               onPress={() => navigation.navigate("EditarPerfil")}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
             >
               <PencilSimpleIcon
-                size={25}
+                size={25 * escalaIcone}
                 color={cores.icon}
                 weight="regular"
               />
 
-              <Text
-                className="ml-3 flex-1 text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="ml-3 flex-1 text-texto"
               >
                 Editar Perfil
-              </Text>
+              </Texto>
 
               <CaretRightIcon
-                size={19}
+                size={19 * escalaIcone}
                 color="#6F7B83"
               />
             </Pressable>
           </View>
 
           <View className="mt-2 overflow-hidden rounded-lg border border-cartao-borda bg-cartao">
-
             {/* TIME FAVORITO */}
 
             <Pressable
-              className="h-16 flex-row items-center px-3"
+              className="min-h-16 flex-row items-center px-3 py-3"
               onPress={abrirSeletorTimes}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
             >
               <SoccerBallIcon
-                size={25}
+                size={25 * escalaIcone}
                 color={cores.icon}
                 weight="regular"
               />
 
-              <Text
-                className="ml-3 flex-1 text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="ml-3 flex-1 text-texto"
               >
                 Meu Time Favorito
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={11}
+                className="mr-1 text-right text-texto-ter"
               >
                 {usuario.timeFavorito || "Nenhum"}
-              </Text>
+              </Texto>
 
               <CaretRightIcon
-                size={19}
+                size={19 * escalaIcone}
                 color="#6F7B83"
               />
             </Pressable>
@@ -739,7 +738,7 @@ export function Perfil() {
             {/* NOTIFICAÇÕES */}
 
             <Pressable
-              className="h-16 flex-row items-center px-3"
+              className="min-h-16 flex-row items-center px-3 py-3"
               onPress={() => {
                 // FUTURO:
                 // Configuração de notificações.
@@ -749,31 +748,27 @@ export function Perfil() {
               })}
             >
               <BellIcon
-                size={25}
+                size={25 * escalaIcone}
                 color={cores.icon}
                 weight="regular"
               />
 
-              <Text
-                className="ml-3 flex-1 text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="ml-3 flex-1 text-texto"
               >
                 Notificações
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={11}
+                className="mr-1 text-texto-ter"
               >
                 {usuario.notificacoes || "Desativadas"}
-              </Text>
+              </Texto>
 
               <CaretRightIcon
-                size={19}
+                size={19 * escalaIcone}
                 color="#6F7B83"
               />
             </Pressable>
@@ -783,38 +778,34 @@ export function Perfil() {
             {/* ACESSIBILIDADE */}
 
             <Pressable
-              className="h-16 flex-row items-center px-3"
+              className="min-h-16 flex-row items-center px-3 py-3"
               onPress={() => navigation.navigate("Acessibilidade")}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
             >
               <PersonArmsSpreadIcon
-                size={25}
+                size={25 * escalaIcone}
                 color={cores.icon}
                 weight="regular"
               />
 
-              <Text
-                className="ml-3 flex-1 text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="ml-3 flex-1 text-texto"
               >
                 Acessibilidade
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={11}
+                className="mr-1 text-texto-ter"
               >
                 {usuario.acessibilidade || "Ver mais"}
-              </Text>
+              </Texto>
 
               <CaretRightIcon
-                size={19}
+                size={19 * escalaIcone}
                 color="#6F7B83"
               />
             </Pressable>
@@ -824,46 +815,50 @@ export function Perfil() {
             {/* TEMA */}
 
             <Pressable
-              className="h-16 flex-row items-center px-3"
-              onPress={() => alterarTema(temaAtivo === "dark" ? "light" : "dark")}
+              className="min-h-16 flex-row items-center px-3 py-3"
+              onPress={() =>
+                alterarTema(temaAtivo === "dark" ? "light" : "dark")
+              }
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
               })}
             >
               <PaletteIcon
-                size={25}
+                size={25 * escalaIcone}
                 color={cores.icon}
                 weight="regular"
               />
 
-              <Text
-                className="ml-3 flex-1 text-sm text-texto"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="ml-3 flex-1 text-texto"
               >
                 Tema
-              </Text>
+              </Texto>
 
-              <Text
-                className="mr-3 text-[11px] text-texto-ter"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={11}
+                className="mr-3 text-texto-ter"
               >
                 {usuario.tema || "Escuro"}
-              </Text>
+              </Texto>
 
               <View
                 className="h-[22px] w-[42px] justify-center rounded-full px-1"
                 style={{
-                  backgroundColor: temaAtivo === "dark" ? cores.primary : cores.border,
+                  backgroundColor:
+                    temaAtivo === "dark"
+                      ? cores.primary
+                      : cores.border,
                 }}
               >
                 <View
                   className="h-[18px] w-[18px] rounded-full bg-white"
                   style={{
-                    alignSelf: temaAtivo === "dark" ? "flex-end" : "flex-start",
+                    alignSelf:
+                      temaAtivo === "dark"
+                        ? "flex-end"
+                        : "flex-start",
                   }}
                 />
               </View>
@@ -877,10 +872,11 @@ export function Perfil() {
 
         <View className="mt-6 px-5">
           <Pressable
-            className="h-14 flex-row items-center justify-between rounded-lg border border-vermelho px-3"
+            className="min-h-14 flex-row items-center justify-between rounded-lg border border-vermelho px-3 py-3"
             onPress={async () => {
               try {
                 await sair();
+
                 navigation.reset({
                   index: 0,
                   routes: [{ name: "Login" }],
@@ -891,22 +887,18 @@ export function Perfil() {
             }}
             style={({ pressed }) => ({
               opacity: pressed ? 0.7 : 1,
-              transform: [
-                { scale: pressed ? 0.98 : 1 },
-              ],
+              transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
           >
-            <Text
-              className="text-base text-vermelho"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={16}
+              className="text-vermelho"
             >
               Sair da Conta
-            </Text>
+            </Texto>
 
             <SignOutIcon
-              size={24}
+              size={24 * escalaIcone}
               color="#E53935"
               weight="regular"
             />
@@ -926,21 +918,25 @@ export function Perfil() {
       >
         <View className="flex-1 justify-end bg-black/70">
           <View className="h-[85%] rounded-t-3xl border border-cartao-borda bg-fundo px-5 pt-5">
-
             {/* CABEÇALHO */}
 
             <View className="mb-5 flex-row items-center justify-between">
-              <Text
-                className="text-xl text-texto"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={20}
+                className="flex-1 text-texto"
               >
                 Meu Time Favorito
-              </Text>
+              </Texto>
 
               <Pressable
                 onPress={() => setModalTimesVisivel(false)}
               >
-                <Text className="text-verde">Fechar</Text>
+                <Texto
+                  tamanho={14}
+                  className="text-verde"
+                >
+                  Fechar
+                </Texto>
               </Pressable>
             </View>
 
@@ -952,7 +948,10 @@ export function Perfil() {
               placeholder="Pesquisar clube..."
               placeholderTextColor="#6F7B83"
               className="mb-4 rounded-xl border border-cartao-borda bg-cartao px-4 py-3 text-texto"
-              style={{ fontFamily: "Inter" }}
+              style={{
+                fontFamily: "Inter",
+                fontSize: 14 * fontScale,
+              }}
             />
 
             {/* REMOVER FAVORITO */}
@@ -961,20 +960,23 @@ export function Perfil() {
               className="mb-3 rounded-xl border border-vermelho px-4 py-3"
               onPress={() => salvarTimeFavorito(null)}
             >
-              <Text
+              <Texto
+                tamanho={14}
                 className="text-center text-vermelho"
-                style={{ fontFamily: "Inter" }}
               >
                 Remover time favorito
-              </Text>
+              </Texto>
             </Pressable>
 
             {/* LISTA DE CLUBES */}
 
             {carregandoTimes ? (
-              <Text className="mt-5 text-center text-texto-sec">
+              <Texto
+                tamanho={14}
+                className="mt-5 text-center text-texto-sec"
+              >
                 Carregando clubes...
-              </Text>
+              </Texto>
             ) : (
               <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -1003,18 +1005,24 @@ export function Perfil() {
                       )}
 
                       <View className="ml-3 flex-1">
-                        <Text
-                          className="text-sm text-texto"
-                          style={{ fontFamily: "Inter" }}
+                        <Texto
+                          tamanho={14}
+                          className="text-texto"
                         >
                           {time.nome}
-                        </Text>
+                        </Texto>
 
-                        <Text className="mt-1 text-[10px] text-texto-ter">
+                        <Texto
+                          tamanho={10}
+                          className="mt-1 text-texto-ter"
+                        >
                           {time.pais || "País não informado"}
-                        </Text>
+                        </Texto>
 
-                        <Text className="mt-1 text-[10px] text-texto-ter">
+                        <Texto
+                          tamanho={10}
+                          className="mt-1 text-texto-ter"
+                        >
                           {time.competicoes
                             ?.map((competicao) =>
                               typeof competicao === "string"
@@ -1023,7 +1031,7 @@ export function Perfil() {
                             )
                             .filter(Boolean)
                             .join(" • ")}
-                        </Text>
+                        </Texto>
                       </View>
                     </Pressable>
                   ))}
@@ -1033,10 +1041,13 @@ export function Perfil() {
                     ?.toLowerCase()
                     .includes(pesquisaTime.toLowerCase().trim())
                 ).length === 0 && (
-                    <Text className="mt-5 text-center text-texto-sec">
-                      Nenhum clube encontrado.
-                    </Text>
-                  )}
+                  <Texto
+                    tamanho={14}
+                    className="mt-5 text-center text-texto-sec"
+                  >
+                    Nenhum clube encontrado.
+                  </Texto>
+                )}
               </ScrollView>
             )}
           </View>
@@ -1062,19 +1073,17 @@ export function Perfil() {
             onPress={(event) => event.stopPropagation()}
           >
             <CheckCircleIcon
-              size={48}
+              size={48 * escalaIcone}
               color="#00C853"
               weight="fill"
             />
 
-            <Text
-              className="mt-3 text-center text-base text-texto"
-              style={{
-                fontFamily: "Inter",
-              }}
+            <Texto
+              tamanho={16}
+              className="mt-3 text-center text-texto"
             >
               Foto de perfil atualizada!
-            </Text>
+            </Texto>
 
             <Pressable
               className="mt-5 w-full items-center rounded-xl bg-verde py-3"
@@ -1083,14 +1092,12 @@ export function Perfil() {
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <Text
-                className="text-sm font-bold text-white"
-                style={{
-                  fontFamily: "Inter",
-                }}
+              <Texto
+                tamanho={14}
+                className="font-bold text-white"
               >
                 Continuar
-              </Text>
+              </Texto>
             </Pressable>
           </Pressable>
         </Pressable>

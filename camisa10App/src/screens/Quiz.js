@@ -1,13 +1,13 @@
-
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   Pressable,
   ScrollView,
-  Text,
   View,
 } from "react-native";
+
+import { Texto } from "../components/texto";
 
 import {
   ArrowLeftIcon,
@@ -22,6 +22,8 @@ import {
 } from "phosphor-react-native";
 
 import { BottomNav } from "../components/bottomNav";
+
+import { useAccessibility } from "../context/AccessibilityContext";
 
 const quizzesDiarios = [
   {
@@ -75,6 +77,15 @@ const categorias = [
 export function Quiz() {
   const navigation = useNavigation();
 
+  const { configuracoes } = useAccessibility();
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
+
   function abrirQuiz(id, titulo) {
     navigation.navigate("QuizPerguntas", {
       quizId: id,
@@ -100,18 +111,18 @@ export function Quiz() {
           })}
         >
           <ArrowLeftIcon
-            size={25}
+            size={25 * escalaIcone}
             color="#F5F7F8"
             weight="regular"
           />
         </Pressable>
 
-        <Text
-          className="ml-3 text-[26px] text-texto"
-          style={{ fontFamily: "Anuphan" }}
+        <Texto
+          tamanho={26}
+          className="ml-3 text-texto"
         >
           Quiz
-        </Text>
+        </Texto>
       </View>
 
       <ScrollView
@@ -123,12 +134,12 @@ export function Quiz() {
         showsVerticalScrollIndicator={false}
       >
         {/* Quizzes diários */}
-        <Text
-          className="mb-3 mt-1 text-[20px] text-texto"
-          style={{ fontFamily: "Inter" }}
+        <Texto
+          tamanho={20}
+          className="mb-3 mt-1 text-texto"
         >
           Quizzes Diários
-        </Text>
+        </Texto>
 
         <View className="overflow-hidden rounded-xl border border-cartao-borda bg-cartao">
           {quizzesDiarios.map((quiz, index) => {
@@ -140,9 +151,7 @@ export function Quiz() {
                 onPress={() => abrirQuiz(quiz.id, quiz.titulo)}
                 accessibilityRole="button"
                 accessibilityLabel={`Abrir ${quiz.titulo}`}
-                className={`flex-row items-center px-4 ${
-                  index === 0 ? "h-[48px]" : "h-[52px]"
-                } ${
+                className={`flex-row items-center px-4 py-3 ${
                   index !== quizzesDiarios.length - 1
                     ? "border-b border-cartao-borda"
                     : ""
@@ -153,37 +162,44 @@ export function Quiz() {
                     ? "#26343E"
                     : "transparent",
                   transform: [{ scale: pressed ? 0.99 : 1 }],
+                  minHeight: 48 * escalaIcone,
                 })}
               >
                 {quiz.id === "escalacao" ? (
-                  <View className="h-7 w-7 items-center justify-center bg-verde">
+                  <View
+                    className="items-center justify-center bg-verde"
+                    style={{
+                      width: 28 * escalaIcone,
+                      height: 28 * escalaIcone,
+                    }}
+                  >
                     <SoccerBallIcon
-                      size={20}
+                      size={20 * escalaIcone}
                       color="#071018"
                       weight="fill"
                     />
                   </View>
                 ) : (
                   <Icone
-                    size={quiz.destaque ? 23 : 26}
+                    size={(quiz.destaque ? 23 : 26) * escalaIcone}
                     color={quiz.cor}
                     weight="regular"
                   />
                 )}
 
-                <Text
-                  className={`ml-3 flex-1 text-[14px] ${
+                <Texto
+                  tamanho={14}
+                  className={`ml-3 flex-1 ${
                     quiz.destaque
                       ? "font-semibold text-verde"
                       : "font-semibold text-texto"
                   }`}
-                  style={{ fontFamily: "Inter" }}
                 >
                   {quiz.titulo}
-                </Text>
+                </Texto>
 
                 <CaretRightIcon
-                  size={21}
+                  size={21 * escalaIcone}
                   color={quiz.destaque ? "#00C853" : "#6F7B83"}
                   weight="regular"
                 />
@@ -193,12 +209,12 @@ export function Quiz() {
         </View>
 
         {/* Categorias */}
-        <Text
-          className="mb-3 mt-5 text-[20px] text-texto"
-          style={{ fontFamily: "Inter" }}
+        <Texto
+          tamanho={20}
+          className="mb-3 mt-5 text-texto"
         >
           Quiz - Categorias
-        </Text>
+        </Texto>
 
         <View className="mb-5 overflow-hidden rounded-xl border border-cartao-borda bg-cartao">
           {categorias.map((categoria, index) => {
@@ -212,7 +228,7 @@ export function Quiz() {
                 }
                 accessibilityRole="button"
                 accessibilityLabel={`Abrir ${categoria.titulo}`}
-                className={`h-[58px] flex-row items-center px-4 ${
+                className={`flex-row items-center px-4 py-3 ${
                   index !== categorias.length - 1
                     ? "border-b border-cartao-borda"
                     : ""
@@ -223,26 +239,32 @@ export function Quiz() {
                     ? "#26343E"
                     : "transparent",
                   transform: [{ scale: pressed ? 0.99 : 1 }],
+                  minHeight: 58 * escalaIcone,
                 })}
               >
-                <View className="mr-3 h-7 w-7 items-center justify-center">
+                <View
+                  className="mr-3 items-center justify-center"
+                  style={{
+                    width: 28 * escalaIcone,
+                    height: 28 * escalaIcone,
+                  }}
+                >
                   <Icone
-                    size={23}
+                    size={23 * escalaIcone}
                     color={categoria.cor}
                     weight="fill"
                   />
                 </View>
 
-                <Text
-                  className="flex-1 text-[14px] font-semibold text-texto"
-                  style={{ fontFamily: "Inter" }}
-                  numberOfLines={1}
+                <Texto
+                  tamanho={14}
+                  className="flex-1 font-semibold text-texto"
                 >
                   {categoria.titulo}
-                </Text>
+                </Texto>
 
                 <CaretRightIcon
-                  size={20}
+                  size={20 * escalaIcone}
                   color="#6F7B83"
                   weight="regular"
                 />

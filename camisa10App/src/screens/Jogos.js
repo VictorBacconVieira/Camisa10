@@ -1,4 +1,3 @@
-
 import {
   ActivityIndicator,
   Image,
@@ -25,6 +24,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BottomNav } from "../components/bottomNav";
 import { CalendarioPersonalizado } from "../components/calendarioPersonalizado";
+import { Texto } from "../components/texto";
+
+import { useAccessibility } from "../context/AccessibilityContext";
 
 const API_URL =
   "https://turbo-telegram-5g5p4q94vpx6hxp7-8000.app.github.dev";
@@ -35,6 +37,19 @@ const STATUS_AGENDADO = ["NS", "TBD"];
 
 export function Jogos() {
   const navigation = useNavigation();
+
+  const { fontScale, configuracoes } = useAccessibility();
+
+  // =========================================================
+  // ESCALA DE ÍCONES
+  // =========================================================
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
 
   // =========================================================
   // ESTADOS DOS FILTROS E DA API
@@ -82,6 +97,7 @@ export function Jogos() {
         const ano = dataConsulta.getFullYear();
         const mes = String(dataConsulta.getMonth() + 1).padStart(2, "0");
         const dia = String(dataConsulta.getDate()).padStart(2, "0");
+
         const data = `${ano}-${mes}-${dia}`;
 
         const resposta = await fetch(`${API_URL}/api/jogos?data=${data}`);
@@ -104,6 +120,7 @@ export function Jogos() {
           setErro(
             "Não foi possível carregar os jogos. Verifique a conexão com o servidor."
           );
+
           setJogos([]);
         }
       } finally {
@@ -127,6 +144,7 @@ export function Jogos() {
   const formatarData = (data) => {
     const dia = String(data.getDate()).padStart(2, "0");
     const mes = String(data.getMonth() + 1).padStart(2, "0");
+
     return `${dia}/${mes}`;
   };
 
@@ -136,15 +154,18 @@ export function Jogos() {
 
     if (typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
       const [ano, mes, dia] = valor.split("-").map(Number);
+
       return new Date(ano, mes - 1, dia, 12, 0, 0);
     }
 
     const data = new Date(valor);
+
     return Number.isNaN(data.getTime()) ? null : data;
   };
 
   const formatarDataAPI = (valor) => {
     const data = obterDataJogo(valor);
+
     if (!data) return "--/--";
 
     return data.toLocaleDateString("pt-BR", {
@@ -201,7 +222,9 @@ export function Jogos() {
 
   const jogosFiltrados = jogos.filter((jogo) => {
     if (filtroData === "personalizado" && dataSelecionada) {
-      return formatarDataAPI(jogo.data) === formatarData(dataSelecionada);
+      return (
+        formatarDataAPI(jogo.data) === formatarData(dataSelecionada)
+      );
     }
 
     return true;
@@ -287,36 +310,61 @@ export function Jogos() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
+        {/* ================================================= */}
         {/* CABEÇALHO */}
-        <View className="h-[62px] flex-row items-center px-4">
+        {/* ================================================= */}
+
+        <View className="min-h-[62px] flex-row items-center px-4 py-2">
           <Pressable
             className="h-10 w-10 items-center justify-center"
             onPress={() => navigation.goBack()}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
             style={({ pressed }) => ({
               opacity: pressed ? 0.6 : 1,
               transform: [{ scale: pressed ? 0.9 : 1 }],
             })}
           >
-            <ArrowLeftIcon size={25} color="#F5F7F8" weight="regular" />
+            <ArrowLeftIcon
+              size={25 * escalaIcone}
+              color="#F5F7F8"
+              weight="regular"
+            />
           </Pressable>
 
-          <Text
-            className="ml-3 text-[26px] text-texto"
-            style={{ fontFamily: "Anuphan" }}
+          <Texto
+            tamanho={26}
+            className="ml-3 flex-shrink"
+            style={{ color: "#F5F7F8" }}
           >
             Jogos
-          </Text>
+          </Texto>
         </View>
 
+        {/* ================================================= */}
         {/* PESQUISA DE JOGOS */}
+        {/* ================================================= */}
+
         <View className="mx-4 mb-3">
-          <View className="h-[50px] flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-4">
-            <MagnifyingGlassIcon size={21} color="#A8B2B9" weight="regular" />
+          <View className="min-h-[50px] flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-4 py-1">
+            <MagnifyingGlassIcon
+              size={21 * escalaIcone}
+              color="#A8B2B9"
+              weight="regular"
+            />
 
             <TextInput
-              className="ml-3 flex-1 text-sm text-texto"
-              style={{ fontFamily: "Inter" }}
+              className="ml-3 flex-1 text-texto"
+              style={{
+                fontFamily: configuracoes.textoNegrito
+                  ? "AnuphanBold"
+                  : "Anuphan",
+                fontSize: 14 * fontScale,
+                lineHeight: Math.ceil(18 * fontScale),
+                paddingVertical: 8,
+              }}
               placeholder="País, competição ou time..."
               placeholderTextColor="#6F7B83"
               value={pesquisa}
@@ -324,47 +372,69 @@ export function Jogos() {
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
+              accessibilityLabel="País, competição ou time"
             />
 
             {pesquisa.length > 0 && (
               <Pressable
                 onPress={() => setPesquisa("")}
-                className="ml-2 h-8 w-8 items-center justify-center rounded-full"
+                className="ml-2 h-9 w-9 items-center justify-center rounded-full"
+                accessibilityRole="button"
+                accessibilityLabel="Limpar pesquisa"
               >
-                <XIcon size={18} color="#A8B2B9" weight="bold" />
+                <XIcon
+                  size={18 * escalaIcone}
+                  color="#A8B2B9"
+                  weight="bold"
+                />
               </Pressable>
             )}
           </View>
         </View>
 
+        {/* ================================================= */}
         {/* SELETOR DE DATA */}
+        {/* ================================================= */}
+
         <View className="px-4">
           <Pressable
-            className="h-[50px] flex-row items-center justify-between rounded-xl border border-cartao-borda bg-cartao px-4"
+            className="min-h-[50px] flex-row items-center justify-between rounded-xl border border-cartao-borda bg-cartao px-4 py-3"
             onPress={abrirCalendario}
+            accessibilityRole="button"
+            accessibilityLabel="Selecionar data dos jogos"
             style={({ pressed }) => ({
               opacity: pressed ? 0.8 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
           >
-            <View className="flex-row items-center">
-              <CalendarBlankIcon size={21} color="#A8B2B9" weight="regular" />
+            <View className="flex-1 flex-row items-center">
+              <CalendarBlankIcon
+                size={21 * escalaIcone}
+                color="#A8B2B9"
+                weight="regular"
+              />
 
-              <Text
-                className="ml-3 text-sm text-texto"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="ml-3 flex-1"
+                style={{ color: "#F5F7F8" }}
               >
                 {filtroData === "personalizado" && dataSelecionada
                   ? `Jogos em ${formatarData(dataSelecionada)}`
                   : "Todos os jogos"}
-              </Text>
+              </Texto>
             </View>
 
-            <CaretDownIcon size={20} color="#A8B2B9" weight="regular" />
+            <CaretDownIcon
+              size={20 * escalaIcone}
+              color="#A8B2B9"
+              weight="regular"
+            />
           </Pressable>
         </View>
 
         {/* CALENDÁRIO PERSONALIZADO DO CAMISA10 */}
+
         <CalendarioPersonalizado
           visible={mostrarCalendario}
           initialDate={dataSelecionada || new Date()}
@@ -372,13 +442,18 @@ export function Jogos() {
           onConfirm={confirmarData}
         />
 
+        {/* ================================================= */}
         {/* FILTROS RÁPIDOS DE DATA */}
+        {/* ================================================= */}
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mt-5"
           contentContainerStyle={{ paddingHorizontal: 16 }}
         >
+          {/* TODOS */}
+
           <Pressable
             className={obterEstiloFiltro("todos")}
             onPress={() => selecionarFiltro("todos")}
@@ -387,20 +462,23 @@ export function Jogos() {
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <Text
-              className="text-xs"
-              style={{ fontFamily: "Inter", color: corTextoFiltro("todos") }}
+            <Texto
+              tamanho={12}
+              style={{ color: corTextoFiltro("todos") }}
             >
               TODOS
-            </Text>
+            </Texto>
 
-            <Text
-              className="mt-0.5 text-sm font-bold text-texto"
-              style={{ fontFamily: "Inter" }}
+            <Texto
+              tamanho={14}
+              className="mt-0.5"
+              style={{ color: "#F5F7F8", fontWeight: "bold" }}
             >
               Jogos
-            </Text>
+            </Texto>
           </Pressable>
+
+          {/* HOJE */}
 
           <Pressable
             className={obterEstiloFiltro("hoje")}
@@ -410,20 +488,23 @@ export function Jogos() {
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <Text
-              className="text-xs"
-              style={{ fontFamily: "Inter", color: corTextoFiltro("hoje") }}
+            <Texto
+              tamanho={12}
+              style={{ color: corTextoFiltro("hoje") }}
             >
               HOJE
-            </Text>
+            </Texto>
 
-            <Text
-              className="mt-0.5 text-sm font-bold text-texto"
-              style={{ fontFamily: "Inter" }}
+            <Texto
+              tamanho={14}
+              className="mt-0.5"
+              style={{ color: "#F5F7F8", fontWeight: "bold" }}
             >
               {formatarData(hoje)}
-            </Text>
+            </Texto>
           </Pressable>
+
+          {/* AMANHÃ */}
 
           <Pressable
             className={obterEstiloFiltro("amanha")}
@@ -433,20 +514,23 @@ export function Jogos() {
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <Text
-              className="text-xs"
-              style={{ fontFamily: "Inter", color: corTextoFiltro("amanha") }}
+            <Texto
+              tamanho={12}
+              style={{ color: corTextoFiltro("amanha") }}
             >
               AMANHÃ
-            </Text>
+            </Texto>
 
-            <Text
-              className="mt-0.5 text-sm font-bold text-texto"
-              style={{ fontFamily: "Inter" }}
+            <Texto
+              tamanho={14}
+              className="mt-0.5"
+              style={{ color: "#F5F7F8", fontWeight: "bold" }}
             >
               {formatarData(amanha)}
-            </Text>
+            </Texto>
           </Pressable>
+
+          {/* OUTRA */}
 
           <Pressable
             className={obterEstiloFiltro("personalizado")}
@@ -456,28 +540,31 @@ export function Jogos() {
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <Text
-              className="text-xs"
+            <Texto
+              tamanho={12}
               style={{
-                fontFamily: "Inter",
                 color: corTextoFiltro("personalizado"),
               }}
             >
-              OUTRO
-            </Text>
+              OUTRA
+            </Texto>
 
-            <Text
-              className="mt-0.5 text-sm font-bold text-texto"
-              style={{ fontFamily: "Inter" }}
+            <Texto
+              tamanho={14}
+              className="mt-0.5"
+              style={{ color: "#F5F7F8", fontWeight: "bold" }}
             >
               {filtroData === "personalizado" && dataSelecionada
                 ? formatarData(dataSelecionada)
                 : "DATA"}
-            </Text>
+            </Texto>
           </Pressable>
         </ScrollView>
 
+        {/* ================================================= */}
         {/* FILTROS DE SITUAÇÃO */}
+        {/* ================================================= */}
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -501,25 +588,28 @@ export function Jogos() {
                   transform: [{ scale: pressed ? 0.97 : 1 }],
                 })}
               >
-                <Text
-                  className="text-sm"
+                <Texto
+                  tamanho={14}
                   style={{
-                    fontFamily: "Inter",
                     color: selecionado ? "#FFFFFF" : "#A8B2B9",
+                    textAlign: "center",
                   }}
                 >
                   {item.nome}
-                </Text>
+                </Texto>
               </Pressable>
             );
           })}
         </ScrollView>
 
+        {/* ================================================= */}
         {/* TÍTULO DA LISTA */}
+        {/* ================================================= */}
+
         <View className="mt-7 px-5">
-          <Text
-            className="text-xl text-texto"
-            style={{ fontFamily: "Anuphan" }}
+          <Texto
+            tamanho={20}
+            style={{ color: "#F5F7F8" }}
           >
             {filtroData === "hoje"
               ? "Jogos de hoje"
@@ -528,11 +618,12 @@ export function Jogos() {
                 : filtroData === "personalizado"
                   ? "Jogos da data selecionada"
                   : "Próximos jogos"}
-          </Text>
+          </Texto>
 
-          <Text
-            className="mt-1 text-sm text-texto-sec"
-            style={{ fontFamily: "Inter" }}
+          <Texto
+            tamanho={14}
+            className="mt-1"
+            style={{ color: "#A8B2B9" }}
           >
             {carregando
               ? "Buscando partidas..."
@@ -541,95 +632,145 @@ export function Jogos() {
                     ? "partida encontrada"
                     : "partidas encontradas"
                 }`}
-          </Text>
+          </Texto>
         </View>
 
+        {/* ================================================= */}
         {/* LISTA DE JOGOS */}
+        {/* ================================================= */}
+
         <View className="mt-4 px-3">
+          {/* CARREGAMENTO */}
+
           {carregando && (
             <View className="items-center py-8">
               <ActivityIndicator size="large" color="#00C853" />
 
-              <Text
-                className="mt-3 text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="mt-3"
+                style={{ color: "#A8B2B9" }}
               >
                 Carregando partidas...
-              </Text>
+              </Texto>
             </View>
           )}
 
+          {/* ERRO */}
+
           {!carregando && erro && (
             <View className="items-center rounded-xl bg-cartao px-5 py-8">
-              <Text
-                className="text-center text-base text-texto"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={16}
+                style={{
+                  color: "#F5F7F8",
+                  textAlign: "center",
+                }}
               >
                 Não foi possível carregar os jogos
-              </Text>
+              </Texto>
 
-              <Text
-                className="mt-2 text-center text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="mt-2"
+                style={{
+                  color: "#A8B2B9",
+                  textAlign: "center",
+                }}
               >
                 {erro}
-              </Text>
+              </Texto>
 
               <Pressable
-                className="mt-4 rounded-lg bg-verde px-4 py-2"
+                className="mt-4 rounded-lg bg-verde px-4 py-3"
                 onPress={() => setAtualizacao((valor) => valor + 1)}
+                style={({ pressed }) => ({
+                  opacity: pressed ? 0.75 : 1,
+                  transform: [{ scale: pressed ? 0.96 : 1 }],
+                })}
               >
-                <Text
-                  className="font-bold text-texto"
-                  style={{ fontFamily: "Inter" }}
+                <Texto
+                  tamanho={14}
+                  style={{
+                    color: "#F5F7F8",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
                 >
                   Tentar novamente
-                </Text>
+                </Texto>
               </Pressable>
             </View>
           )}
 
+          {/* NENHUM JOGO ENCONTRADO */}
+
           {!carregando && !erro && jogosPesquisados.length === 0 && (
             <View className="mb-4 items-center rounded-xl bg-cartao px-5 py-8">
-              <CalendarBlankIcon size={36} color="#A8B2B9" weight="regular" />
+              <CalendarBlankIcon
+                size={36 * escalaIcone}
+                color="#A8B2B9"
+                weight="regular"
+              />
 
-              <Text
-                className="mt-3 text-base text-texto"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={16}
+                className="mt-3"
+                style={{
+                  color: "#F5F7F8",
+                  textAlign: "center",
+                }}
               >
                 Nenhum jogo encontrado
-              </Text>
+              </Texto>
 
-              <Text
-                className="mt-1 text-center text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="mt-1"
+                style={{
+                  color: "#A8B2B9",
+                  textAlign: "center",
+                }}
               >
                 {pesquisa.trim()
                   ? "Nenhuma partida corresponde à sua pesquisa."
                   : "Não há partidas cadastradas para esta data e situação."}
-              </Text>
+              </Texto>
 
               <Pressable
-                className="mt-4 rounded-lg bg-verde px-4 py-2"
+                className="mt-4 rounded-lg bg-verde px-4 py-3"
                 onPress={() => {
                   selecionarFiltro("todos");
                   setFiltroStatus("todos");
                 }}
+                style={({ pressed }) => ({
+                  opacity: pressed ? 0.75 : 1,
+                  transform: [{ scale: pressed ? 0.96 : 1 }],
+                })}
               >
-                <Text
-                  className="font-bold text-texto"
-                  style={{ fontFamily: "Inter" }}
+                <Texto
+                  tamanho={14}
+                  style={{
+                    color: "#F5F7F8",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
                 >
                   Ver todos os jogos
-                </Text>
+                </Texto>
               </Pressable>
-          </View>
+            </View>
           )}
+
+          {/* ================================================= */}
+          {/* CARDS DAS PARTIDAS */}
+          {/* ================================================= */}
 
           {!carregando &&
             !erro &&
             jogosPesquisados.map((jogo) => {
               const status = normalizarStatus(jogo.status);
+
               const finalizado = STATUS_FINALIZADO.includes(status);
               const aoVivo = STATUS_AO_VIVO.includes(status);
 
@@ -649,148 +790,219 @@ export function Jogos() {
                   key={jogo.id}
                   className="mb-4 rounded-[12px] bg-cartao px-4 py-4"
                   onPress={() => navigation.navigate("DetalhesJogos", { jogo })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Partida ${jogo.mandante} contra ${jogo.visitante}. ${statusFormatado}. Abrir detalhes`}
                   style={({ pressed }) => ({
                     opacity: pressed ? 0.88 : 1,
                     transform: [{ scale: pressed ? 0.99 : 1 }],
                   })}
                 >
+                  {/* ================================================= */}
                   {/* CAMPEONATO */}
+                  {/* ================================================= */}
+
                   <View className="flex-row items-center justify-between">
                     <View className="mr-2 flex-1 flex-row items-center">
                       {jogo.logo_competicao ? (
                         <Image
                           source={{ uri: jogo.logo_competicao }}
-                          style={{ width: 28, height: 28 }}
+                          style={{
+                            width: 28 * escalaIcone,
+                            height: 28 * escalaIcone,
+                          }}
                           resizeMode="contain"
                         />
                       ) : (
-                        <View className="h-7 w-7 rounded-md bg-white" />
+                        <View
+                          style={{
+                            width: 28 * escalaIcone,
+                            height: 28 * escalaIcone,
+                          }}
+                          className="rounded-md bg-white"
+                        />
                       )}
 
                       <View className="ml-2 flex-1">
-                        <Text
-                          numberOfLines={1}
-                          className="text-sm font-medium text-texto"
-                          style={{ fontFamily: "Inter" }}
+                        <Texto
+                          tamanho={14}
+                          numberOfLines={2}
+                          style={{
+                            color: "#F5F7F8",
+                            fontWeight: "500",
+                          }}
                         >
                           {jogo.competicao || "Competição"}
-                        </Text>
+                        </Texto>
 
-                        <Text
-                          numberOfLines={1}
-                          className="mt-0.5 text-xs text-texto-sec"
-                          style={{ fontFamily: "Inter" }}
+                        <Texto
+                          tamanho={12}
+                          numberOfLines={2}
+                          className="mt-0.5"
+                          style={{ color: "#A8B2B9" }}
                         >
                           {jogo.pais || ""}
-                        </Text>
+                        </Texto>
                       </View>
                     </View>
 
                     <CaretRightIcon
-                      size={20}
+                      size={20 * escalaIcone}
                       color="#6F7B83"
                       weight="regular"
                     />
                   </View>
 
+                  {/* ================================================= */}
                   {/* PARTIDA: COLUNAS FLEXÍVEIS */}
+                  {/* ================================================= */}
+
                   <View className="mt-5 w-full flex-row items-start">
                     {/* TIME MANDANTE */}
+
                     <View className="min-w-0 flex-1 items-center px-1">
                       {jogo.logo_mandante ? (
                         <Image
                           source={{ uri: jogo.logo_mandante }}
-                          style={{ width: 60, height: 60 }}
+                          style={{
+                            width: 60 * escalaIcone,
+                            height: 60 * escalaIcone,
+                          }}
                           resizeMode="contain"
                         />
                       ) : (
-                        <View className="h-[60px] w-[60px] rounded-full bg-white" />
+                        <View
+                          style={{
+                            width: 60 * escalaIcone,
+                            height: 60 * escalaIcone,
+                          }}
+                          className="rounded-full bg-white"
+                        />
                       )}
 
-                      <Text
-                        numberOfLines={2}
-                        className="mt-2 w-full text-center text-sm text-texto"
-                        style={{ fontFamily: "Inter" }}
+                      <Texto
+                        tamanho={14}
+                        numberOfLines={3}
+                        className="mt-2 w-full"
+                        style={{
+                          color: "#F5F7F8",
+                          textAlign: "center",
+                        }}
                       >
                         {jogo.mandante || "Time da casa"}
-                      </Text>
+                      </Texto>
                     </View>
 
                     {/* PLACAR OU HORÁRIO */}
+
                     <View className="w-[92px] shrink-0 items-center pt-2">
                       {jogo.gols_mandante != null &&
                       jogo.gols_visitante != null ? (
-                        <Text
+                        <Texto
+                          tamanho={24}
                           numberOfLines={1}
-                          className="text-2xl font-bold text-texto"
-                          style={{ fontFamily: "Inter" }}
+                          style={{
+                            color: "#F5F7F8",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                          }}
                         >
                           {jogo.gols_mandante} - {jogo.gols_visitante}
-                        </Text>
+                        </Texto>
                       ) : (
-                        <Text
+                        <Texto
+                          tamanho={20}
                           numberOfLines={1}
-                          className="text-xl font-bold text-texto"
-                          style={{ fontFamily: "Inter" }}
+                          style={{
+                            color: "#F5F7F8",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                          }}
                         >
                           {horarioFormatado}
-                        </Text>
+                        </Texto>
                       )}
 
-                      <Text
-                        className="mt-1 text-xs text-texto-sec"
-                        style={{ fontFamily: "Inter" }}
+                      <Texto
+                        tamanho={12}
+                        className="mt-1"
+                        style={{
+                          color: "#A8B2B9",
+                          textAlign: "center",
+                        }}
                       >
                         {dataFormatada}
-                      </Text>
+                      </Texto>
 
                       <View
                         className={`mt-2 max-w-full rounded-full px-2.5 py-1 ${
                           aoVivo ? "bg-verde" : "bg-cartao-borda"
                         }`}
                       >
-                        <Text
-                          numberOfLines={1}
-                          className="text-center text-[10px] text-texto"
-                          style={{ fontFamily: "Inter" }}
+                        <Texto
+                          tamanho={10}
+                          numberOfLines={2}
+                          style={{
+                            color: "#F5F7F8",
+                            textAlign: "center",
+                          }}
                         >
                           {statusFormatado}
-                        </Text>
+                        </Texto>
                       </View>
                     </View>
 
                     {/* TIME VISITANTE */}
+
                     <View className="min-w-0 flex-1 items-center px-1">
                       {jogo.logo_visitante ? (
                         <Image
                           source={{ uri: jogo.logo_visitante }}
-                          style={{ width: 60, height: 60 }}
+                          style={{
+                            width: 60 * escalaIcone,
+                            height: 60 * escalaIcone,
+                          }}
                           resizeMode="contain"
                         />
                       ) : (
-                        <View className="h-[60px] w-[60px] rounded-full bg-white" />
+                        <View
+                          style={{
+                            width: 60 * escalaIcone,
+                            height: 60 * escalaIcone,
+                          }}
+                          className="rounded-full bg-white"
+                        />
                       )}
 
-                      <Text
-                        numberOfLines={2}
-                        className="mt-2 w-full text-center text-sm text-texto"
-                        style={{ fontFamily: "Inter" }}
+                      <Texto
+                        tamanho={14}
+                        numberOfLines={3}
+                        className="mt-2 w-full"
+                        style={{
+                          color: "#F5F7F8",
+                          textAlign: "center",
+                        }}
                       >
                         {jogo.visitante || "Time visitante"}
-                      </Text>
+                      </Texto>
                     </View>
                   </View>
 
+                  {/* ================================================= */}
                   {/* ESTÁDIO */}
+                  {/* ================================================= */}
+
                   {jogo.estadio ? (
                     <View className="mt-4 items-center">
-                      <Text
-                        numberOfLines={2}
-                        className="text-center text-xs text-texto-sec"
-                        style={{ fontFamily: "Inter" }}
+                      <Texto
+                        tamanho={12}
+                        numberOfLines={3}
+                        style={{
+                          color: "#A8B2B9",
+                          textAlign: "center",
+                        }}
                       >
                         {jogo.estadio}
-                      </Text>
+                      </Texto>
                     </View>
                   ) : null}
                 </Pressable>
@@ -799,24 +1011,35 @@ export function Jogos() {
         </View>
       </ScrollView>
 
+      {/* ===================================================== */}
       {/* BOTÃO FLUTUANTE DA IA */}
+      {/* ===================================================== */}
+
       <Pressable
         className="absolute bottom-[105px] right-5 h-[60px] w-[60px] items-center justify-center rounded-full bg-verde"
         onPress={() => navigation.navigate("Chatbot")}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir assistente de IA"
         style={({ pressed }) => ({
           opacity: pressed ? 0.75 : 1,
           transform: [{ scale: pressed ? 0.9 : 1 }],
         })}
       >
-        <Text
-          className="text-2xl font-bold text-texto"
-          style={{ fontFamily: "Inter" }}
+        <Texto
+          tamanho={24}
+          style={{
+            color: "#F5F7F8",
+            fontWeight: "bold",
+          }}
         >
           AI
-        </Text>
+        </Texto>
       </Pressable>
 
-      {/* NAVEGAÇÃO INFERIOR */}
+      {/* ===================================================== */}
+      {/* BARRA DE NAVEGAÇÃO */}
+      {/* ===================================================== */}
+
       <BottomNav />
     </SafeAreaView>
   );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 
 import {
@@ -28,17 +27,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomNav } from "../components/bottomNav";
 import { FotoPerfil } from "../components/fotoPerfil";
 import { CalendarioPersonalizado } from "../components/calendarioPersonalizado";
+import { Texto } from "../components/texto";
+
+import { useAccessibility } from "../context/AccessibilityContext";
 import { useAuth } from "../context/AuthContext";
+
 import {
   atualizarFotoPerfil,
   alterarSenha as alterarSenhaAPI,
   excluirConta as excluirContaAPI,
 } from "../services/authService";
+
 import { useTheme } from "../context/ThemeContext";
 
 // =====================================================
 // COMPONENTE: CAMPO DE TEXTO
-// Declarado fora de EditarPerfil para preservar o foco.
 // =====================================================
 
 function Campo({
@@ -50,19 +53,20 @@ function Campo({
   autoCapitalize = "sentences",
 }) {
   const { cores } = useTheme();
+  const { fontScale } = useAccessibility();
 
   return (
     <View style={{ marginBottom: 18 }}>
-      <Text
+      <Texto
+        tamanho={13}
         style={{
           color: cores.textSecondary,
-          fontSize: 13,
           marginBottom: 8,
           fontWeight: "600",
         }}
       >
         {label}
-      </Text>
+      </Texto>
 
       <TextInput
         value={valor}
@@ -79,7 +83,8 @@ function Campo({
           paddingHorizontal: 15,
           paddingVertical: 14,
           color: cores.text,
-          fontSize: 15,
+          fontSize: 15 * fontScale,
+          minHeight: 50,
         }}
       />
     </View>
@@ -88,7 +93,6 @@ function Campo({
 
 // =====================================================
 // COMPONENTE: CAMPO DE SENHA
-// Declarado fora de EditarPerfil para preservar o foco.
 // =====================================================
 
 function CampoSenha({
@@ -100,19 +104,27 @@ function CampoSenha({
   placeholder,
 }) {
   const { cores } = useTheme();
+  const { fontScale, configuracoes } = useAccessibility();
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
 
   return (
     <View style={{ marginBottom: 17 }}>
-      <Text
+      <Texto
+        tamanho={13}
         style={{
           color: cores.textSecondary,
-          fontSize: 13,
           marginBottom: 8,
           fontWeight: "600",
         }}
       >
         {label}
-      </Text>
+      </Texto>
 
       <View
         style={{
@@ -136,15 +148,29 @@ function CampoSenha({
             flex: 1,
             color: cores.text,
             paddingVertical: 14,
-            fontSize: 15,
+            fontSize: 15 * fontScale,
+            minHeight: 50,
           }}
         />
 
-        <Pressable onPress={alternarVisibilidade}>
+        <Pressable
+          onPress={alternarVisibilidade}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={
+            mostrar ? "Ocultar senha" : "Mostrar senha"
+          }
+        >
           {mostrar ? (
-            <EyeSlashIcon size={21} color={cores.icon} />
+            <EyeSlashIcon
+              size={21 * escalaIcone}
+              color={cores.icon}
+            />
           ) : (
-            <EyeIcon size={21} color={cores.icon} />
+            <EyeIcon
+              size={21 * escalaIcone}
+              color={cores.icon}
+            />
           )}
         </Pressable>
       </View>
@@ -158,7 +184,15 @@ function CampoSenha({
 
 export function EditarPerfil() {
   const { cores } = useTheme();
+  const { fontScale, configuracoes } = useAccessibility();
   const navigation = useNavigation();
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
 
   const {
     usuario: usuarioAutenticado,
@@ -232,6 +266,7 @@ export function EditarPerfil() {
   // =====================================================
 
   const [senhaExclusao, setSenhaExclusao] = useState("");
+
   const [mostrarSenhaExclusao, setMostrarSenhaExclusao] =
     useState(false);
 
@@ -477,27 +512,32 @@ export function EditarPerfil() {
           <Pressable
             onPress={() => navigation.goBack()}
             style={{
-              width: 42,
-              height: 42,
+              minWidth: 42,
+              minHeight: 42,
               borderRadius: 12,
               backgroundColor: cores.surfaceSecondary,
               alignItems: "center",
               justifyContent: "center",
+              padding: 5,
             }}
           >
-            <ArrowLeftIcon size={22} color={cores.icon} />
+            <ArrowLeftIcon
+              size={22 * escalaIcone}
+              color={cores.icon}
+            />
           </Pressable>
 
-          <Text
+          <Texto
+            tamanho={21}
             style={{
               color: cores.text,
-              fontSize: 21,
               fontWeight: "bold",
               marginLeft: 15,
+              flexShrink: 1,
             }}
           >
             Editar Perfil
-          </Text>
+          </Texto>
         </View>
 
         {/* FOTO DE PERFIL */}
@@ -513,16 +553,16 @@ export function EditarPerfil() {
         {/* INFORMAÇÕES PESSOAIS */}
 
         <View style={{ paddingHorizontal: 20 }}>
-          <Text
+          <Texto
+            tamanho={17}
             style={{
               color: cores.text,
-              fontSize: 17,
               fontWeight: "bold",
               marginBottom: 18,
             }}
           >
             Informações pessoais
-          </Text>
+          </Texto>
 
           <Campo
             label="Nome completo"
@@ -551,16 +591,16 @@ export function EditarPerfil() {
           {/* DATA DE NASCIMENTO */}
 
           <View style={{ marginBottom: 25 }}>
-            <Text
+            <Texto
+              tamanho={13}
               style={{
                 color: cores.textSecondary,
-                fontSize: 13,
                 marginBottom: 8,
                 fontWeight: "600",
               }}
             >
               Data de nascimento
-            </Text>
+            </Texto>
 
             <Pressable
               onPress={() => setMostrarCalendario(true)}
@@ -574,13 +614,24 @@ export function EditarPerfil() {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
+                minHeight: 52,
               }}
             >
-              <Text style={{ color: cores.text, fontSize: 15 }}>
+              <Texto
+                tamanho={15}
+                style={{
+                  color: cores.text,
+                  flex: 1,
+                  marginRight: 10,
+                }}
+              >
                 {formatarData(usuario.dataNascimento)}
-              </Text>
+              </Texto>
 
-              <CalendarBlankIcon size={21} color={cores.primary} />
+              <CalendarBlankIcon
+                size={21 * escalaIcone}
+                color={cores.primary}
+              />
             </Pressable>
           </View>
 
@@ -594,28 +645,28 @@ export function EditarPerfil() {
               marginBottom: 25,
             }}
           >
-            <Text
+            <Texto
+              tamanho={17}
               style={{
                 color: cores.text,
-                fontSize: 17,
                 fontWeight: "bold",
                 marginBottom: 8,
               }}
             >
               Segurança
-            </Text>
+            </Texto>
 
-            <Text
+            <Texto
+              tamanho={13}
               style={{
                 color: cores.textSecondary,
-                fontSize: 13,
-                lineHeight: 19,
+                lineHeight: 19 * fontScale,
                 marginBottom: 15,
               }}
             >
               Mantenha sua conta protegida atualizando sua senha
               periodicamente.
-            </Text>
+            </Texto>
 
             <Pressable
               onPress={abrirModalSenha}
@@ -627,25 +678,32 @@ export function EditarPerfil() {
                 padding: 16,
                 flexDirection: "row",
                 alignItems: "center",
+                flexWrap: "wrap",
               }}
             >
-              <LockKeyIcon size={22} color={cores.primary} />
+              <LockKeyIcon
+                size={22 * escalaIcone}
+                color={cores.primary}
+              />
 
-              <Text
+              <Texto
+                tamanho={15}
                 style={{
                   color: cores.text,
-                  fontSize: 15,
                   fontWeight: "600",
                   marginLeft: 12,
                   flex: 1,
                 }}
               >
                 Alterar senha
-              </Text>
+              </Texto>
 
-              <Text style={{ color: cores.primary, fontSize: 20 }}>
+              <Texto
+                tamanho={20}
+                style={{ color: cores.primary }}
+              >
                 ›
-              </Text>
+              </Texto>
             </Pressable>
           </View>
 
@@ -656,20 +714,24 @@ export function EditarPerfil() {
             style={{
               backgroundColor: cores.primary,
               paddingVertical: 16,
+              paddingHorizontal: 12,
               borderRadius: 13,
               alignItems: "center",
               marginBottom: 35,
+              minHeight: 52,
+              justifyContent: "center",
             }}
           >
-            <Text
+            <Texto
+              tamanho={16}
               style={{
                 color: cores.background,
-                fontSize: 16,
                 fontWeight: "bold",
+                textAlign: "center",
               }}
             >
               Salvar alterações
-            </Text>
+            </Texto>
           </Pressable>
 
           {/* EXCLUSÃO DE CONTA */}
@@ -682,28 +744,28 @@ export function EditarPerfil() {
               marginBottom: 20,
             }}
           >
-            <Text
+            <Texto
+              tamanho={17}
               style={{
                 color: cores.danger,
-                fontSize: 17,
                 fontWeight: "bold",
                 marginBottom: 9,
               }}
             >
               Zona de perigo
-            </Text>
+            </Texto>
 
-            <Text
+            <Texto
+              tamanho={13}
               style={{
                 color: cores.textSecondary,
-                fontSize: 13,
-                lineHeight: 20,
+                lineHeight: 20 * fontScale,
                 marginBottom: 16,
               }}
             >
               A exclusão da conta poderá remover permanentemente
               seus dados, conquistas e progresso no Camisa10.
-            </Text>
+            </Texto>
 
             <Pressable
               onPress={abrirModalExcluir}
@@ -715,20 +777,26 @@ export function EditarPerfil() {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
+                flexWrap: "wrap",
+                minHeight: 50,
               }}
             >
-              <TrashIcon size={20} color={cores.danger} />
+              <TrashIcon
+                size={20 * escalaIcone}
+                color={cores.danger}
+              />
 
-              <Text
+              <Texto
+                tamanho={15}
                 style={{
                   color: cores.danger,
                   fontWeight: "bold",
-                  fontSize: 15,
                   marginLeft: 9,
+                  textAlign: "center",
                 }}
               >
                 Excluir minha conta
-              </Text>
+              </Texto>
             </Pressable>
           </View>
         </View>
@@ -752,147 +820,168 @@ export function EditarPerfil() {
             paddingHorizontal: 22,
           }}
         >
-          <View
-            style={{
-              backgroundColor: cores.surfaceSecondary,
-              borderRadius: 20,
-              padding: 22,
-              borderWidth: 1,
-              borderColor: cores.border,
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              paddingVertical: 20,
             }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 8,
+                backgroundColor: cores.surfaceSecondary,
+                borderRadius: 20,
+                padding: 22,
+                borderWidth: 1,
+                borderColor: cores.border,
               }}
             >
-              <Text
-                style={{
-                  color: cores.text,
-                  fontSize: 19,
-                  fontWeight: "bold",
-                }}
-              >
-                Alterar senha
-              </Text>
-
-              <Pressable onPress={fecharModalSenha}>
-                <XIcon size={23} color={cores.icon} />
-              </Pressable>
-            </View>
-
-            <Text
-              style={{
-                color: cores.textSecondary,
-                fontSize: 13,
-                lineHeight: 19,
-                marginBottom: 22,
-              }}
-            >
-              Informe sua senha atual e escolha uma nova senha.
-            </Text>
-
-            <CampoSenha
-              label="Senha antiga"
-              valor={senhaAntiga}
-              onChangeText={(valor) => {
-                setSenhaAntiga(valor);
-                setErroSenha("");
-              }}
-              mostrar={mostrarSenhaAntiga}
-              alternarVisibilidade={() =>
-                setMostrarSenhaAntiga(!mostrarSenhaAntiga)
-              }
-              placeholder="Digite sua senha atual"
-            />
-
-            <CampoSenha
-              label="Nova senha"
-              valor={novaSenha}
-              onChangeText={(valor) => {
-                setNovaSenha(valor);
-                setErroSenha("");
-              }}
-              mostrar={mostrarNovaSenha}
-              alternarVisibilidade={() =>
-                setMostrarNovaSenha(!mostrarNovaSenha)
-              }
-              placeholder="Digite sua nova senha"
-            />
-
-            <CampoSenha
-              label="Confirmar nova senha"
-              valor={confirmarSenha}
-              onChangeText={(valor) => {
-                setConfirmarSenha(valor);
-                setErroSenha("");
-              }}
-              mostrar={mostrarConfirmarSenha}
-              alternarVisibilidade={() =>
-                setMostrarConfirmarSenha(!mostrarConfirmarSenha)
-              }
-              placeholder="Repita sua nova senha"
-            />
-
-            {/* ERRO DE VALIDAÇÃO */}
-
-            {!!erroSenha && (
               <View
                 style={{
-                  backgroundColor: "rgba(229,57,53,0.12)",
-                  borderWidth: 1,
-                  borderColor: "rgba(229,57,53,0.4)",
-                  borderRadius: 11,
-                  padding: 12,
                   flexDirection: "row",
                   alignItems: "center",
-                  marginBottom: 14,
+                  justifyContent: "space-between",
+                  marginBottom: 8,
                 }}
               >
-                <WarningCircleIcon
-                  size={20}
-                  color={cores.danger}
-                  weight="fill"
-                />
-
-                <Text
+                <Texto
+                  tamanho={19}
                   style={{
                     color: cores.text,
-                    fontSize: 12,
+                    fontWeight: "bold",
                     flex: 1,
-                    marginLeft: 9,
-                    lineHeight: 18,
                   }}
                 >
-                  {erroSenha}
-                </Text>
-              </View>
-            )}
+                  Alterar senha
+                </Texto>
 
-            <Pressable
-              onPress={alterarSenha}
-              style={{
-                backgroundColor: cores.primary,
-                borderRadius: 12,
-                paddingVertical: 15,
-                alignItems: "center",
-                marginTop: 5,
-              }}
-            >
-              <Text
+                <Pressable
+                  onPress={fecharModalSenha}
+                  hitSlop={10}
+                >
+                  <XIcon
+                    size={23 * escalaIcone}
+                    color={cores.icon}
+                  />
+                </Pressable>
+              </View>
+
+              <Texto
+                tamanho={13}
                 style={{
-                  color: cores.background,
-                  fontWeight: "bold",
-                  fontSize: 15,
+                  color: cores.textSecondary,
+                  lineHeight: 19 * fontScale,
+                  marginBottom: 22,
                 }}
               >
-                Confirmar alteração
-              </Text>
-            </Pressable>
-          </View>
+                Informe sua senha atual e escolha uma nova senha.
+              </Texto>
+
+              <CampoSenha
+                label="Senha antiga"
+                valor={senhaAntiga}
+                onChangeText={(valor) => {
+                  setSenhaAntiga(valor);
+                  setErroSenha("");
+                }}
+                mostrar={mostrarSenhaAntiga}
+                alternarVisibilidade={() =>
+                  setMostrarSenhaAntiga(!mostrarSenhaAntiga)
+                }
+                placeholder="Digite sua senha atual"
+              />
+
+              <CampoSenha
+                label="Nova senha"
+                valor={novaSenha}
+                onChangeText={(valor) => {
+                  setNovaSenha(valor);
+                  setErroSenha("");
+                }}
+                mostrar={mostrarNovaSenha}
+                alternarVisibilidade={() =>
+                  setMostrarNovaSenha(!mostrarNovaSenha)
+                }
+                placeholder="Digite sua nova senha"
+              />
+
+              <CampoSenha
+                label="Confirmar nova senha"
+                valor={confirmarSenha}
+                onChangeText={(valor) => {
+                  setConfirmarSenha(valor);
+                  setErroSenha("");
+                }}
+                mostrar={mostrarConfirmarSenha}
+                alternarVisibilidade={() =>
+                  setMostrarConfirmarSenha(!mostrarConfirmarSenha)
+                }
+                placeholder="Repita sua nova senha"
+              />
+
+              {/* ERRO DE VALIDAÇÃO */}
+
+              {!!erroSenha && (
+                <View
+                  style={{
+                    backgroundColor: "rgba(229,57,53,0.12)",
+                    borderWidth: 1,
+                    borderColor: "rgba(229,57,53,0.4)",
+                    borderRadius: 11,
+                    padding: 12,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 14,
+                  }}
+                >
+                  <WarningCircleIcon
+                    size={20 * escalaIcone}
+                    color={cores.danger}
+                    weight="fill"
+                  />
+
+                  <Texto
+                    tamanho={12}
+                    style={{
+                      color: cores.text,
+                      flex: 1,
+                      marginLeft: 9,
+                      lineHeight: 18 * fontScale,
+                    }}
+                  >
+                    {erroSenha}
+                  </Texto>
+                </View>
+              )}
+
+              <Pressable
+                onPress={alterarSenha}
+                style={{
+                  backgroundColor: cores.primary,
+                  borderRadius: 12,
+                  paddingVertical: 15,
+                  paddingHorizontal: 10,
+                  alignItems: "center",
+                  marginTop: 5,
+                  minHeight: 50,
+                  justifyContent: "center",
+                }}
+              >
+                <Texto
+                  tamanho={15}
+                  style={{
+                    color: cores.background,
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  Confirmar alteração
+                </Texto>
+              </Pressable>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -914,142 +1003,167 @@ export function EditarPerfil() {
             paddingHorizontal: 22,
           }}
         >
-          <View
-            style={{
-              backgroundColor: cores.surfaceSecondary,
-              borderRadius: 20,
-              padding: 23,
-              borderWidth: 1,
-              borderColor: cores.danger,
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              paddingVertical: 20,
             }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             <View
               style={{
-                alignItems: "center",
-                marginBottom: 15,
-              }}
-            >
-              <TrashIcon size={38} color={cores.danger} />
-
-              <Text
-                style={{
-                  color: cores.danger,
-                  fontSize: 20,
-                  fontWeight: "bold",
-                  marginTop: 12,
-                }}
-              >
-                Excluir conta?
-              </Text>
-            </View>
-
-            <Text
-              style={{
-                color: cores.text,
-                fontSize: 14,
-                textAlign: "center",
-                lineHeight: 21,
-                marginBottom: 17,
-              }}
-            >
-              Essa ação é permanente e poderá apagar seus dados,
-              conquistas, XP e progresso no Camisa10.
-            </Text>
-
-            <Text
-              style={{
-                color: cores.textSecondary,
-                fontSize: 13,
-                marginBottom: 9,
-              }}
-            >
-              Para confirmar, digite EXCLUIR abaixo:
-            </Text>
-
-            <TextInput
-              value={confirmacaoExclusao}
-              onChangeText={(valor) => {
-                setConfirmacaoExclusao(valor);
-                setErroExclusao("");
-              }}
-              placeholder="Digite EXCLUIR"
-              placeholderTextColor={cores.textTertiary}
-              autoCapitalize="characters"
-              style={{
-                backgroundColor: cores.surface,
+                backgroundColor: cores.surfaceSecondary,
+                borderRadius: 20,
+                padding: 23,
                 borderWidth: 1,
                 borderColor: cores.danger,
-                borderRadius: 11,
-                padding: 14,
-                color: cores.text,
-                marginBottom: 12,
-              }}
-            />
-
-            <CampoSenha
-              label="Senha atual"
-              valor={senhaExclusao}
-              onChangeText={(valor) => {
-                setSenhaExclusao(valor);
-                setErroExclusao("");
-              }}
-              mostrar={mostrarSenhaExclusao}
-              alternarVisibilidade={() =>
-                setMostrarSenhaExclusao(!mostrarSenhaExclusao)
-              }
-              placeholder="Digite sua senha atual"
-            />
-
-            {!!erroExclusao && (
-              <Text
-                style={{
-                  color: cores.danger,
-                  fontSize: 12,
-                  marginBottom: 13,
-                }}
-              >
-                {erroExclusao}
-              </Text>
-            )}
-
-            <Pressable
-              onPress={excluirConta}
-              style={{
-                backgroundColor: cores.danger,
-                paddingVertical: 14,
-                borderRadius: 11,
-                alignItems: "center",
-                marginBottom: 10,
               }}
             >
-              <Text
+              <View
                 style={{
-                  color: "#FFFFFF",
-                  fontWeight: "bold",
-                  fontSize: 15,
+                  alignItems: "center",
+                  marginBottom: 15,
                 }}
               >
-                Confirmar exclusão
-              </Text>
-            </Pressable>
+                <TrashIcon
+                  size={38 * escalaIcone}
+                  color={cores.danger}
+                />
 
-            <Pressable
-              onPress={fecharModalExcluir}
-              style={{
-                paddingVertical: 12,
-                alignItems: "center",
-              }}
-            >
-              <Text
+                <Texto
+                  tamanho={20}
+                  style={{
+                    color: cores.danger,
+                    fontWeight: "bold",
+                    marginTop: 12,
+                    textAlign: "center",
+                  }}
+                >
+                  Excluir conta?
+                </Texto>
+              </View>
+
+              <Texto
+                tamanho={14}
+                style={{
+                  color: cores.text,
+                  textAlign: "center",
+                  lineHeight: 21 * fontScale,
+                  marginBottom: 17,
+                }}
+              >
+                Essa ação é permanente e poderá apagar seus dados,
+                conquistas, XP e progresso no Camisa10.
+              </Texto>
+
+              <Texto
+                tamanho={13}
                 style={{
                   color: cores.textSecondary,
-                  fontWeight: "600",
+                  marginBottom: 9,
                 }}
               >
-                Cancelar
-              </Text>
-            </Pressable>
-          </View>
+                Para confirmar, digite EXCLUIR abaixo:
+              </Texto>
+
+              <TextInput
+                value={confirmacaoExclusao}
+                onChangeText={(valor) => {
+                  setConfirmacaoExclusao(valor);
+                  setErroExclusao("");
+                }}
+                placeholder="Digite EXCLUIR"
+                placeholderTextColor={cores.textTertiary}
+                autoCapitalize="characters"
+                style={{
+                  backgroundColor: cores.surface,
+                  borderWidth: 1,
+                  borderColor: cores.danger,
+                  borderRadius: 11,
+                  padding: 14,
+                  color: cores.text,
+                  marginBottom: 12,
+                  fontSize: 14 * fontScale,
+                  minHeight: 50,
+                }}
+              />
+
+              <CampoSenha
+                label="Senha atual"
+                valor={senhaExclusao}
+                onChangeText={(valor) => {
+                  setSenhaExclusao(valor);
+                  setErroExclusao("");
+                }}
+                mostrar={mostrarSenhaExclusao}
+                alternarVisibilidade={() =>
+                  setMostrarSenhaExclusao(!mostrarSenhaExclusao)
+                }
+                placeholder="Digite sua senha atual"
+              />
+
+              {!!erroExclusao && (
+                <Texto
+                  tamanho={12}
+                  style={{
+                    color: cores.danger,
+                    marginBottom: 13,
+                    lineHeight: 18 * fontScale,
+                  }}
+                >
+                  {erroExclusao}
+                </Texto>
+              )}
+
+              <Pressable
+                onPress={excluirConta}
+                style={{
+                  backgroundColor: cores.danger,
+                  paddingVertical: 14,
+                  paddingHorizontal: 10,
+                  borderRadius: 11,
+                  alignItems: "center",
+                  marginBottom: 10,
+                  minHeight: 50,
+                  justifyContent: "center",
+                }}
+              >
+                <Texto
+                  tamanho={15}
+                  style={{
+                    color: "#FFFFFF",
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  Confirmar exclusão
+                </Texto>
+              </Pressable>
+
+              <Pressable
+                onPress={fecharModalExcluir}
+                style={{
+                  paddingVertical: 12,
+                  alignItems: "center",
+                  minHeight: 45,
+                  justifyContent: "center",
+                }}
+              >
+                <Texto
+                  tamanho={14}
+                  style={{
+                    color: cores.textSecondary,
+                    fontWeight: "600",
+                    textAlign: "center",
+                  }}
+                >
+                  Cancelar
+                </Texto>
+              </Pressable>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -1084,22 +1198,22 @@ export function EditarPerfil() {
             }}
           >
             <CheckCircleIcon
-              size={52}
+              size={52 * escalaIcone}
               color={cores.primary}
               weight="fill"
             />
 
-            <Text
+            <Texto
+              tamanho={18}
               style={{
                 color: cores.text,
-                fontSize: 18,
                 fontWeight: "bold",
                 marginTop: 15,
                 textAlign: "center",
               }}
             >
               {mensagemSucesso}
-            </Text>
+            </Texto>
 
             <Pressable
               onPress={() => setModalSucesso(false)}
@@ -1109,16 +1223,21 @@ export function EditarPerfil() {
                 paddingVertical: 12,
                 paddingHorizontal: 35,
                 marginTop: 22,
+                minHeight: 45,
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <Text
+              <Texto
+                tamanho={14}
                 style={{
                   color: cores.background,
                   fontWeight: "bold",
+                  textAlign: "center",
                 }}
               >
                 Continuar
-              </Text>
+              </Texto>
             </Pressable>
           </View>
         </View>

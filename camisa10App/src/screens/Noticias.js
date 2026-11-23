@@ -21,11 +21,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 
 import { BottomNav } from "../components/bottomNav";
+import { Texto } from "../components/texto";
+
+import { useAccessibility } from "../context/AccessibilityContext";
 
 import { obterNoticias } from "../services/authService";
 
 export function Noticias() {
   const navigation = useNavigation();
+
+  const { fontScale, configuracoes } = useAccessibility();
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
 
   // =========================================================
   // ESTADOS DA TELA
@@ -147,7 +159,7 @@ export function Noticias() {
       const podeAbrir = await Linking.canOpenURL(noticia.url);
 
       if (!podeAbrir) {
-        throw new Error("URL não suportada.")
+        throw new Error("URL não suportada.");
       }
 
       await Linking.openURL(noticia.url);
@@ -190,7 +202,7 @@ export function Noticias() {
         {/* CABEÇALHO */}
         {/* ================================================= */}
 
-        <View className="h-[62px] flex-row items-center px-4">
+        <View className="min-h-[62px] flex-row items-center px-4 py-2">
           <Pressable
             className="h-10 w-10 items-center justify-center"
             onPress={() => navigation.goBack()}
@@ -202,18 +214,18 @@ export function Noticias() {
             })}
           >
             <ArrowLeftIcon
-              size={25}
+              size={25 * escalaIcone}
               color="#F5F7F8"
               weight="regular"
             />
           </Pressable>
 
-          <Text
-            className="ml-3 text-[26px] text-texto"
-            style={{ fontFamily: "Anuphan" }}
+          <Texto
+            tamanho={26}
+            className="ml-3 text-texto"
           >
             Notícias
-          </Text>
+          </Texto>
         </View>
 
         {/* ================================================= */}
@@ -221,9 +233,11 @@ export function Noticias() {
         {/* ================================================= */}
 
         <View className="px-4">
-          <View className="h-12 flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-4">
+          <View
+            className="min-h-[48px] flex-row items-center rounded-xl border border-cartao-borda bg-cartao px-4 py-2"
+          >
             <MagnifyingGlassIcon
-              size={21}
+              size={21 * escalaIcone}
               color="#A8B2B9"
               weight="regular"
             />
@@ -233,8 +247,15 @@ export function Noticias() {
               onChangeText={setBusca}
               placeholder="Buscar notícias"
               placeholderTextColor="#6F7B83"
-              className="ml-3 flex-1 text-sm text-texto"
-              style={{ fontFamily: "Inter" }}
+              className="ml-3 flex-1 text-texto"
+              style={{
+                fontFamily: configuracoes.textoNegrito
+                  ? "AnuphanBold"
+                  : "Inter",
+                fontSize: 14 * fontScale,
+                lineHeight: Math.ceil(18 * fontScale),
+                paddingVertical: 4,
+              }}
               returnKeyType="search"
               accessibilityLabel="Buscar notícias"
             />
@@ -270,14 +291,14 @@ export function Noticias() {
                   transform: [{ scale: pressed ? 0.95 : 1 }],
                 })}
               >
-                <Text
-                  className={`text-sm ${
+                <Texto
+                  tamanho={14}
+                  className={`${
                     ativa ? "font-bold text-texto" : "text-texto"
                   }`}
-                  style={{ fontFamily: "Inter" }}
                 >
                   {categoria}
-                </Text>
+                </Texto>
               </Pressable>
             );
           })}
@@ -288,69 +309,75 @@ export function Noticias() {
         {/* ================================================= */}
 
         <View className="mt-6 px-4">
-          <Text
-            className="mb-3 text-xl text-texto"
-            style={{ fontFamily: "Anuphan" }}
+          <Texto
+            tamanho={20}
+            className="mb-3 text-texto"
           >
             Destaque
-          </Text>
+          </Texto>
 
           {carregando ? (
             <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
-              <Text
-                className="text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="text-texto-sec"
               >
-                Carregando notícias...  
-              </Text>
+                Carregando notícias...
+              </Texto>
             </View>
           ) : erro ? (
             <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
-              <Text
-                className="text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="text-texto-sec"
               >
                 Não foi possível carregar as notícias.
-              </Text>
+              </Texto>
 
               <Pressable
                 className="mt-3 self-start rounded-lg bg-verde px-4 py-2"
                 onPress={() => setCategoriaAtiva((atual) => atual)}
               >
-                <Text className="text-sm font-bold text-texto">
+                <Texto
+                  tamanho={14}
+                  className="font-bold text-texto"
+                >
                   Tentar novamente
-                </Text>
+                </Texto>
               </Pressable>
             </View>
           ) : null}
 
           {carregando && (
             <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
-              <Text
-                className="text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="text-texto-sec"
               >
                 Carregando notícias
-              </Text>
+              </Texto>
             </View>
           )}
 
           {erro && !carregando && (
             <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
-              <Text
-                className="text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="text-texto-sec"
               >
                 Não foi possível carregar as notícias.
-              </Text>
+              </Texto>
 
               <Pressable
                 className="mt-3 self-start rounded-lg bg-verde px-4 py-2"
                 onPress={() => setAtualizacao((valor) => valor + 1)}
               >
-                <Text className="text-sm font-bold text-texto">
+                <Texto
+                  tamanho={14}
+                  className="font-bold text-texto"
+                >
                   Tentar novamente
-                </Text>
+                </Texto>
               </Pressable>
             </View>
           )}
@@ -366,7 +393,6 @@ export function Noticias() {
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
-
               {noticiaDestaque.imagem ? (
                 <Image
                   source={{ uri: noticiaDestaque.imagem }}
@@ -374,34 +400,33 @@ export function Noticias() {
                   resizeMode="cover"
                 />
               ) : (
-                <View className="h-[180px] w-full bg-cartao-borda items-center justify-center">
-                  <Text
-                    className="text-xs text-texto-ter"
-                    style={{ fontFamily: "Inter" }}
+                <View className="h-[180px] w-full bg-cartao-borda items-center justify-center px-3">
+                  <Texto
+                    tamanho={12}
+                    className="text-texto-ter text-center"
                   >
                     Imagem indisponível
-                  </Text>
+                  </Texto>
                 </View>
               )}
 
               <View className="p-4">
-                <Text
-                  className="mb-2 text-xs font-bold text-verde"
-                  style={{ fontFamily: "Inter" }}
+                <Texto
+                  tamanho={12}
+                  className="mb-2 font-bold text-verde"
                 >
                   {obterCategoriaExibicao()}
-                </Text>
+                </Texto>
 
-                <Text
-                  numberOfLines={3}
-                  className="text-lg font-bold text-texto"
-                  style={{ fontFamily: "Inter" }}
+                <Texto
+                  tamanho={18}
+                  className="font-bold text-texto"
+                  style={{ flexShrink: 1 }}
                 >
                   {noticiaDestaque.titulo}
-                </Text>
+                </Texto>
 
-                <View className="mt-3 flex-row items-center">
-
+                <View className="mt-3 flex-row items-center flex-wrap">
                   {noticiaDestaque.url && (
                     <Image
                       source={{
@@ -412,34 +437,37 @@ export function Noticias() {
                     />
                   )}
 
-                  <Text
-                    className="ml-2 text-xs text-texto-sec"
-                    style={{ fontFamily: "Inter" }}
+                  <Texto
+                    tamanho={12}
+                    className="ml-2 text-texto-sec"
                   >
                     {noticiaDestaque.fonte}
-                  </Text>
+                  </Texto>
 
-                  <Text className="mx-2 text-xs text-texto-ter">
+                  <Texto
+                    tamanho={12}
+                    className="mx-2 text-texto-ter"
+                  >
                     •
-                  </Text>
+                  </Texto>
 
-                  <Text
-                    className="text-xs text-texto-sec"
-                    style={{ fontFamily: "Inter" }}
+                  <Texto
+                    tamanho={12}
+                    className="text-texto-sec"
                   >
                     {formatarTempo(noticiaDestaque.publicado_em)}
-                  </Text>
+                  </Texto>
                 </View>
               </View>
             </Pressable>
           ) : !carregando && !erro ? (
             <View className="rounded-xl border border-cartao-borda bg-cartao p-5">
-              <Text
-                className="text-sm text-texto-sec"
-                style={{ fontFamily: "Inter" }}
+              <Texto
+                tamanho={14}
+                className="text-texto-sec"
               >
                 Nenhuma notícia encontrada com esses filtros.
-              </Text>
+              </Texto>
             </View>
           ) : null}
         </View>
@@ -450,12 +478,12 @@ export function Noticias() {
 
         <View className="mt-7 px-4">
           <View className="mb-3 flex-row items-center justify-between">
-            <Text
-              className="text-xl text-texto"
-              style={{ fontFamily: "Anuphan" }}
+            <Texto
+              tamanho={20}
+              className="text-texto"
             >
               Últimas notícias
-            </Text>
+            </Texto>
           </View>
 
           {ultimasNoticias.length > 0 ? (
@@ -471,7 +499,6 @@ export function Noticias() {
                   transform: [{ scale: pressed ? 0.98 : 1 }],
                 })}
               >
-
                 {noticia.imagem ? (
                   <Image
                     source={{ uri: noticia.imagem }}
@@ -479,68 +506,70 @@ export function Noticias() {
                     resizeMode="cover"
                   />
                 ) : (
-                  <View className="h-[105px] w-[115px] items-center justify-center bg-cartao-borda">
-                    <Text
-                      className="text-[10px] text-texto-ter"
-                      style={{ fontFamily: "Inter" }}
+                  <View className="h-[105px] w-[115px] items-center justify-center bg-cartao-borda px-1">
+                    <Texto
+                      tamanho={10}
+                      className="text-texto-ter text-center"
                     >
                       Imagem indisponível
-                    </Text>
+                    </Texto>
                   </View>
                 )}
 
                 <View className="flex-1 p-3 pr-7">
-                  <Text
-                    className="mb-1 text-xs font-bold text-verde"
-                    style={{ fontFamily: "Inter" }}
+                  <Texto
+                    tamanho={12}
+                    className="mb-1 font-bold text-verde"
                   >
                     {obterCategoriaExibicao()}
-                  </Text>
+                  </Texto>
 
-                  <Text
-                    numberOfLines={3}
-                    className="text-sm font-medium text-texto"
-                    style={{ fontFamily: "Inter" }}
+                  <Texto
+                    tamanho={14}
+                    className="font-medium text-texto"
+                    style={{ flexShrink: 1 }}
                   >
                     {noticia.titulo}
-                  </Text>
+                  </Texto>
 
-                  <View className="mt-2 flex-row items-center">
-
+                  <View className="mt-2 flex-row items-center flex-wrap">
                     {noticia.url && (
                       <Image
                         source={{
-                          uri: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(noticia.url)}&sz=64`
+                          uri: `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(noticia.url)}&sz=64`,
                         }}
                         className="h-[14px] w-[14px] rounded-full"
                         resizeMode="contain"
                       />
                     )}
 
-                    <Text
-                      numberOfLines={1}
-                      className="ml-1 text-[10px] text-texto-sec"
-                      style={{ fontFamily: "Inter" }}
+                    <Texto
+                      tamanho={10}
+                      className="ml-1 text-texto-sec"
+                      style={{ flexShrink: 1 }}
                     >
                       {noticia.fonte}
-                    </Text>
+                    </Texto>
 
-                    <Text className="mx-1 text-[10px] text-texto-ter">
+                    <Texto
+                      tamanho={10}
+                      className="mx-1 text-texto-ter"
+                    >
                       •
-                    </Text>
+                    </Texto>
 
-                    <Text
-                      className="text-[10px] text-texto-sec"
-                      style={{ fontFamily: "Inter" }}
+                    <Texto
+                      tamanho={10}
+                      className="text-texto-sec"
                     >
                       {formatarTempo(noticia.publicado_em)}
-                    </Text>
+                    </Texto>
                   </View>
                 </View>
 
                 <View className="absolute bottom-3 right-3">
                   <CaretRightIcon
-                    size={18}
+                    size={18 * escalaIcone}
                     color="#A8B2B9"
                     weight="bold"
                   />
@@ -548,12 +577,12 @@ export function Noticias() {
               </Pressable>
             ))
           ) : noticiaDestaque ? (
-            <Text
-              className="mb-4 text-sm text-texto-ter"
-              style={{ fontFamily: "Inter" }}
+            <Texto
+              tamanho={14}
+              className="mb-4 text-texto-ter"
             >
               Não há outras notícias nesta seleção.
-            </Text>
+            </Texto>
           ) : null}
         </View>
       </ScrollView>
@@ -564,7 +593,7 @@ export function Noticias() {
 
       <Pressable
         className="absolute bottom-[105px] right-5 h-[60px] w-[60px] items-center justify-center rounded-full bg-verde"
-        onPress={() => { navigation.navigate("Chatbot")}}
+        onPress={() => navigation.navigate("Chatbot")}
         accessibilityRole="button"
         accessibilityLabel="Abrir assistente de IA"
         style={({ pressed }) => ({
@@ -572,12 +601,12 @@ export function Noticias() {
           transform: [{ scale: pressed ? 0.9 : 1 }],
         })}
       >
-        <Text
-          className="text-2xl font-bold text-texto"
-          style={{ fontFamily: "Inter" }}
+        <Texto
+          tamanho={24}
+          className="font-bold text-texto"
         >
           AI
-        </Text>
+        </Texto>
       </Pressable>
 
       {/* ===================================================== */}

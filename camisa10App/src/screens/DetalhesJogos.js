@@ -1,8 +1,6 @@
-
 import React, { useState } from "react";
 import {
   View,
-  Text,
   ScrollView,
   Pressable,
   Image,
@@ -20,6 +18,8 @@ import {
 } from "phosphor-react-native";
 
 import { useTheme } from "../context/ThemeContext";
+import { useAccessibility } from "../context/AccessibilityContext";
+import { Texto } from "../components/texto";
 
 // =========================================================
 // DADOS FICTÍCIOS
@@ -185,6 +185,20 @@ const PARTIDA = {
 };
 
 // =========================================================
+// ESCALA DE ÍCONES
+// =========================================================
+
+function useEscalaIcone() {
+  const { configuracoes } = useAccessibility();
+
+  return configuracoes.tamanhoTexto === "grande"
+    ? 1.15
+    : configuracoes.tamanhoTexto === "muitoGrande"
+    ? 1.3
+    : 1;
+}
+
+// =========================================================
 // COMPONENTE: CARD
 // =========================================================
 
@@ -210,6 +224,7 @@ function Card({ children, className = "" }) {
 
 function TituloSecao({ titulo, subtitulo, icone: Icon }) {
   const { cores } = useTheme();
+  const escalaIcone = useEscalaIcone();
 
   return (
     <View className="flex-row items-center mb-4">
@@ -218,25 +233,31 @@ function TituloSecao({ titulo, subtitulo, icone: Icon }) {
           className="w-10 h-10 rounded-xl items-center justify-center mr-3"
           style={{ backgroundColor: `${cores.primary}15` }}
         >
-          <Icon size={21} color={cores.primary} weight="bold" />
+          <Icon
+            size={21 * escalaIcone}
+            color={cores.primary}
+            weight="bold"
+          />
         </View>
       ) : null}
 
       <View className="flex-1">
-        <Text
-          className="text-base font-bold"
+        <Texto
+          tamanho={16}
+          className="font-bold"
           style={{ color: cores.text }}
         >
           {titulo}
-        </Text>
+        </Texto>
 
         {subtitulo ? (
-          <Text
-            className="text-xs mt-1"
+          <Texto
+            tamanho={12}
+            className="mt-1"
             style={{ color: cores.textTertiary }}
           >
             {subtitulo}
-          </Text>
+          </Texto>
         ) : null}
       </View>
     </View>
@@ -275,12 +296,13 @@ function LogoTime({ logo, nome, tamanho = 76 }) {
             borderColor: cores.border,
           }}
         >
-          <Text
-            className="text-xl font-extrabold"
+          <Texto
+            tamanho={20}
+            className="font-extrabold"
             style={{ color: cores.primary }}
           >
             {nome?.substring(0, 3).toUpperCase()}
-          </Text>
+          </Texto>
         </View>
       )}
     </View>
@@ -315,8 +337,9 @@ function Estatistica({ titulo, valores }) {
   return (
     <View className="mb-5">
       <View className="flex-row items-center justify-between mb-2">
-        <Text
-          className="text-sm font-extrabold"
+        <Texto
+          tamanho={14}
+          className="font-extrabold"
           style={{
             color:
               mandanteMelhor || empate
@@ -325,17 +348,19 @@ function Estatistica({ titulo, valores }) {
           }}
         >
           {mandante}
-        </Text>
+        </Texto>
 
-        <Text
-          className="text-xs text-center"
+        <Texto
+          tamanho={12}
+          className="text-center"
           style={{ color: cores.textSecondary }}
         >
           {titulo}
-        </Text>
+        </Texto>
 
-        <Text
-          className="text-sm font-extrabold"
+        <Texto
+          tamanho={14}
+          className="font-extrabold"
           style={{
             color:
               visitanteMelhor || empate
@@ -344,7 +369,7 @@ function Estatistica({ titulo, valores }) {
           }}
         >
           {visitante}
-        </Text>
+        </Texto>
       </View>
 
       <View
@@ -375,12 +400,13 @@ function Estatistica({ titulo, valores }) {
 
 function IconeEvento({ evento }) {
   const { cores } = useTheme();
+  const escalaIcone = useEscalaIcone();
 
   if (evento.tipo === "gol") {
     return (
       <View className="w-8 h-8 items-center justify-center">
         <SoccerBallIcon
-          size={22}
+          size={22 * escalaIcone}
           color={cores.icon}
           weight="fill"
         />
@@ -406,19 +432,21 @@ function IconeEvento({ evento }) {
   if (evento.tipo === "substituicao") {
     return (
       <View className="items-center justify-center">
-        <Text
-          className="text-lg font-extrabold"
+        <Texto
+          tamanho={18}
+          className="font-extrabold"
           style={{ color: cores.primary }}
         >
           ↑
-        </Text>
+        </Texto>
 
-        <Text
-          className="text-lg font-extrabold -mt-2"
+        <Texto
+          tamanho={18}
+          className="font-extrabold -mt-2"
           style={{ color: cores.danger }}
         >
           ↓
-        </Text>
+        </Texto>
       </View>
     );
   }
@@ -436,20 +464,22 @@ function ConteudoEvento({ evento }) {
   if (evento.tipo === "gol") {
     return (
       <View>
-        <Text
-          className="text-sm font-bold"
+        <Texto
+          tamanho={14}
+          className="font-bold"
           style={{ color: cores.text }}
         >
           {evento.jogador || "Autor não informado"}
-        </Text>
+        </Texto>
 
         {evento.assistencia ? (
-          <Text
-            className="text-xs mt-1"
+          <Texto
+            tamanho={12}
+            className="mt-1"
             style={{ color: cores.textTertiary }}
           >
             Assistência: {evento.assistencia}
-          </Text>
+          </Texto>
         ) : null}
       </View>
     );
@@ -460,29 +490,32 @@ function ConteudoEvento({ evento }) {
 
     return (
       <View>
-        <Text
-          className="text-sm font-bold"
+        <Texto
+          tamanho={14}
+          className="font-bold"
           style={{ color: cores.text }}
         >
           {evento.jogador || "Jogador não informado"}
-        </Text>
+        </Texto>
 
-        <Text
-          className="text-xs mt-1"
+        <Texto
+          tamanho={12}
+          className="mt-1"
           style={{
             color: vermelho ? cores.danger : cores.warning,
           }}
         >
           Cartão {vermelho ? "vermelho" : "amarelo"}
-        </Text>
+        </Texto>
 
         {evento.descricao ? (
-          <Text
-            className="text-xs mt-1"
+          <Texto
+            tamanho={12}
+            className="mt-1"
             style={{ color: cores.textTertiary }}
           >
             {evento.descricao}
-          </Text>
+          </Texto>
         ) : null}
       </View>
     );
@@ -491,30 +524,32 @@ function ConteudoEvento({ evento }) {
   if (evento.tipo === "substituicao") {
     return (
       <View>
-        <Text
-          className="text-sm font-bold"
+        <Texto
+          tamanho={14}
+          className="font-bold"
           style={{ color: cores.primary }}
         >
           {evento.entrou || evento.jogador || "Jogador"}
-        </Text>
+        </Texto>
 
-        <Text
-          className="text-sm mt-1"
+        <Texto
+          tamanho={14}
+          className="mt-1"
           style={{ color: cores.textSecondary }}
         >
           {evento.saiu || evento.substituido || "Substituição"}
-        </Text>
+        </Texto>
       </View>
     );
   }
 
   return (
-    <Text
-      className="text-sm"
+    <Texto
+      tamanho={14}
       style={{ color: cores.text }}
     >
       {evento.descricao || "Evento"}
-    </Text>
+    </Texto>
   );
 }
 
@@ -555,8 +590,9 @@ function LinhaEvento({ evento, lado }) {
           className="px-1 items-center justify-center z-10"
           style={{ backgroundColor: cores.surface }}
         >
-          <Text
-            className="text-sm font-extrabold"
+          <Texto
+            tamanho={14}
+            className="font-extrabold"
             style={{
               color:
                 evento.cartao === "vermelho"
@@ -565,7 +601,7 @@ function LinhaEvento({ evento, lado }) {
             }}
           >
             {evento.minuto}'
-          </Text>
+          </Texto>
         </View>
       </View>
 
@@ -605,12 +641,13 @@ function SeparadorTempo({ titulo, placar }) {
           borderColor: cores.border,
         }}
       >
-        <Text
-          className="text-xs font-semibold"
+        <Texto
+          tamanho={12}
+          className="font-semibold"
           style={{ color: cores.textSecondary }}
         >
           {titulo}{placar ? ` • ${placar}` : ""}
-        </Text>
+        </Texto>
       </View>
 
       <View
@@ -710,8 +747,9 @@ function EventosPartida({ jogo }) {
                 borderBottomColor: cores.primary,
               }}
             >
-              <Text
-                className="text-sm font-bold"
+              <Texto
+                tamanho={14}
+                className="font-bold"
                 style={{
                   color: ativa
                     ? cores.text
@@ -719,7 +757,7 @@ function EventosPartida({ jogo }) {
                 }}
               >
                 {aba.nome}
-              </Text>
+              </Texto>
             </Pressable>
           );
         })}
@@ -730,48 +768,53 @@ function EventosPartida({ jogo }) {
           className="rounded-xl p-3 flex-row items-center justify-center"
           style={{ backgroundColor: cores.surfaceSecondary }}
         >
-          <Text
-            className="font-bold text-xs"
+          <Texto
+            tamanho={12}
+            className="font-bold"
             style={{ color: cores.text }}
           >
             {jogo.mandante}
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-lg font-extrabold mx-3"
+          <Texto
+            tamanho={18}
+            className="font-extrabold mx-3"
             style={{ color: cores.primary }}
           >
             {jogo.gols_mandante} - {jogo.gols_visitante}
-          </Text>
+          </Texto>
 
-          <Text
-            className="font-bold text-xs"
+          <Texto
+            tamanho={12}
+            className="font-bold"
             style={{ color: cores.text }}
           >
             {jogo.visitante}
-          </Text>
+          </Texto>
         </View>
       </View>
 
       <View className="flex-row px-4 mt-4 mb-2">
         <View className="flex-1 items-end pr-3">
-          <Text
-            className="text-[10px] font-extrabold"
+          <Texto
+            tamanho={10}
+            className="font-extrabold"
             style={{ color: cores.primary }}
           >
             {jogo.mandante}
-          </Text>
+          </Texto>
         </View>
 
         <View className="w-[54px]" />
 
         <View className="flex-1 items-start pl-3">
-          <Text
-            className="text-[10px] font-extrabold"
+          <Texto
+            tamanho={10}
+            className="font-extrabold"
             style={{ color: cores.warning }}
           >
             {jogo.visitante}
-          </Text>
+          </Texto>
         </View>
       </View>
 
@@ -783,12 +826,13 @@ function EventosPartida({ jogo }) {
               color={cores.textTertiary}
             />
 
-            <Text
-              className="text-xs mt-3"
+            <Texto
+              tamanho={12}
+              className="mt-3"
               style={{ color: cores.textTertiary }}
             >
               Nenhum evento disponível.
-            </Text>
+            </Texto>
           </View>
         ) : (
           <>
@@ -824,49 +868,54 @@ function EventosPartida({ jogo }) {
           <View className="flex-row justify-center flex-wrap gap-4">
             <View className="flex-row items-center">
               <View className="w-3 h-4 rounded-sm mr-2 bg-[#FFC107]" />
-              <Text
-                className="text-[10px]"
+              <Texto
+                tamanho={10}
                 style={{ color: cores.textTertiary }}
               >
                 Amarelo
-              </Text>
+              </Texto>
             </View>
 
             <View className="flex-row items-center">
               <View className="w-3 h-4 rounded-sm mr-2 bg-[#E53935]" />
-              <Text
-                className="text-[10px]"
+              <Texto
+                tamanho={10}
                 style={{ color: cores.textTertiary }}
               >
                 Vermelho
-              </Text>
+              </Texto>
             </View>
 
             <View className="flex-row items-center">
-              <Text
+              <Texto
+                tamanho={10}
                 className="font-extrabold mr-1"
                 style={{ color: cores.primary }}
               >
                 ↑
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[10px]"
+              <Texto
+                tamanho={10}
                 style={{ color: cores.textTertiary }}
               >
                 Entrada
-              </Text>
+              </Texto>
 
-              <Text className="text-[#E53935] font-extrabold ml-3 mr-1">
+              <Texto
+                tamanho={10}
+                className="font-extrabold ml-3 mr-1"
+                style={{ color: "#E53935" }}
+              >
                 ↓
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[10px]"
+              <Texto
+                tamanho={10}
                 style={{ color: cores.textTertiary }}
               >
                 Saída
-              </Text>
+              </Texto>
             </View>
           </View>
         </View>
@@ -875,9 +924,9 @@ function EventosPartida({ jogo }) {
   );
 }
 
- // =========================================================
- // COMPONENTE: JOGADOR NO CAMPO
- // =========================================================
+// =========================================================
+// COMPONENTE: JOGADOR NO CAMPO
+// =========================================================
 
 function JogadorCampo({ jogador }) {
   const { cores } = useTheme();
@@ -907,12 +956,13 @@ function JogadorCampo({ jogador }) {
           elevation: 4,
         }}
       >
-        <Text
-          className="text-[10px] font-extrabold"
+        <Texto
+          tamanho={10}
+          className="font-extrabold"
           style={{ color: cores.text }}
         >
           {jogador.n}
-        </Text>
+        </Texto>
       </View>
 
       <View
@@ -925,16 +975,17 @@ function JogadorCampo({ jogador }) {
           marginTop: 4,
         }}
       >
-        <Text
-          className="text-[9px] font-bold text-center"
+        <Texto
+          tamanho={9}
+          className="font-bold text-center"
           style={{ color: cores.text }}
           numberOfLines={1}
         >
           {jogador.nome}
-        </Text>
+        </Texto>
       </View>
-    </View>
-  );
+  </View>
+);
 }
 
 // =========================================================
@@ -1108,6 +1159,9 @@ function CampoFutebol({ jogadores }) {
 
 export function DetalhesJogos({ route, navigation }) {
   const { cores } = useTheme();
+  const { fontScale, configuracoes } = useAccessibility();
+  const escalaIcone = useEscalaIcone();
+
   const jogo = PARTIDA;
 
   const [abaSelecionada, setAbaSelecionada] = useState("Detalhes");
@@ -1271,19 +1325,21 @@ export function DetalhesJogos({ route, navigation }) {
         />
 
         <View className="flex-row justify-between mb-5">
-          <Text
-            className="text-xs font-bold"
+          <Texto
+            tamanho={12}
+            className="font-bold"
             style={{ color: cores.primary }}
           >
             {jogo.mandante}
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-xs font-bold"
+          <Texto
+            tamanho={12}
+            className="font-bold"
             style={{ color: cores.warning }}
           >
             {jogo.visitante}
-          </Text>
+          </Texto>
         </View>
 
         <Estatistica titulo="Posse de bola" valores={jogo.estatisticas.posse} />
@@ -1299,12 +1355,12 @@ export function DetalhesJogos({ route, navigation }) {
             style={{ backgroundColor: cores.primary }}
           />
 
-          <Text
-            className="text-[10px]"
+          <Texto
+            tamanho={10}
             style={{ color: cores.textTertiary }}
           >
             Melhor resultado na estatística
-          </Text>
+          </Texto>
         </View>
       </Card>
 
@@ -1321,26 +1377,29 @@ export function DetalhesJogos({ route, navigation }) {
           className="rounded-xl p-3 mb-3"
           style={{ backgroundColor: cores.surfaceSecondary }}
         >
-          <Text
-            className="text-[10px] font-bold mb-1"
+          <Texto
+            tamanho={10}
+            className="font-bold mb-1"
             style={{ color: cores.textTertiary }}
           >
             COMPETIÇÃO
-          </Text>
+          </Texto>
 
-          <Text
-            className="font-bold text-base"
+          <Texto
+            tamanho={16}
+            className="font-bold"
             style={{ color: cores.text }}
           >
             {jogo.competicao}
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-sm mt-1"
+          <Texto
+            tamanho={14}
+            className="mt-1"
             style={{ color: cores.primary }}
           >
             {jogo.fase}
-          </Text>
+          </Texto>
         </View>
 
         <View className="flex-row mb-3">
@@ -1348,56 +1407,62 @@ export function DetalhesJogos({ route, navigation }) {
             className="flex-1 rounded-xl p-3 mr-2"
             style={{ backgroundColor: cores.surfaceSecondary }}
           >
-            <ClockIcon size={18} color={cores.primary} />
+            <ClockIcon size={18 * escalaIcone} color={cores.primary} />
 
-            <Text
-              className="text-[10px] mt-2"
+            <Texto
+              tamanho={10}
+              className="mt-2"
               style={{ color: cores.textTertiary }}
             >
               DATA
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-xs font-semibold mt-1"
+            <Texto
+              tamanho={12}
+              className="font-semibold mt-1"
               style={{ color: cores.text }}
             >
               {formatarData(jogo.data)}
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-xs mt-1"
+            <Texto
+              tamanho={12}
+              className="mt-1"
               style={{ color: cores.textSecondary }}
             >
               {formatarHorario(jogo.data)}
-            </Text>
+            </Texto>
           </View>
 
           <View
             className="flex-1 rounded-xl p-3 ml-2"
             style={{ backgroundColor: cores.surfaceSecondary }}
           >
-            <MapPinIcon size={18} color={cores.primary} />
+            <MapPinIcon size={18 * escalaIcone} color={cores.primary} />
 
-            <Text
-              className="text-[10px] mt-2"
+            <Texto
+              tamanho={10}
+              className="mt-2"
               style={{ color: cores.textTertiary }}
             >
               ESTÁDIO
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-xs font-semibold mt-1"
+            <Texto
+              tamanho={12}
+              className="font-semibold mt-1"
               style={{ color: cores.text }}
             >
               {jogo.estadio}
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-xs mt-1"
+            <Texto
+              tamanho={12}
+              className="mt-1"
               style={{ color: cores.textSecondary }}
             >
               {jogo.cidade}
-            </Text>
+            </Texto>
           </View>
         </View>
 
@@ -1405,42 +1470,46 @@ export function DetalhesJogos({ route, navigation }) {
           className="rounded-xl p-3"
           style={{ backgroundColor: cores.surfaceSecondary }}
         >
-          <Text
-            className="text-[10px] font-bold mb-1"
+          <Texto
+            tamanho={10}
+            className="font-bold mb-1"
             style={{ color: cores.textTertiary }}
           >
             ARBITRAGEM
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-sm font-semibold"
+          <Texto
+            tamanho={14}
+            className="font-semibold"
             style={{ color: cores.text }}
           >
             {jogo.arbitro}
-          </Text>
+          </Texto>
         </View>
 
         <View
           className="rounded-xl p-3 mt-3"
           style={{ backgroundColor: cores.surfaceSecondary }}
         >
-          <Text
-            className="text-[10px] font-bold mb-1"
+          <Texto
+            tamanho={10}
+            className="font-bold mb-1"
             style={{ color: cores.textTertiary }}
           >
             PÚBLICO
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-sm font-semibold"
+          <Texto
+            tamanho={14}
+            className="font-semibold"
             style={{ color: cores.text }}
           >
             {jogo.publico}
-          </Text>
+          </Texto>
         </View>
       </Card>
-  </View>
-);
+    </View>
+  );
 
   // =======================================================
   // CARD: ACERTE A ESCALAÇÃO
@@ -1471,55 +1540,68 @@ export function DetalhesJogos({ route, navigation }) {
           className="rounded-xl p-3 mb-4 flex-row items-center justify-between"
           style={{ backgroundColor: cores.surfaceSecondary }}
         >
-          <View>
-            <Text
-              className="text-xs font-bold"
+          <View className="flex-1 mr-2">
+            <Texto
+              tamanho={12}
+              className="font-bold"
               style={{ color: cores.textTertiary }}
             >
               RECOMPENSA MÁXIMA
-            </Text>
+            </Texto>
 
-            <Text className="text-[#FFC107] font-extrabold text-lg mt-1">
+            <Texto
+              tamanho={18}
+              className="font-extrabold mt-1"
+              style={{ color: "#FFC107" }}
+            >
               16.000 XP
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-[10px] mt-1"
+            <Texto
+              tamanho={10}
+              className="mt-1"
               style={{ color: cores.textTertiary }}
             >
               1.000 XP por acerto + bônus de 5.000 XP
-            </Text>
+            </Texto>
           </View>
 
           <View className="rounded-xl p-3 bg-[#FFC107]/10">
-            <TrophyIcon size={25} color="#FFC107" weight="fill" />
+            <TrophyIcon
+              size={25 * escalaIcone}
+              color="#FFC107"
+              weight="fill"
+            />
           </View>
         </View>
 
-        <Text
-          className="text-xs mb-3"
+        <Texto
+          tamanho={12}
+          className="mb-3"
           style={{ color: cores.textSecondary }}
         >
           Selecione os 11 jogadores que começarão a partida.
           Você pode escolher entre titulares e reservas.
-        </Text>
+        </Texto>
 
         {/* PROGRESSO */}
 
         <View className="flex-row items-center justify-between mb-2">
-          <Text
-            className="font-bold text-sm"
+          <Texto
+            tamanho={14}
+            className="font-bold"
             style={{ color: cores.text }}
           >
             Sua escalação
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-sm font-extrabold"
+          <Texto
+            tamanho={14}
+            className="font-extrabold"
             style={{ color: cores.primary }}
           >
             {selecionados.length}/11
-          </Text>
+          </Texto>
         </View>
 
         <View
@@ -1570,8 +1652,9 @@ export function DetalhesJogos({ route, navigation }) {
                     : cores.border,
                 }}
               >
-                <Text
-                  className="font-extrabold text-xs"
+                <Texto
+                  tamanho={12}
+                  className="font-extrabold"
                   style={{
                     color: selecionado
                       ? cores.background
@@ -1579,12 +1662,13 @@ export function DetalhesJogos({ route, navigation }) {
                   }}
                 >
                   {jogador.n}
-                </Text>
+                </Texto>
               </View>
 
               <View className="flex-1">
-                <Text
-                  className="font-bold text-sm"
+                <Texto
+                  tamanho={14}
+                  className="font-bold"
                   style={{
                     color: selecionado
                       ? cores.text
@@ -1592,14 +1676,15 @@ export function DetalhesJogos({ route, navigation }) {
                   }}
                 >
                   {jogador.nome}
-                </Text>
+                </Texto>
 
-                <Text
-                  className="text-xs mt-1"
+                <Texto
+                  tamanho={12}
+                  className="mt-1"
                   style={{ color: cores.textTertiary }}
                 >
                   {jogador.pos}
-                </Text>
+                </Texto>
               </View>
 
               <View
@@ -1614,25 +1699,34 @@ export function DetalhesJogos({ route, navigation }) {
                 }}
               >
                 {selecionado ? (
-                  <Text
-                    className="text-xs font-extrabold"
+                  <Texto
+                    tamanho={12}
+                    className="font-extrabold"
                     style={{ color: cores.background }}
                   >
                     ✓
-                  </Text>
+                  </Texto>
                 ) : null}
               </View>
 
               {confirmado ? (
                 <View className="ml-2">
                   {acertou ? (
-                    <Text className="text-[#00C853] text-xs font-extrabold">
+                    <Texto
+                      tamanho={12}
+                      className="font-extrabold"
+                      style={{ color: "#00C853" }}
+                    >
                       ✓
-                    </Text>
+                    </Texto>
                   ) : selecionado && !titular ? (
-                    <Text className="text-[#E53935] text-xs font-extrabold">
+                    <Texto
+                      tamanho={12}
+                      className="font-extrabold"
+                      style={{ color: "#E53935" }}
+                    >
                       ✕
-                    </Text>
+                    </Texto>
                   ) : null}
                 </View>
               ) : null}
@@ -1652,15 +1746,24 @@ export function DetalhesJogos({ route, navigation }) {
           >
             <View className="items-center">
               <View className="w-14 h-14 rounded-full bg-[#FFC107]/10 items-center justify-center mb-3">
-                <TrophyIcon size={28} color="#FFC107" weight="fill" />
+                <TrophyIcon
+                  size={28 * escalaIcone}
+                  color="#FFC107"
+                  weight="fill"
+                />
               </View>
 
-              <Text className="text-[#00C853] font-extrabold text-xl text-center">
+              <Texto
+                tamanho={20}
+                className="font-extrabold text-center"
+                style={{ color: "#00C853" }}
+              >
                 {acertos}/11 acertos
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-xs text-center mt-2"
+              <Texto
+                tamanho={12}
+                className="text-center mt-2"
                 style={{ color: cores.textSecondary }}
               >
                 {acertos === 11
@@ -1670,27 +1773,36 @@ export function DetalhesJogos({ route, navigation }) {
                   : acertos >= 4
                   ? "Bom resultado! Você acertou alguns titulares."
                   : "Desafio concluído! Continue acompanhando o futebol."}
-              </Text>
+              </Texto>
 
               <View
                 className="w-full mt-4 pt-4 border-t"
                 style={{ borderColor: cores.border }}
               >
-                <Text
-                  className="text-xs text-center"
+                <Texto
+                  tamanho={12}
+                  className="text-center"
                   style={{ color: cores.textTertiary }}
                 >
                   EXPERIÊNCIA CONQUISTADA
-                </Text>
+                </Texto>
 
-                <Text className="text-[#FFC107] font-extrabold text-2xl text-center mt-1">
+                <Texto
+                  tamanho={24}
+                  className="font-extrabold text-center mt-1"
+                  style={{ color: "#FFC107" }}
+                >
                   +{xp} XP
-                </Text>
+                </Texto>
 
                 {acertos === 11 ? (
-                  <Text className="text-[#00C853] font-bold text-xs text-center mt-2">
+                  <Texto
+                    tamanho={12}
+                    className="font-bold text-center mt-2"
+                    style={{ color: "#00C853" }}
+                  >
                     Bônus de 5.000 XP por escalação perfeita!
-                  </Text>
+                  </Texto>
                 ) : null}
               </View>
             </View>
@@ -1711,8 +1823,9 @@ export function DetalhesJogos({ route, navigation }) {
                   : cores.border,
             }}
           >
-            <Text
-              className="font-extrabold text-sm"
+            <Texto
+              tamanho={14}
+              className="font-extrabold text-center px-2"
               style={{
                 color:
                   selecionados.length === 11
@@ -1723,7 +1836,7 @@ export function DetalhesJogos({ route, navigation }) {
               {selecionados.length === 11
                 ? "Confirmar escalação"
                 : `Selecione mais ${11 - selecionados.length} jogadores`}
-            </Text>
+            </Texto>
           </Pressable>
         ) : (
           <Pressable
@@ -1734,12 +1847,13 @@ export function DetalhesJogos({ route, navigation }) {
               borderColor: cores.border,
             }}
           >
-            <Text
-              className="font-bold text-sm"
+            <Texto
+              tamanho={14}
+              className="font-bold text-center"
               style={{ color: cores.text }}
             >
               Tentar novamente
-            </Text>
+            </Texto>
           </Pressable>
         )}
       </Card>
@@ -1789,15 +1903,16 @@ export function DetalhesJogos({ route, navigation }) {
                   setEquipeEscalacao(time);
                   setTipoEscalacao("titulares");
                 }}
-                className="flex-1 rounded-xl py-3 items-center"
+                className="flex-1 rounded-xl py-3 px-1 items-center"
                 style={{
                   backgroundColor: selecionado
                     ? cores.primary
                     : "transparent",
                 }}
               >
-                <Text
-                  className="text-xs font-bold"
+                <Texto
+                  tamanho={12}
+                  className="font-bold text-center"
                   style={{
                     color: selecionado
                       ? cores.background
@@ -1805,7 +1920,7 @@ export function DetalhesJogos({ route, navigation }) {
                   }}
                 >
                   {nome}
-                </Text>
+                </Texto>
               </Pressable>
             );
           })}
@@ -1820,26 +1935,31 @@ export function DetalhesJogos({ route, navigation }) {
             borderColor: cores.border,
           }}
         >
-          <View>
-            <Text
-              className="text-xs"
+          <View className="flex-1 mr-2">
+            <Texto
+              tamanho={12}
               style={{ color: cores.textTertiary }}
             >
               FORMAÇÃO TÁTICA
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-base font-bold mt-1"
+            <Texto
+              tamanho={16}
+              className="font-bold mt-1"
               style={{ color: cores.text }}
             >
               {nomeEquipe}
-            </Text>
+            </Texto>
           </View>
 
           <View className="bg-[#00C853]/10 rounded-xl px-4 py-2">
-            <Text className="text-[#00C853] text-lg font-extrabold">
+            <Texto
+              tamanho={18}
+              className="font-extrabold"
+              style={{ color: "#00C853" }}
+            >
               {equipe.formacao}
-            </Text>
+            </Texto>
           </View>
         </View>
 
@@ -1862,15 +1982,16 @@ export function DetalhesJogos({ route, navigation }) {
               <Pressable
                 key={tipo.id}
                 onPress={() => setTipoEscalacao(tipo.id)}
-                className="flex-1 py-3 rounded-lg items-center"
+                className="flex-1 py-3 rounded-lg items-center px-1"
                 style={{
                   backgroundColor: ativo
                     ? cores.surfaceSecondary
                     : "transparent",
                 }}
               >
-                <Text
-                  className="text-xs font-bold"
+                <Texto
+                  tamanho={12}
+                  className="font-bold text-center"
                   style={{
                     color: ativo
                       ? cores.text
@@ -1878,7 +1999,7 @@ export function DetalhesJogos({ route, navigation }) {
                   }}
                 >
                   {tipo.nome}
-                </Text>
+                </Texto>
               </Pressable>
             );
           })}
@@ -1932,39 +2053,42 @@ export function DetalhesJogos({ route, navigation }) {
                   borderColor: cores.border,
                 }}
               >
-                <Text
-                  className="font-extrabold text-sm"
+                <Texto
+                  tamanho={14}
+                  className="font-extrabold"
                   style={{ color: cores.primary }}
                 >
                   {jogador.n}
-                </Text>
+                </Texto>
               </View>
 
               <View className="flex-1">
-                <Text
-                  className="font-semibold text-sm"
+                <Texto
+                  tamanho={14}
+                  className="font-semibold"
                   style={{ color: cores.text }}
                 >
                   {jogador.nome}
-                </Text>
+                </Texto>
 
-                <Text
-                  className="text-xs mt-1"
+                <Texto
+                  tamanho={12}
+                  className="mt-1"
                   style={{ color: cores.textTertiary }}
                 >
                   {jogador.pos}
-                </Text>
+                </Texto>
               </View>
 
               <CaretRightIcon
-                size={16}
+                size={16 * escalaIcone}
                 color={cores.textTertiary}
               />
             </View>
           ))}
         </Card>
       </View>
-    );
+);
   };
 
   // =======================================================
@@ -2010,26 +2134,29 @@ export function DetalhesJogos({ route, navigation }) {
           className="rounded-xl p-3 flex-row items-center justify-center mb-5"
           style={{ backgroundColor: cores.surfaceSecondary }}
         >
-          <Text
-            className="font-bold text-xs"
+          <Texto
+            tamanho={12}
+            className="font-bold"
             style={{ color: cores.text }}
           >
             {jogo.mandante}
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-lg font-extrabold mx-3"
+          <Texto
+            tamanho={18}
+            className="font-extrabold mx-3"
             style={{ color: cores.primary }}
           >
             {jogo.gols_mandante} - {jogo.gols_visitante}
-          </Text>
+          </Texto>
 
-          <Text
-            className="font-bold text-xs"
+          <Texto
+            tamanho={12}
+            className="font-bold"
             style={{ color: cores.text }}
           >
             {jogo.visitante}
-          </Text>
+          </Texto>
         </View>
 
         {eventos.map((evento, index) => (
@@ -2040,12 +2167,13 @@ export function DetalhesJogos({ route, navigation }) {
             {/* MINUTO */}
 
             <View className="w-12 items-center">
-              <Text
-                className="font-extrabold text-xs"
+              <Texto
+                tamanho={12}
+                className="font-extrabold"
                 style={{ color: cores.primary }}
               >
                 {evento.minuto}'
-              </Text>
+              </Texto>
 
               {index !== eventos.length - 1 ? (
                 <View
@@ -2065,37 +2193,43 @@ export function DetalhesJogos({ route, navigation }) {
                   borderColor: cores.border,
                 }}
               >
-                <Text>{iconeEvento(evento)}</Text>
+                <Texto tamanho={14}>
+                  {iconeEvento(evento)}
+                </Texto>
               </View>
 
               <View className="flex-1 ml-3">
-                <Text
-                  className="font-bold text-sm"
+                <Texto
+                  tamanho={14}
+                  className="font-bold"
                   style={{ color: cores.text }}
                 >
                   {evento.jogador || evento.entrou || "Evento"}
-                </Text>
+                </Texto>
 
                 {evento.assistencia ? (
-                  <Text
-                    className="text-xs mt-1"
+                  <Texto
+                    tamanho={12}
+                    className="mt-1"
                     style={{ color: cores.textTertiary }}
                   >
                     Assistência: {evento.assistencia}
-                  </Text>
+                  </Texto>
                 ) : null}
 
                 {evento.saiu ? (
-                  <Text
-                    className="text-xs mt-1"
+                  <Texto
+                    tamanho={12}
+                    className="mt-1"
                     style={{ color: cores.textSecondary }}
                   >
                     Saiu: {evento.saiu}
-                  </Text>
+                  </Texto>
                 ) : null}
 
-                <Text
-                  className="text-xs mt-1"
+                <Texto
+                  tamanho={12}
+                  className="mt-1"
                   style={{ color: cores.textSecondary }}
                 >
                   {evento.descricao ||
@@ -2104,20 +2238,21 @@ export function DetalhesJogos({ route, navigation }) {
                       : evento.tipo === "cartao"
                       ? `Cartão ${evento.cartao || "recebido"}`
                       : "Substituição")}
-                </Text>
+                </Texto>
 
-                <Text
-                  className="text-xs mt-1"
+                <Texto
+                  tamanho={12}
+                  className="mt-1"
                   style={{ color: cores.textTertiary }}
                 >
                   {evento.equipe}
-                </Text>
+                </Texto>
               </View>
             </View>
           </View>
         ))}
       </Card>
-    );
+);
   };
 
   // =======================================================
@@ -2152,16 +2287,17 @@ export function DetalhesJogos({ route, navigation }) {
               ["D", 32],
               ["SG", 38],
             ].map(([titulo, largura]) => (
-              <Text
+              <Texto
                 key={titulo}
-                className="text-[10px] font-extrabold text-center"
+                tamanho={10}
+                className="font-extrabold text-center"
                 style={{
                   width: largura,
                   color: cores.textTertiary,
                 }}
               >
                 {titulo}
-              </Text>
+              </Texto>
             ))}
           </View>
 
@@ -2184,8 +2320,9 @@ export function DetalhesJogos({ route, navigation }) {
                 }}
               >
                 <View className="w-[30px] items-center">
-                  <Text
-                    className="text-xs font-bold"
+                  <Texto
+                    tamanho={12}
+                    className="font-bold"
                     style={{
                       color: destaque
                         ? cores.primary
@@ -2193,28 +2330,30 @@ export function DetalhesJogos({ route, navigation }) {
                     }}
                   >
                     {time.pos}
-                  </Text>
+                  </Texto>
                 </View>
 
                 <View className="w-[130px]">
-                  <Text
-                    numberOfLines={1}
-                    className="text-xs font-semibold"
+                  <Texto
+                    tamanho={12}
+                    className="font-semibold"
                     style={{
                       color: destaque
                         ? cores.text
                         : cores.textSecondary,
                     }}
+                    numberOfLines={1}
                   >
                     {time.equipe}
-                  </Text>
+                  </Texto>
                 </View>
 
                 {[time.pts, time.j, time.v, time.e, time.d, time.sg].map(
                   (valor, index) => (
-                    <Text
+                    <Texto
                       key={index}
-                      className="text-xs text-center"
+                      tamanho={12}
+                      className="text-center"
                       style={{
                         width: [38, 32, 32, 32, 32, 38][index],
                         color:
@@ -2225,7 +2364,7 @@ export function DetalhesJogos({ route, navigation }) {
                       }}
                     >
                       {valor}
-                    </Text>
+                    </Texto>
                   )
                 )}
               </View>
@@ -2235,12 +2374,12 @@ export function DetalhesJogos({ route, navigation }) {
       </ScrollView>
 
       <View className="p-3">
-        <Text
-          className="text-[10px]"
+        <Texto
+          tamanho={10}
           style={{ color: cores.textTertiary }}
         >
           PTS: Pontos • J: Jogos • V: Vitórias • E: Empates • D: Derrotas • SG: Saldo
-        </Text>
+        </Texto>
       </View>
     </Card>
   );
@@ -2293,26 +2432,28 @@ export function DetalhesJogos({ route, navigation }) {
             }}
           >
             <ArrowLeftIcon
-              size={20}
+              size={20 * escalaIcone}
               color={cores.icon}
               weight="bold"
             />
           </Pressable>
 
           <View className="flex-1 ml-3">
-            <Text
-              className="text-lg font-extrabold"
+            <Texto
+              tamanho={20}
+              className="font-extrabold"
               style={{ color: cores.text }}
             >
               Central da Partida
-            </Text>
+            </Texto>
 
-            <Text
-              className="text-xs mt-1"
+            <Texto
+              tamanho={12}
+              className="mt-1"
               style={{ color: cores.textSecondary }}
             >
               Informações completas do confronto
-            </Text>
+            </Texto>
           </View>
 
           <View
@@ -2320,7 +2461,7 @@ export function DetalhesJogos({ route, navigation }) {
             style={{ backgroundColor: `${cores.primary}15` }}
           >
             <SoccerBallIcon
-              size={21}
+              size={21 * escalaIcone}
               color={cores.primary}
               weight="bold"
             />
@@ -2351,19 +2492,20 @@ export function DetalhesJogos({ route, navigation }) {
                 style={{ backgroundColor: `${cores.primary}15` }}
               >
                 <TrophyIcon
-                  size={20}
+                  size={20 * escalaIcone}
                   color={cores.primary}
                   weight="bold"
                 />
               </View>
             )}
 
-            <Text
-              className="text-sm font-bold"
+            <Texto
+              tamanho={14}
+              className="font-bold text-center"
               style={{ color: cores.text }}
             >
               {jogo.competicao}
-            </Text>
+            </Texto>
 
             <View
               className="rounded-full px-3 py-1 mt-2 border"
@@ -2372,12 +2514,13 @@ export function DetalhesJogos({ route, navigation }) {
                 borderColor: cores.border,
               }}
             >
-              <Text
-                className="text-[10px] font-bold"
+              <Texto
+                tamanho={10}
+                className="font-bold"
                 style={{ color: cores.primary }}
               >
                 {jogo.fase}
-              </Text>
+              </Texto>
             </View>
           </View>
 
@@ -2393,58 +2536,68 @@ export function DetalhesJogos({ route, navigation }) {
                 tamanho={74}
               />
 
-              <Text
-                className="text-sm font-extrabold text-center mt-2"
+              <Texto
+                tamanho={14}
+                className="font-extrabold text-center mt-2"
                 style={{ color: cores.text }}
                 numberOfLines={2}
               >
                 {jogo.mandante}
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[10px] mt-1"
+              <Texto
+                tamanho={10}
+                className="mt-1"
                 style={{ color: cores.textTertiary }}
               >
                 MANDANTE
-              </Text>
+              </Texto>
             </View>
 
             {/* PLACAR */}
 
             <View className="items-center px-1">
-              <Text
-                className="text-4xl font-extrabold tracking-wider"
+              <Texto
+                tamanho={36}
+                className="font-extrabold tracking-wider"
                 style={{ color: cores.text }}
               >
                 {jogo.gols_mandante}
-                <Text style={{ color: cores.primary }}> - </Text>
+                <Texto
+                  tamanho={36}
+                  style={{ color: cores.primary }}
+                >
+                  {" - "}
+                </Texto>
                 {jogo.gols_visitante}
-              </Text>
+              </Texto>
 
               <View
                 className="rounded-full px-3 py-1 mt-3"
                 style={{ backgroundColor: `${corStatus}20` }}
               >
-                <Text
-                  className="text-[10px] font-extrabold"
+                <Texto
+                  tamanho={10}
+                  className="font-extrabold"
                   style={{ color: corStatus }}
                 >
                   {jogo.status_descricao}
-                </Text>
+                </Texto>
               </View>
 
               <View className="flex-row items-center mt-3">
                 <ClockIcon
-                  size={13}
+                  size={13 * escalaIcone}
                   color={cores.textTertiary}
                 />
 
-                <Text
-                  className="text-xs ml-1"
+                <Texto
+                  tamanho={12}
+                  className="ml-1"
                   style={{ color: cores.textSecondary }}
                 >
                   {formatarHorario(jogo.data)}
-                </Text>
+                </Texto>
               </View>
             </View>
 
@@ -2457,20 +2610,22 @@ export function DetalhesJogos({ route, navigation }) {
                 tamanho={74}
               />
 
-              <Text
-                className="text-sm font-extrabold text-center mt-2"
+              <Texto
+                tamanho={14}
+                className="font-extrabold text-center mt-2"
                 style={{ color: cores.text }}
                 numberOfLines={2}
               >
                 {jogo.visitante}
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[10px] mt-1"
+              <Texto
+                tamanho={10}
+                className="mt-1"
                 style={{ color: cores.textTertiary }}
               >
                 VISITANTE
-              </Text>
+              </Texto>
             </View>
           </View>
 
@@ -2481,14 +2636,18 @@ export function DetalhesJogos({ route, navigation }) {
             style={{ borderColor: cores.border }}
           >
             <View className="flex-row items-center justify-center">
-              <ClockIcon size={15} color={cores.primary} />
+              <ClockIcon
+                size={15 * escalaIcone}
+                color={cores.primary}
+              />
 
-              <Text
-                className="text-xs ml-2"
+              <Texto
+                tamanho={12}
+                className="ml-2"
                 style={{ color: cores.textSecondary }}
               >
                 {formatarData(jogo.data)}
-              </Text>
+              </Texto>
             </View>
           </View>
 
@@ -2498,22 +2657,27 @@ export function DetalhesJogos({ route, navigation }) {
             className="rounded-xl p-3 mt-3 flex-row items-center justify-center"
             style={{ backgroundColor: cores.surfaceSecondary }}
           >
-            <MapPinIcon size={17} color={cores.primary} />
+            <MapPinIcon
+              size={17 * escalaIcone}
+              color={cores.primary}
+            />
 
             <View className="ml-2">
-              <Text
-                className="text-xs font-bold text-center"
+              <Texto
+                tamanho={12}
+                className="font-bold text-center"
                 style={{ color: cores.text }}
               >
                 {jogo.estadio}
-              </Text>
+              </Texto>
 
-              <Text
-                className="text-[10px] text-center mt-1"
+              <Texto
+                tamanho={10}
+                className="text-center mt-1"
                 style={{ color: cores.textTertiary }}
               >
                 {jogo.cidade}
-              </Text>
+              </Texto>
             </View>
           </View>
         </View>
@@ -2546,7 +2710,7 @@ export function DetalhesJogos({ route, navigation }) {
                 }}
               >
                 <Icon
-                  size={17}
+                  size={17 * escalaIcone}
                   color={
                     selecionada
                       ? cores.background
@@ -2555,8 +2719,9 @@ export function DetalhesJogos({ route, navigation }) {
                   weight="bold"
                 />
 
-                <Text
-                  className="text-xs font-bold ml-2"
+                <Texto
+                  tamanho={12}
+                  className="font-bold ml-2"
                   style={{
                     color: selecionada
                       ? cores.background
@@ -2564,7 +2729,7 @@ export function DetalhesJogos({ route, navigation }) {
                   }}
                 >
                   {nome}
-                </Text>
+                </Texto>
               </Pressable>
             );
           })}

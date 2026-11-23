@@ -158,7 +158,7 @@ export function Home() {
           {/* LOGO / NOME CENTRALIZADO */}
 
           <Text
-            className="text-[28px] text-texto"
+            className="text-[40px] text-texto"
             style={{
               fontFamily: "Anuphan",
             }}

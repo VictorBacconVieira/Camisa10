@@ -4,7 +4,6 @@ import {
   Animated,
   Pressable,
   ScrollView,
-  Text,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -20,6 +19,8 @@ import {
   CaretRightIcon,
 } from "phosphor-react-native";
 
+import { Texto } from "../components/texto";
+
 import { BottomNav } from "../components/bottomNav";
 
 import {
@@ -28,6 +29,7 @@ import {
 } from "../services/authService";
 
 import { useTheme } from "../context/ThemeContext";
+import { useAccessibility } from "../context/AccessibilityContext";
 
 function Confetes() {
   const { height, width } = useWindowDimensions();
@@ -144,6 +146,14 @@ export function QuizPerguntas() {
   const { quizId, titulo } = route.params ?? {};
 
   const { cores } = useTheme();
+  const { configuracoes } = useAccessibility();
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
 
   const scrollRef = useRef(null);
 
@@ -168,6 +178,7 @@ export function QuizPerguntas() {
   const animacaoConteudo = useRef(new Animated.Value(0)).current;
   const animacaoFeedback = useRef(new Animated.Value(0)).current;
   const animacaoProgresso = useRef(new Animated.Value(0)).current;
+  const scrollRefResultado = useRef(null);
 
   async function carregarPerguntas() {
     try {
@@ -256,6 +267,17 @@ export function QuizPerguntas() {
 
     return () => clearTimeout(timeout);
   }, [respostaConfirmada, indicePergunta]);
+
+  useEffect(() => {
+    if (!finalizado || !resultadoQuiz) return;
+
+    requestAnimationFrame(() => {
+      scrollRefResultado.current?.scrollTo({
+        y: 0,
+        animated: true,
+      });
+    });
+  }, [finalizado, resultadoQuiz]);
 
   const estiloEntrada = {
     opacity: animacaoConteudo,
@@ -389,12 +411,13 @@ export function QuizPerguntas() {
         style={{ backgroundColor: cores.background }}
       >
         <View className="flex-1 items-center justify-center px-6">
-          <Text
-            className="text-base font-semibold"
+          <Texto
+            tamanho={16}
+            className="font-semibold"
             style={{ color: cores.text }}
           >
             Carregando perguntas...
-          </Text>
+          </Texto>
         </View>
 
         <BottomNav />
@@ -411,44 +434,48 @@ export function QuizPerguntas() {
         style={{ backgroundColor: cores.background }}
       >
         <View className="flex-1 items-center justify-center px-6">
-          <Text
-            className="mb-3 text-xl font-bold"
+          <Texto
+            tamanho={20}
+            className="mb-3 font-bold text-center"
             style={{ color: cores.text }}
           >
             Não foi possível carregar o quiz
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-center leading-6"
+          <Texto
+            tamanho={16}
+            className="text-center"
             style={{ color: cores.textSecondary }}
           >
             {erroPerguntas}
-          </Text>
+          </Texto>
 
           <Pressable
             onPress={carregarPerguntas}
-            className="mt-6 rounded-xl px-6 py-4"
+            className="mt-6 items-center rounded-xl px-6 py-4"
             style={{ backgroundColor: cores.primary }}
           >
-            <Text
-              className="font-bold"
+            <Texto
+              tamanho={16}
+              className="font-bold text-center"
               style={{ color: cores.background }}
             >
               Tentar novamente
-            </Text>
+            </Texto>
           </Pressable>
 
           <Pressable
             onPress={() => navigation.goBack()}
-            className="mt-3 rounded-xl border px-6 py-4"
+            className="mt-3 items-center rounded-xl border px-6 py-4"
             style={{ borderColor: cores.border }}
           >
-            <Text
-              className="font-semibold"
+            <Texto
+              tamanho={16}
+              className="font-semibold text-center"
               style={{ color: cores.text }}
             >
               Voltar aos quizzes
-            </Text>
+            </Texto>
           </Pressable>
         </View>
 
@@ -466,31 +493,34 @@ export function QuizPerguntas() {
         style={{ backgroundColor: cores.background }}
       >
         <View className="flex-1 items-center justify-center px-6">
-          <Text
-            className="mb-3 text-xl font-bold"
+          <Texto
+            tamanho={20}
+            className="mb-3 font-bold text-center"
             style={{ color: cores.text }}
           >
             Quiz indisponível
-          </Text>
+          </Texto>
 
-          <Text
-            className="text-center leading-6"
+          <Texto
+            tamanho={16}
+            className="text-center"
             style={{ color: cores.textSecondary }}
           >
             Ainda não há perguntas cadastradas para este quiz.
-          </Text>
+          </Texto>
 
           <Pressable
             onPress={() => navigation.goBack()}
-            className="mt-6 rounded-xl px-6 py-4"
+            className="mt-6 items-center rounded-xl px-6 py-4"
             style={{ backgroundColor: cores.primary }}
           >
-            <Text
-              className="font-bold"
+            <Texto
+              tamanho={16}
+              className="font-bold text-center"
               style={{ color: cores.background }}
             >
               Voltar aos quizzes
-            </Text>
+            </Texto>
           </Pressable>
         </View>
 
@@ -510,6 +540,7 @@ export function QuizPerguntas() {
         {atingiuMeta && <Confetes />}
 
         <ScrollView
+          ref={scrollRefResultado}
           className="flex-1"
           contentContainerStyle={{
             flexGrow: 1,
@@ -522,39 +553,43 @@ export function QuizPerguntas() {
           showsVerticalScrollIndicator={false}
         >
           <TrophyIcon
-            size={72}
+            size={72 * escalaIcone}
             color={atingiuMeta ? cores.primaryHighlight : cores.danger}
             weight="fill"
           />
 
-          <Text
-            className="mt-6 text-3xl font-bold"
+          <Texto
+            tamanho={30}
+            className="mt-6 font-bold text-center"
             style={{ color: cores.text }}
           >
             Quiz concluído!
-          </Text>
+          </Texto>
 
-          <Text
-            className="mt-3 text-center text-base"
+          <Texto
+            tamanho={16}
+            className="mt-3 text-center"
             style={{ color: cores.textSecondary }}
           >
             Você acertou {acertos} de {totalPerguntas} perguntas.
-          </Text>
+          </Texto>
 
-          <Text
-            className="mt-5 text-2xl font-bold"
+          <Texto
+            tamanho={24}
+            className="mt-5 font-bold text-center"
             style={{ color: cores.primaryHighlight }}
           >
             +{xp.toLocaleString("pt-BR")} XP
-          </Text>
+          </Texto>
 
           <View className="mt-8 w-full">
-            <Text
-              className="mb-4 text-lg font-bold"
+            <Texto
+              tamanho={18}
+              className="mb-4 font-bold"
               style={{ color: cores.text }}
             >
               Correção das respostas
-            </Text>
+            </Texto>
 
             {resultadoQuiz.resultados?.map((resultado, index) => {
               const pergunta = perguntas.find(
@@ -580,67 +615,74 @@ export function QuizPerguntas() {
                     borderColor: corStatus,
                   }}
                 >
-                  <View className="mb-2 flex-row items-center">
+                  <View className="mb-2 flex-row flex-wrap items-center">
                     {resultado.correta ? (
                       <CheckCircleIcon
-                        size={22}
+                        size={22 * escalaIcone}
                         color={cores.primary}
                         weight="fill"
                       />
                     ) : (
                       <XCircleIcon
-                        size={22}
+                        size={22 * escalaIcone}
                         color={cores.danger}
                         weight="fill"
                       />
                     )}
 
-                    <Text
-                      className="ml-2 flex-1 font-bold"
-                      style={{ color: corStatus }}
-                    >
-                      Pergunta {index + 1} —{" "}
-                      {resultado.correta ? "Correta" : "Incorreta"}
-                    </Text>
+                    <View className="ml-2 flex-1">
+                      <Texto
+                        tamanho={14}
+                        className="font-bold"
+                        style={{ color: corStatus }}
+                      >
+                        Pergunta {index + 1} —{" "}
+                        {resultado.correta ? "Correta" : "Incorreta"}
+                      </Texto>
+                    </View>
 
-                    <Text
+                    <Texto
+                      tamanho={14}
                       className="font-bold"
                       style={{ color: cores.text }}
                     >
                       +{resultado.xp_ganho} XP
-                    </Text>
+                    </Texto>
                   </View>
 
-                  <Text
+                  <Texto
+                    tamanho={16}
                     className="mb-2 font-semibold"
                     style={{ color: cores.text }}
                   >
                     {pergunta?.enunciado}
-                  </Text>
+                  </Texto>
 
-                  <Text
-                    className="text-sm"
+                  <Texto
+                    tamanho={14}
                     style={{ color: cores.textSecondary }}
                   >
                     Sua resposta: {alternativaEscolhida ?? "Não identificada"}
-                  </Text>
+                  </Texto>
 
                   {!resultado.correta && (
-                    <Text
-                      className="mt-1 text-sm font-semibold"
+                    <Texto
+                      tamanho={14}
+                      className="mt-1 font-semibold"
                       style={{ color: cores.primaryHighlight }}
                     >
                       Resposta correta: {alternativaCorreta ?? "Não identificada"}
-                    </Text>
+                    </Texto>
                   )}
 
                   {!!resultado.explicacao && (
-                    <Text
-                      className="mt-3 leading-6"
+                    <Texto
+                      tamanho={16}
+                      className="mt-3"
                       style={{ color: cores.textSecondary }}
                     >
                       {resultado.explicacao}
-                    </Text>
+                    </Texto>
                   )}
                 </View>
               );
@@ -652,12 +694,13 @@ export function QuizPerguntas() {
             className="mt-5 w-full items-center rounded-xl py-4"
             style={{ backgroundColor: cores.primary }}
           >
-            <Text
-              className="font-bold"
+            <Texto
+              tamanho={16}
+              className="font-bold text-center"
               style={{ color: cores.background }}
             >
               Jogar novamente
-            </Text>
+            </Texto>
           </Pressable>
 
           <Pressable
@@ -665,12 +708,13 @@ export function QuizPerguntas() {
             className="mt-3 w-full items-center rounded-xl border py-4"
             style={{ borderColor: cores.border }}
           >
-            <Text
-              className="font-semibold"
+            <Texto
+              tamanho={16}
+              className="font-semibold text-center"
               style={{ color: cores.text }}
             >
               Voltar aos quizzes
-            </Text>
+            </Texto>
           </Pressable>
         </ScrollView>
 
@@ -687,41 +731,49 @@ export function QuizPerguntas() {
     >
       {/* Cabeçalho */}
       <View className="px-5 pt-3">
-        <View className="flex-row items-center">
+        <View className="flex-row flex-wrap items-center">
           <Pressable
             onPress={() => navigation.goBack()}
             className="mr-4 h-10 w-10 items-center justify-center rounded-full"
             style={{ backgroundColor: cores.surface }}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
           >
-            <ArrowLeftIcon size={22} color={cores.icon} />
+            <ArrowLeftIcon
+              size={22 * escalaIcone}
+              color={cores.icon}
+            />
           </Pressable>
 
           <View className="flex-1">
-            <Text
-              className="text-lg font-bold"
+            <Texto
+              tamanho={18}
+              className="font-bold"
               style={{ color: cores.text }}
             >
               {tituloExibicao}
-            </Text>
+            </Texto>
 
-            <Text
-              className="mt-1 text-xs"
+            <Texto
+              tamanho={12}
+              className="mt-1"
               style={{ color: cores.textSecondary }}
             >
               Pergunta {indicePergunta + 1} de {totalPerguntas}
-            </Text>
+            </Texto>
           </View>
 
           <View
             className="rounded-full px-3 py-2"
             style={{ backgroundColor: cores.surfaceSecondary }}
           >
-            <Text
+            <Texto
+              tamanho={14}
               className="font-bold"
               style={{ color: cores.primaryHighlight }}
             >
               {xp.toLocaleString("pt-BR")} XP
-            </Text>
+            </Texto>
           </View>
         </View>
 
@@ -764,19 +816,21 @@ export function QuizPerguntas() {
       >
         {/* Pergunta e alternativas */}
         <Animated.View style={estiloEntrada}>
-          <Text
-            className="mb-3 text-sm font-semibold uppercase tracking-wider"
+          <Texto
+            tamanho={14}
+            className="mb-3 font-semibold uppercase tracking-wider"
             style={{ color: cores.primaryHighlight }}
           >
             Teste seus conhecimentos
-          </Text>
+          </Texto>
 
-          <Text
-            className="mb-7 text-2xl font-bold leading-9"
+          <Texto
+            tamanho={24}
+            className="mb-7 font-bold"
             style={{ color: cores.text }}
           >
             {perguntaAtual?.enunciado}
-          </Text>
+          </Texto>
 
           {perguntaAtual?.alternativas?.map((alternativa, index) => {
             const selecionada = alternativaSelecionada === index;
@@ -798,14 +852,17 @@ export function QuizPerguntas() {
                 }}
               >
                 <View
-                  className="mr-3 h-9 w-9 items-center justify-center rounded-lg"
+                  className="mr-3 items-center justify-center rounded-lg"
                   style={{
+                    width: 36 * escalaIcone,
+                    height: 36 * escalaIcone,
                     backgroundColor: selecionada
                       ? cores.primary
                       : cores.surfaceSecondary,
                   }}
                 >
-                  <Text
+                  <Texto
+                    tamanho={16}
                     className="font-bold"
                     style={{
                       color: selecionada
@@ -814,15 +871,16 @@ export function QuizPerguntas() {
                     }}
                   >
                     {String.fromCharCode(65 + index)}
-                  </Text>
+                  </Texto>
                 </View>
 
-                <Text
-                  className="flex-1 text-base font-medium"
+                <Texto
+                  tamanho={16}
+                  className="flex-1 font-medium"
                   style={{ color: cores.text }}
                 >
                   {alternativa}
-                </Text>
+                </Texto>
               </Pressable>
             );
           })}
@@ -840,19 +898,21 @@ export function QuizPerguntas() {
             ]}
             className="mt-3 rounded-xl border p-4"
           >
-            <Text
-              className="text-base font-bold"
+            <Texto
+              tamanho={16}
+              className="font-bold"
               style={{ color: cores.primaryHighlight }}
             >
               Resposta registrada!
-            </Text>
+            </Texto>
 
-            <Text
-              className="mt-2 leading-6"
+            <Texto
+              tamanho={16}
+              className="mt-2"
               style={{ color: cores.textSecondary }}
             >
               A correção e a explicação serão exibidas ao finalizar o quiz.
-            </Text>
+            </Texto>
           </Animated.View>
         )}
 
@@ -865,19 +925,21 @@ export function QuizPerguntas() {
               backgroundColor: cores.surfaceSecondary,
             }}
           >
-            <Text
+            <Texto
+              tamanho={16}
               className="font-semibold"
               style={{ color: cores.danger }}
             >
               Não foi possível finalizar o quiz.
-            </Text>
+            </Texto>
 
-            <Text
-              className="mt-2 leading-6"
+            <Texto
+              tamanho={16}
+              className="mt-2"
               style={{ color: cores.textSecondary }}
             >
               {erroEnvio}
-            </Text>
+            </Texto>
           </View>
         )}
 
@@ -894,8 +956,9 @@ export function QuizPerguntas() {
                   : cores.primary,
             }}
           >
-            <Text
-              className="text-base font-bold"
+            <Texto
+              tamanho={16}
+              className="font-bold text-center"
               style={{
                 color:
                   alternativaSelecionada === null
@@ -904,21 +967,22 @@ export function QuizPerguntas() {
               }}
             >
               Confirmar resposta
-            </Text>
+            </Texto>
           </Pressable>
         ) : (
           <Pressable
             disabled={enviando}
             onPress={proximaPergunta}
-            className="mt-6 flex-row items-center justify-center rounded-xl py-4"
+            className="mt-6 flex-row flex-wrap items-center justify-center rounded-xl py-4"
             style={{
               backgroundColor: enviando
                 ? cores.surfaceSecondary
                 : cores.primary,
             }}
           >
-            <Text
-              className="mr-2 text-base font-bold"
+            <Texto
+              tamanho={16}
+              className="mr-2 font-bold text-center"
               style={{
                 color: enviando
                   ? cores.textTertiary
@@ -932,11 +996,11 @@ export function QuizPerguntas() {
                     ? "Tentar enviar novamente"
                     : "Ver resultado"
                   : "Próxima pergunta"}
-            </Text>
+            </Texto>
 
             {!enviando && (
               <CaretRightIcon
-                size={20}
+                size={20 * escalaIcone}
                 color="#071018"
                 weight="bold"
               />

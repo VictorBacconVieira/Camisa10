@@ -5,7 +5,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
   TextInput,
   View,
 } from "react-native";
@@ -23,9 +22,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 
 import { useTheme } from "../context/ThemeContext";
+import { useAccessibility } from "../context/AccessibilityContext";
+import { Texto } from "../components/texto";
 
 export function Chatbot() {
-  const { temaAtivo, cores, alterarTema } = useTheme();
+  const { cores } = useTheme();
+  const { fontScale, configuracoes } = useAccessibility();
   const navigation = useNavigation();
 
   const scrollRef = useRef(null);
@@ -33,6 +35,17 @@ export function Chatbot() {
   const [mensagem, setMensagem] = useState("");
   const [mensagens, setMensagens] = useState([]);
   const [digitando, setDigitando] = useState(false);
+
+  const escalaIcone =
+    configuracoes.tamanhoTexto === "grande"
+      ? 1.15
+      : configuracoes.tamanhoTexto === "muitoGrande"
+        ? 1.3
+        : 1;
+
+  const fontFamily = configuracoes.textoNegrito
+    ? "AnuphanBold"
+    : "Anuphan";
 
   // Sugestões iniciais para ajudar o usuário a começar uma conversa.
   const sugestoes = [
@@ -135,7 +148,7 @@ export function Chatbot() {
 
   async function enviarMensagem(texto = mensagem) {
     const textoEnviado = texto.trim();
-    
+
     if (!textoEnviado || digitando) return;
 
     const gerarId = (prefixo) =>
@@ -172,7 +185,10 @@ export function Chatbot() {
 
       const dados = await respostaApi.json();
 
-      if (typeof dados.response !== "string" || !dados.response.trim()) {
+      if (
+        typeof dados.response !== "string" ||
+        !dados.response.trim()
+      ) {
         throw new Error("A API não retornou uma resposta válida.");
       }
 
@@ -181,7 +197,7 @@ export function Chatbot() {
         {
           id: gerarId("ia"),
           texto: dados.response,
-          autor: "ia"
+          autor: "ia",
         },
       ]);
     } catch (erro) {
@@ -192,14 +208,13 @@ export function Chatbot() {
         {
           id: gerarId("erro"),
           texto:
-          "Não consegui obter uma resposta agora. Tente novamente em instantes.",
+            "Não consegui obter uma resposta agora. Tente novamente em instantes.",
           autor: "ia",
         },
       ]);
     } finally {
       setDigitando(false);
     }
-  
   }
 
   function selecionarSugestao(pergunta) {
@@ -224,7 +239,7 @@ export function Chatbot() {
         <View className="flex-1 bg-fundo">
 
           {/* CABEÇALHO */}
-          <View className="h-[62px] flex-row items-center border-b border-cartao-borda px-4">
+          <View className="min-h-[62px] flex-row items-center border-b border-cartao-borda px-4 py-2">
             <Pressable
               onPress={() => navigation.goBack()}
               className="mr-3 h-10 w-10 items-center justify-center rounded-xl bg-cartao"
@@ -235,28 +250,46 @@ export function Chatbot() {
               accessibilityRole="button"
               accessibilityLabel="Voltar"
             >
-              <ArrowLeftIcon size={23} color={cores.icon} />
+              <ArrowLeftIcon
+                size={23 * escalaIcone}
+                color={cores.icon}
+              />
             </Pressable>
 
-            <View className="mr-3 h-10 w-10 items-center justify-center rounded-full border border-verde-claro bg-cartao">
-              <SoccerBallIcon size={23} color="#39FF14" />
+            <View
+              className="mr-3 items-center justify-center rounded-full border border-verde-claro bg-cartao"
+              style={{
+                width: 40 * escalaIcone,
+                height: 40 * escalaIcone,
+              }}
+            >
+              <SoccerBallIcon
+                size={23 * escalaIcone}
+                color="#39FF14"
+              />
             </View>
 
             <View className="flex-1">
-              <Text
-                className="text-lg text-texto"
-                style={{ fontFamily: "Anuphan" }}
-              >
+              <Texto tamanho={18} className="text-texto">
                 Camisa10 IA
-              </Text>
+              </Texto>
 
-              <Text className="text-xs text-verde">
+              <Texto tamanho={12} className="text-verde">
                 Seu assistente de futebol
-              </Text>
+              </Texto>
             </View>
 
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-cartao">
-              <SparkleIcon size={21} color="#39FF14" />
+            <View
+              className="items-center justify-center rounded-full bg-cartao"
+              style={{
+                width: 40 * escalaIcone,
+                height: 40 * escalaIcone,
+              }}
+            >
+              <SparkleIcon
+                size={21 * escalaIcone}
+                color="#39FF14"
+              />
             </View>
           </View>
 
@@ -284,46 +317,73 @@ export function Chatbot() {
             {!conversaIniciada && (
               <View>
                 <View className="mb-8 items-center">
-                  <View className="mb-4 h-[76px] w-[76px] items-center justify-center rounded-3xl border border-cartao-borda bg-cartao">
-                    <SoccerBallIcon size={42} color="#39FF14" />
+                  <View
+                    className="mb-4 items-center justify-center rounded-3xl border border-cartao-borda bg-cartao"
+                    style={{
+                      width: 76 * escalaIcone,
+                      height: 76 * escalaIcone,
+                    }}
+                  >
+                    <SoccerBallIcon
+                      size={42 * escalaIcone}
+                      color="#39FF14"
+                    />
                   </View>
 
-                  <Text
-                    className="mb-2 text-center text-2xl text-texto"
-                    style={{ fontFamily: "Anuphan" }}
+                  <Texto
+                    tamanho={24}
+                    className="mb-2 text-center text-texto"
                   >
                     Fala, torcedor!
-                  </Text>
+                  </Texto>
 
-                  <Text className="max-w-[290px] text-center text-sm leading-6 text-texto-sec">
+                  <Texto
+                    tamanho={14}
+                    className="max-w-[290px] text-center leading-6 text-texto-sec"
+                  >
                     Sou o Camisa10 IA, seu parceiro para conversar sobre futebol.
                     O que vamos discutir hoje?
-                  </Text>
+                  </Texto>
                 </View>
 
                 {/* CARD DE APRESENTAÇÃO */}
                 <View className="mb-7 rounded-2xl border border-cartao-borda bg-cartao-escuro p-4">
                   <View className="mb-3 flex-row items-center">
-                    <View className="mr-2 h-8 w-8 items-center justify-center rounded-lg bg-cartao">
-                      <LightbulbIcon size={19} color="#39FF14" />
+                    <View
+                      className="mr-2 items-center justify-center rounded-lg bg-cartao"
+                      style={{
+                        width: 32 * escalaIcone,
+                        height: 32 * escalaIcone,
+                      }}
+                    >
+                      <LightbulbIcon
+                        size={19 * escalaIcone}
+                        color="#39FF14"
+                      />
                     </View>
 
-                    <Text className="text-sm text-texto">
+                    <Texto tamanho={14} className="flex-1 text-texto">
                       O que você pode perguntar?
-                    </Text>
+                    </Texto>
                   </View>
 
-                  <Text className="text-sm leading-6 text-texto-sec">
+                  <Texto
+                    tamanho={14}
+                    className="leading-6 text-texto-sec"
+                  >
                     Descubra curiosidades, explore a história dos clubes,
                     entenda as regras e converse sobre o mundo da bola.
-                  </Text>
+                  </Texto>
                 </View>
 
                 {/* SUGESTÕES DE PERGUNTAS */}
                 <View>
-                  <Text className="mb-3 text-base text-texto">
+                  <Texto
+                    tamanho={16}
+                    className="mb-3 text-texto"
+                  >
                     Vamos começar?
-                  </Text>
+                  </Texto>
 
                   <View className="gap-3">
                     {sugestoes.map((sugestao) => (
@@ -342,30 +402,51 @@ export function Chatbot() {
                         accessibilityRole="button"
                         accessibilityLabel={sugestao.pergunta}
                       >
-                        <View className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-cartao-escuro">
+                        <View
+                          className="mr-3 items-center justify-center rounded-xl bg-cartao-escuro"
+                          style={{
+                            width: 36 * escalaIcone,
+                            height: 36 * escalaIcone,
+                          }}
+                        >
                           {sugestao.icone === "newspaper" && (
-                            <SparkleIcon size={20} color="#39FF14" />
+                            <SparkleIcon
+                              size={20 * escalaIcone}
+                              color="#39FF14"
+                            />
                           )}
 
                           {sugestao.icone === "trophy" && (
-                            <SoccerBallIcon size={20} color="#39FF14" />
+                            <SoccerBallIcon
+                              size={20 * escalaIcone}
+                              color="#39FF14"
+                            />
                           )}
 
                           {sugestao.icone === "book" && (
-                            <LightbulbIcon size={20} color="#39FF14" />
+                            <LightbulbIcon
+                              size={20 * escalaIcone}
+                              color="#39FF14"
+                            />
                           )}
 
                           {sugestao.icone === "lightbulb" && (
-                            <LightbulbIcon size={20} color="#39FF14" />
+                            <LightbulbIcon
+                              size={20 * escalaIcone}
+                              color="#39FF14"
+                            />
                           )}
                         </View>
 
-                        <Text className="flex-1 text-sm text-texto">
+                        <Texto
+                          tamanho={14}
+                          className="flex-1 text-texto"
+                        >
                           {sugestao.titulo}
-                        </Text>
+                        </Texto>
 
                         <ArrowUpIcon
-                          size={18}
+                          size={18 * escalaIcone}
                           color="#A8B2B9"
                           style={{
                             transform: [{ rotate: "45deg" }],
@@ -394,9 +475,15 @@ export function Chatbot() {
                       }`}
                     >
                       {!mensagemUsuario && (
-                        <View className="mr-2 mt-1 h-8 w-8 items-center justify-center rounded-full bg-cartao">
+                        <View
+                          className="mr-2 mt-1 items-center justify-center rounded-full bg-cartao"
+                          style={{
+                            width: 32 * escalaIcone,
+                            height: 32 * escalaIcone,
+                          }}
+                        >
                           <SparkleIcon
-                            size={19}
+                            size={19 * escalaIcone}
                             color="#39FF14"
                           />
                         </View>
@@ -409,15 +496,12 @@ export function Chatbot() {
                             : "rounded-bl-sm border border-cartao-borda bg-cartao-escuro"
                         }`}
                       >
-                        <Text
-                          className={`text-sm leading-6 ${
-                            mensagemUsuario
-                              ? "text-texto"
-                              : "text-texto"
-                          }`}
+                        <Texto
+                          tamanho={14}
+                          className="leading-6 text-texto"
                         >
                           {item.texto}
-                        </Text>
+                        </Texto>
                       </View>
                     </View>
                   );
@@ -426,9 +510,15 @@ export function Chatbot() {
                 {/* INDICADOR DE DIGITAÇÃO */}
                 {digitando && (
                   <View className="flex-row items-center">
-                    <View className="mr-2 h-8 w-8 items-center justify-center rounded-full bg-cartao">
+                    <View
+                      className="mr-2 items-center justify-center rounded-full bg-cartao"
+                      style={{
+                        width: 32 * escalaIcone,
+                        height: 32 * escalaIcone,
+                      }}
+                    >
                       <SparkleIcon
-                        size={19}
+                        size={19 * escalaIcone}
                         color="#39FF14"
                       />
                     </View>
@@ -438,9 +528,13 @@ export function Chatbot() {
                         size="small"
                         color="#39FF14"
                       />
-                      <Text className="ml-2 text-xs text-texto-sec">
+
+                      <Texto
+                        tamanho={12}
+                        className="ml-2 text-texto-sec"
+                      >
                         Camisa10 IA está digitando...
-                      </Text>
+                      </Texto>
                     </View>
                   </View>
                 )}
@@ -455,14 +549,19 @@ export function Chatbot() {
                 onPress={() => {
                   // FUTURO: permitir anexar imagens ou arquivos.
                 }}
-                className="mb-0.5 h-10 w-9 items-center justify-center"
+                className="mb-0.5 items-center justify-center"
                 style={({ pressed }) => ({
+                  width: 36 * escalaIcone,
+                  height: 40 * escalaIcone,
                   opacity: pressed ? 0.6 : 1,
                 })}
                 accessibilityRole="button"
                 accessibilityLabel="Adicionar anexo"
               >
-                <PlusIcon size={23} color="#A8B2B9" />
+                <PlusIcon
+                  size={23 * escalaIcone}
+                  color="#A8B2B9"
+                />
               </Pressable>
 
               <TextInput
@@ -472,9 +571,11 @@ export function Chatbot() {
                 placeholderTextColor="#6F7B83"
                 multiline
                 maxLength={2000}
-                className="max-h-[110px] min-h-[42px] flex-1 px-2 py-2.5 text-sm text-texto"
+                className="max-h-[150px] min-h-[42px] flex-1 px-2 py-2.5 text-texto"
                 style={{
-                  fontFamily: "Inter",
+                  fontFamily,
+                  fontSize: 14 * fontScale,
+                  lineHeight: Math.ceil(14 * fontScale * 1.4),
                   textAlignVertical: "center",
                 }}
                 accessibilityLabel="Digite sua pergunta"
@@ -484,8 +585,10 @@ export function Chatbot() {
               <Pressable
                 onPress={() => enviarMensagem()}
                 disabled={!mensagem.trim() || digitando}
-                className="mb-0.5 h-10 w-10 items-center justify-center rounded-xl bg-verde"
+                className="mb-0.5 items-center justify-center rounded-xl bg-verde"
                 style={({ pressed }) => ({
+                  width: 40 * escalaIcone,
+                  height: 40 * escalaIcone,
                   opacity:
                     !mensagem.trim() || digitando
                       ? 0.45
@@ -500,16 +603,19 @@ export function Chatbot() {
                 accessibilityLabel="Enviar mensagem"
               >
                 <ArrowUpIcon
-                  size={23}
+                  size={23 * escalaIcone}
                   color="#071018"
                   weight="bold"
                 />
               </Pressable>
             </View>
 
-            <Text className="mt-2 text-center text-[10px] text-texto-ter">
+            <Texto
+              tamanho={10}
+              className="mt-2 text-center text-texto-ter"
+            >
               Camisa10 IA · Seu parceiro no mundo da bola
-            </Text>
+            </Texto>
           </View>
         </View>
       </KeyboardAvoidingView>
