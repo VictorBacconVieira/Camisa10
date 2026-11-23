@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   ScrollView,
@@ -21,168 +21,8 @@ import { useTheme } from "../context/ThemeContext";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { Texto } from "../components/texto";
 
-// =========================================================
-// DADOS FICTÍCIOS
-// FUTURO BACKEND: substituir pelos dados da API
-// =========================================================
+const API_URL = "https://scary-incantation-q7v4974ww77q2jp7-8000.app.github.dev";
 
-const PARTIDA = {
-  mandante: "Flamengo",
-  visitante: "Palmeiras",
-  gols_mandante: 2,
-  gols_visitante: 1,
-
-  logo_mandante: null,
-  logo_visitante: null,
-  logo_competicao: null,
-
-  competicao: "Brasileirão Série A",
-  pais: "Brasil",
-  fase: "32ª Rodada",
-
-  data: "2026-11-15T18:30:00",
-  status: "FT",
-  status_descricao: "ENCERRADO",
-
-  estadio: "Maracanã",
-  cidade: "Rio de Janeiro - RJ",
-  arbitro: "Raphael Claus",
-  publico: "62.548 pessoas",
-
-  estatisticas: {
-    posse: [58, 42],
-    finalizacoes: [16, 11],
-    chutesGol: [7, 4],
-    escanteios: [8, 5],
-    faltas: [12, 15],
-    amarelos: [2, 3],
-  },
-
-  escalacoes: {
-    mandante: {
-      formacao: "4-3-3",
-      titulares: [
-        { n: 1, nome: "Rossi", pos: "GOL", x: 50, y: 92 },
-        { n: 2, nome: "Varela", pos: "LD", x: 15, y: 75 },
-        { n: 3, nome: "Léo Ortiz", pos: "ZAG", x: 35, y: 75 },
-        { n: 4, nome: "Léo Pereira", pos: "ZAG", x: 65, y: 75 },
-        { n: 6, nome: "Alex Sandro", pos: "LE", x: 85, y: 75 },
-        { n: 5, nome: "Pulgar", pos: "VOL", x: 50, y: 58 },
-        { n: 8, nome: "De la Cruz", pos: "MC", x: 25, y: 48 },
-        { n: 18, nome: "Arrascaeta", pos: "MC", x: 75, y: 48 },
-        { n: 7, nome: "Gerson", pos: "ATA", x: 15, y: 25 },
-        { n: 9, nome: "Pedro", pos: "ATA", x: 50, y: 18 },
-        { n: 11, nome: "Bruno Henrique", pos: "ATA", x: 85, y: 25 },
-      ],
-
-      reservas: [
-        { n: 25, nome: "Matheus Cunha", pos: "GOL" },
-        { n: 26, nome: "Wesley", pos: "DEF" },
-        { n: 13, nome: "Danilo", pos: "DEF" },
-        { n: 15, nome: "Fabrício Bruno", pos: "DEF" },
-        { n: 21, nome: "Allan", pos: "MEI" },
-        { n: 20, nome: "Victor Hugo", pos: "MEI" },
-        { n: 10, nome: "Gabigol", pos: "ATA" },
-        { n: 27, nome: "Luiz Araújo", pos: "ATA" },
-      ],
-    },
-
-    visitante: {
-      formacao: "4-2-3-1",
-      titulares: [
-        { n: 21, nome: "Weverton", pos: "GOL", x: 50, y: 92 },
-        { n: 2, nome: "Marcos Rocha", pos: "LD", x: 15, y: 75 },
-        { n: 15, nome: "Gómez", pos: "ZAG", x: 35, y: 75 },
-        { n: 26, nome: "Murilo", pos: "ZAG", x: 65, y: 75 },
-        { n: 22, nome: "Piquerez", pos: "LE", x: 85, y: 75 },
-        { n: 5, nome: "Aníbal Moreno", pos: "VOL", x: 35, y: 58 },
-        { n: 8, nome: "Richard Ríos", pos: "VOL", x: 65, y: 58 },
-        { n: 23, nome: "Raphael Veiga", pos: "MEI", x: 50, y: 42 },
-        { n: 7, nome: "Dudu", pos: "ATA", x: 15, y: 28 },
-        { n: 10, nome: "Rony", pos: "ATA", x: 50, y: 25 },
-        { n: 9, nome: "Endrick", pos: "ATA", x: 85, y: 28 },
-      ],
-
-      reservas: [
-        { n: 14, nome: "Lomba", pos: "GOL" },
-        { n: 12, nome: "Mayke", pos: "DEF" },
-        { n: 13, nome: "Luan", pos: "DEF" },
-        { n: 6, nome: "Vanderlan", pos: "DEF" },
-        { n: 20, nome: "Atuesta", pos: "MEI" },
-        { n: 18, nome: "Maurício", pos: "MEI" },
-        { n: 11, nome: "Lázaro", pos: "ATA" },
-        { n: 19, nome: "Flaco López", pos: "ATA" },
-      ],
-    },
-  },
-
-  // FUTURO BACKEND / API:
-  // Os eventos deverão trazer tipo, minuto, equipe, jogador,
-  // assistência, jogador que entra/sai e cartão recebido.
-
-  eventos: [
-    {
-      minuto: "12",
-      tipo: "gol",
-      equipe: "Flamengo",
-      jogador: "Pedro",
-      assistencia: "Gerson",
-    },
-    {
-      minuto: "28",
-      tipo: "cartao",
-      cartao: "amarelo",
-      equipe: "Palmeiras",
-      jogador: "Aníbal Moreno",
-    },
-    {
-      minuto: "41",
-      tipo: "gol",
-      equipe: "Palmeiras",
-      jogador: "Raphael Veiga",
-      assistencia: "Rony",
-    },
-    {
-      minuto: "45+2",
-      tipo: "cartao",
-      cartao: "amarelo",
-      equipe: "Flamengo",
-      jogador: "Pulgar",
-    },
-    {
-      minuto: "63",
-      tipo: "substituicao",
-      equipe: "Flamengo",
-      entrou: "Gabigol",
-      saiu: "Pedro",
-    },
-    {
-      minuto: "78",
-      tipo: "gol",
-      equipe: "Flamengo",
-      jogador: "Arrascaeta",
-      assistencia: "Bruno Henrique",
-    },
-    {
-      minuto: "84",
-      tipo: "substituicao",
-      equipe: "Palmeiras",
-      entrou: "Flaco López",
-      saiu: "Rony",
-    },
-  ],
-
-  classificacao: [
-    { pos: 1, equipe: "Botafogo", pts: 68, j: 32, v: 21, e: 5, d: 6, sg: 28 },
-    { pos: 2, equipe: "Palmeiras", pts: 64, j: 32, v: 19, e: 7, d: 6, sg: 24 },
-    { pos: 3, equipe: "Flamengo", pts: 61, j: 32, v: 18, e: 7, d: 7, sg: 21 },
-    { pos: 4, equipe: "Fortaleza", pts: 58, j: 32, v: 17, e: 7, d: 8, sg: 15 },
-    { pos: 5, equipe: "São Paulo", pts: 54, j: 32, v: 15, e: 9, d: 8, sg: 12 },
-    { pos: 6, equipe: "Internacional", pts: 52, j: 32, v: 15, e: 7, d: 10, sg: 10 },
-    { pos: 7, equipe: "Bahia", pts: 49, j: 32, v: 14, e: 7, d: 11, sg: 7 },
-    { pos: 8, equipe: "Cruzeiro", pts: 47, j: 32, v: 13, e: 8, d: 11, sg: 5 },
-  ],
-};
 
 // =========================================================
 // ESCALA DE ÍCONES
@@ -194,8 +34,8 @@ function useEscalaIcone() {
   return configuracoes.tamanhoTexto === "grande"
     ? 1.15
     : configuracoes.tamanhoTexto === "muitoGrande"
-    ? 1.3
-    : 1;
+      ? 1.3
+      : 1;
 }
 
 // =========================================================
@@ -285,6 +125,12 @@ function LogoTime({ logo, nome, tamanho = 76 }) {
           source={{ uri: logo }}
           resizeMode="contain"
           style={{ width: tamanho, height: tamanho }}
+          onError={(erro) => {
+            console.log("Erro ao carregar escudo:", logo, erro.nativeEvent);
+          }}
+          onLoad={() => {
+            console.log("Escudo carregado:", logo);
+          }}
         />
       ) : (
         <View
@@ -316,9 +162,16 @@ function LogoTime({ logo, nome, tamanho = 76 }) {
 function Estatistica({ titulo, valores }) {
   const { cores } = useTheme();
 
-  const [mandante, visitante] = valores;
+  const [valorMandante, valorVisitante] = valores || [];
+
+  const disponivel =
+    valorMandante != null && valorVisitante != null;
+
+  const mandante = disponivel ? valorMandante : 0;
+  const visitante = disponivel ? valorVisitante : 0;
 
   const total = mandante + visitante || 1;
+
   const porcentagemMandante = (mandante / total) * 100;
   const porcentagemVisitante = (visitante / total) * 100;
 
@@ -347,7 +200,7 @@ function Estatistica({ titulo, valores }) {
                 : cores.text,
           }}
         >
-          {mandante}
+          {disponivel ? mandante : "--"}
         </Texto>
 
         <Texto
@@ -368,7 +221,7 @@ function Estatistica({ titulo, valores }) {
                 : cores.text,
           }}
         >
-          {visitante}
+          {disponivel ? visitante : "--"}
         </Texto>
       </View>
 
@@ -848,8 +701,8 @@ function EventosPartida({ jogo }) {
             ) : null}
 
             {abaEventos === "todos" &&
-            primeiroTempo.length > 0 &&
-            segundoTempo.length > 0 ? (
+              primeiroTempo.length > 0 &&
+              segundoTempo.length > 0 ? (
               <SeparadorTempo titulo="Intervalo" />
             ) : null}
 
@@ -984,8 +837,8 @@ function JogadorCampo({ jogador }) {
           {jogador.nome}
         </Texto>
       </View>
-  </View>
-);
+    </View>
+  );
 }
 
 // =========================================================
@@ -1162,11 +1015,112 @@ export function DetalhesJogos({ route, navigation }) {
   const { fontScale, configuracoes } = useAccessibility();
   const escalaIcone = useEscalaIcone();
 
-  const jogo = PARTIDA;
+  const [jogo, setJogo] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
 
   const [abaSelecionada, setAbaSelecionada] = useState("Detalhes");
   const [equipeEscalacao, setEquipeEscalacao] = useState("mandante");
   const [tipoEscalacao, setTipoEscalacao] = useState("titulares");
+
+  console.log("DetalhesJogos renderizou!");
+  console.log("Jogo recebido:", jogo);
+
+  useEffect(() => {
+    const carregarDetalhes = async () => {
+      try {
+        setCarregando(true);
+        setErro(null);
+
+        const fixtureId = route?.params?.jogo?.id;
+
+        if (!fixtureId) {
+          throw new Error("Não foi possível identificar a partida.");
+        }
+
+        const resposta = await fetch(
+          `${API_URL}/api/jogos/${fixtureId}/tela`
+        );
+
+        if (!resposta.ok) {
+          throw new Error("Erro ao consultar os detalhes da partida.");
+        }
+
+        const dados = await resposta.json();
+
+        if (dados.erro) {
+          throw new Error(dados.erro);
+        }
+
+        const dadosTratados = {
+          ...dados,
+
+          estatisticas: {
+            posse: [null, null],
+            finalizacoes: [null, null],
+            chutesGol: [null, null],
+            escanteios: [null, null],
+            faltas: [null, null],
+            amarelos: [null, null],
+            ...(dados.estatisticas || {}),
+          },
+
+          escalacoes: {
+            mandante: {
+              formacao: null,
+              titulares: [],
+              reservas: [],
+              ...(dados.escalacoes?.mandante || {}),
+            },
+            visitante: {
+              formacao: null,
+              titulares: [],
+              reservas: [],
+              ...(dados.escalacoes?.visitante || {}),
+            },
+          },
+
+          eventos: Array.isArray(dados.eventos)
+            ? dados.eventos
+            : [],
+
+          classificacao: Array.isArray(dados.classificacao)
+            ? dados.classificacao
+            : [],
+          fase_de_grupos: {
+            status: "nao_aplicavel",
+            grupos: [],
+            ...(dados.fase_de_grupos || {}),
+          },
+
+          fase_de_liga: {
+            status: "nao_aplicavel",
+            classificacao: [],
+            ...(dados.fase_de_liga || {}),
+          },
+
+          mata_mata: {
+            status: "nao_aplicavel",
+            fases_preliminares: [],
+            mata_mata_principal: [],
+            ...(dados.mata_mata || {}),
+          },
+        };
+
+        console.log("Escudo mandante:", dados.logo_mandante);
+        console.log("Escudo visitante:", dados.logo_visitante);
+        setJogo(dadosTratados);
+
+      } catch (error) {
+        console.error("Erro ao carregar detalhes:", error);
+        setErro(error.message);
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    carregarDetalhes();
+  }, [route?.params?.jogo?.id]);
 
   // ACERTE A ESCALAÇÃO
 
@@ -1216,7 +1170,7 @@ export function DetalhesJogos({ route, navigation }) {
   };
 
   const corStatus =
-    jogo.status === "FT"
+    jogo?.status === "FT"
       ? cores.textSecondary
       : cores.primary;
 
@@ -1769,10 +1723,10 @@ export function DetalhesJogos({ route, navigation }) {
                 {acertos === 11
                   ? "Perfeito! Você acertou todos os titulares!"
                   : acertos >= 7
-                  ? "Mandou muito bem! Você conhece bastante esse time."
-                  : acertos >= 4
-                  ? "Bom resultado! Você acertou alguns titulares."
-                  : "Desafio concluído! Continue acompanhando o futebol."}
+                    ? "Mandou muito bem! Você conhece bastante esse time."
+                    : acertos >= 4
+                      ? "Bom resultado! Você acertou alguns titulares."
+                      : "Desafio concluído! Continue acompanhando o futebol."}
               </Texto>
 
               <View
@@ -1871,6 +1825,21 @@ export function DetalhesJogos({ route, navigation }) {
       tipoEscalacao === "titulares"
         ? equipe.titulares
         : equipe.reservas;
+
+    if (
+      equipe.titulares.length === 0 &&
+      equipe.reservas.length === 0
+    ) {
+      return (
+        <Card>
+          <TituloSecao
+            titulo="Escalação indisponível"
+            subtitulo="A API ainda não disponibilizou os dados oficiais desta partida."
+            icone={UsersThreeIcon}
+          />
+        </Card>
+      );
+    }
 
     const nomeEquipe =
       equipeEscalacao === "mandante"
@@ -2088,7 +2057,7 @@ export function DetalhesJogos({ route, navigation }) {
           ))}
         </Card>
       </View>
-);
+    );
   };
 
   // =======================================================
@@ -2103,7 +2072,7 @@ export function DetalhesJogos({ route, navigation }) {
       return (Number(base) || 0) + (Number(acrescimo) || 0);
     };
 
-    const eventos = [...jogo.eventos].sort(
+    const eventos = [...(jogo.eventos || [])].sort(
       (a, b) =>
         converterMinuto(b.minuto) - converterMinuto(a.minuto)
     );
@@ -2236,8 +2205,8 @@ export function DetalhesJogos({ route, navigation }) {
                     (evento.tipo === "gol"
                       ? "Gol"
                       : evento.tipo === "cartao"
-                      ? `Cartão ${evento.cartao || "recebido"}`
-                      : "Substituição")}
+                        ? `Cartão ${evento.cartao || "recebido"}`
+                        : "Substituição")}
                 </Texto>
 
                 <Texto
@@ -2252,7 +2221,7 @@ export function DetalhesJogos({ route, navigation }) {
           </View>
         ))}
       </Card>
-);
+    );
   };
 
   // =======================================================
@@ -2263,8 +2232,12 @@ export function DetalhesJogos({ route, navigation }) {
     <Card className="p-0 overflow-hidden">
       <View className="p-4">
         <TituloSecao
-          titulo="Brasileirão Série A"
-          subtitulo="Classificação fictícia"
+          titulo={jogo.competicao || "Classificação"}
+          subtitulo={
+            jogo.classificacao.length > 0
+              ? `Classificação • ${jogo.fase || "Temporada atual"}`
+              : "Classificação não disponível para esta partida."
+          }
           icone={TrophyIcon}
         />
       </View>
@@ -2303,73 +2276,84 @@ export function DetalhesJogos({ route, navigation }) {
 
           {/* CLUBES */}
 
-          {jogo.classificacao.map((time) => {
-            const destaque =
-              time.equipe === jogo.mandante ||
-              time.equipe === jogo.visitante;
+          {jogo.classificacao.length > 0 ? (
+            jogo.classificacao.map((time) => {
+              const destaque =
+                time.equipe === jogo.mandante ||
+                time.equipe === jogo.visitante;
 
-            return (
-              <View
-                key={time.pos}
-                className="flex-row items-center px-3 py-3 border-b"
-                style={{
-                  borderColor: cores.border,
-                  backgroundColor: destaque
-                    ? cores.surfaceSecondary
-                    : cores.surface,
-                }}
-              >
-                <View className="w-[30px] items-center">
-                  <Texto
-                    tamanho={12}
-                    className="font-bold"
-                    style={{
-                      color: destaque
-                        ? cores.primary
-                        : cores.textSecondary,
-                    }}
-                  >
-                    {time.pos}
-                  </Texto>
-                </View>
-
-                <View className="w-[130px]">
-                  <Texto
-                    tamanho={12}
-                    className="font-semibold"
-                    style={{
-                      color: destaque
-                        ? cores.text
-                        : cores.textSecondary,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {time.equipe}
-                  </Texto>
-                </View>
-
-                {[time.pts, time.j, time.v, time.e, time.d, time.sg].map(
-                  (valor, index) => (
+              return (
+                <View
+                  key={time.pos}
+                  className="flex-row items-center px-3 py-3 border-b"
+                  style={{
+                    borderColor: cores.border,
+                    backgroundColor: destaque
+                      ? cores.surfaceSecondary
+                      : cores.surface,
+                  }}
+                >
+                  <View className="w-[30px] items-center">
                     <Texto
-                      key={index}
                       tamanho={12}
-                      className="text-center"
+                      className="font-bold"
                       style={{
-                        width: [38, 32, 32, 32, 32, 38][index],
-                        color:
-                          index === 0
-                            ? cores.text
-                            : cores.textSecondary,
-                        fontWeight: index === 0 ? "800" : "400",
+                        color: destaque
+                          ? cores.primary
+                          : cores.textSecondary,
                       }}
                     >
-                      {valor}
+                      {time.pos}
                     </Texto>
-                  )
-                )}
-              </View>
-            );
-          })}
+                  </View>
+
+                  <View className="w-[130px]">
+                    <Texto
+                      tamanho={12}
+                      className="font-semibold"
+                      style={{
+                        color: destaque
+                          ? cores.text
+                          : cores.textSecondary,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {time.equipe}
+                    </Texto>
+                  </View>
+
+                  {[time.pts, time.j, time.v, time.e, time.d, time.sg].map(
+                    (valor, index) => (
+                      <Texto
+                        key={index}
+                        tamanho={12}
+                        className="text-center"
+                        style={{
+                          width: [38, 32, 32, 32, 32, 38][index],
+                          color:
+                            index === 0
+                              ? cores.text
+                              : cores.textSecondary,
+                          fontWeight: index === 0 ? "800" : "400",
+                        }}
+                      >
+                        {valor}
+                      </Texto>
+                    )
+                  )}
+                </View>
+              );
+            })
+          ) : (
+            <View className="items-center py-6 px-4">
+              <Texto
+                tamanho={13}
+                style={{ color: cores.textSecondary }}
+              >
+                Não há classificação disponível para esta competição ou partida.
+              </Texto>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -2381,8 +2365,410 @@ export function DetalhesJogos({ route, navigation }) {
           PTS: Pontos • J: Jogos • V: Vitórias • E: Empates • D: Derrotas • SG: Saldo
         </Texto>
       </View>
+      {jogo.fase_de_grupos?.status === "disponivel" &&
+        renderFaseDeGrupos()}
+
+      {jogo.fase_de_liga?.status === "disponivel" &&
+        renderFaseDeLiga()}
+
+      {jogo.mata_mata?.status !== "nao_aplicavel" &&
+        jogo.mata_mata?.status !== "indisponivel" &&
+        renderMataMata}
     </Card>
   );
+
+
+  const renderFaseDeGrupos = () => {
+    const grupos = jogo.fase_de_grupos?.grupos || [];
+
+    if (grupos.length === 0) {
+      return null;
+    }
+
+    return (
+      <View className="mt-5">
+        <TituloSecao
+          titulo="Fase de grupos"
+          subtitulo="Classificação por grupo"
+          icone={TrophyIcon}
+        />
+
+        {grupos.map((grupo) => (
+          <Card key={grupo.grupo} className="mt-3 p-3">
+            <Texto
+              tamanho={15}
+              className="font-extrabold mb-3"
+              style={{ color: cores.text }}
+            >
+              {grupo.grupo}
+            </Texto>
+
+            {grupo.classificacao.map((time) => (
+              <View
+                key={time.id}
+                className="flex-row items-center py-2 border-b"
+                style={{ borderColor: cores.border }}
+              >
+                <Texto
+                  tamanho={12}
+                  className="w-6 font-bold"
+                  style={{ color: cores.textSecondary }}
+                >
+                  {time.posicao}
+                </Texto>
+
+                <View className="flex-1 flex-row items-center">
+                  {time.escudo ? (
+                    <Image
+                      source={{ uri: time.escudo }}
+                      resizeMode="contain"
+                      className="w-6 h-6 mr-2"
+                    />
+                  ) : null}
+
+                  <Texto
+                    tamanho={12}
+                    className="font-semibold"
+                    style={{ color: cores.text }}
+                    numberOfLines={1}
+                  >
+                    {time.time}
+                  </Texto>
+                </View>
+
+                <Texto
+                  tamanho={12}
+                  className="font-extrabold"
+                  style={{ color: cores.primary }}
+                >
+                  {time.pontos} pts
+                </Texto>
+              </View>
+            ))}
+          </Card>
+        ))}
+      </View>
+    );
+  };
+
+  const renderFaseDeLiga = () => {
+    const classificacao = jogo.fase_de_liga?.classificacao || [];
+
+    if (classificacao.length === 0) {
+      return null;
+    }
+
+    return (
+      <Card className="mt-5 p-3">
+        <TituloSecao
+          titulo="Fase de liga"
+          subtitulo="Classificação geral da competição"
+          icone={TrophyIcon}
+        />
+
+        {classificacao.map((time) => (
+          <View
+            key={time.pos}
+            className="flex-row items-center py-3 border-b"
+            style={{ borderColor: cores.border }}
+          >
+            <Texto
+              tamanho={12}
+              className="w-7 font-bold"
+              style={{ color: cores.textSecondary }}
+            >
+              {time.pos}
+            </Texto>
+
+            <Texto
+              tamanho={12}
+              className="flex-1 font-semibold"
+              style={{ color: cores.text }}
+              numberOfLines={1}
+            >
+              {time.equipe}
+            </Texto>
+
+            <Texto
+              tamanho={12}
+              className="font-extrabold"
+              style={{ color: cores.primary }}
+            >
+              {time.pts} pts
+            </Texto>
+          </View>
+        ))}
+      </Card>
+    );
+  };
+
+  const renderMataMata = () => {
+    const mataMata = jogo.mata_mata || {};
+
+    const fases = [
+      ...(mataMata.fases_preliminares || []),
+      ...(mataMata.mata_mata_principal || []),
+    ];
+
+    if (fases.length === 0) {
+      if (mataMata.status === "aguardando_inicio") {
+        return (
+          <Card className="mt-5 p-4">
+            <TituloSecao
+              titulo="Mata-mata"
+              subtitulo="Aguardando o início dos confrontos eliminatórios."
+              icone={TrophyIcon}
+            />
+          </Card>
+        );
+      }
+
+      return null;
+    }
+
+    const renderConfronto = (confronto, index) => {
+      const equipes = confronto.equipes || [];
+      const jogos = confronto.jogos || [];
+      const agregado = confronto.placar_agregado || {};
+
+      const equipeA = equipes[0] || {};
+      const equipeB = equipes[1] || {};
+
+      return (
+        <View
+          key={`${equipeA.id}-${equipeB.id}-${index}`}
+          className="rounded-xl border p-3 mb-3"
+          style={{
+            backgroundColor: cores.surface,
+            borderColor: cores.border,
+          }}
+        >
+          {[equipeA, equipeB].map((equipe) => {
+            const classificado =
+              confronto.classificado?.id === equipe.id;
+
+            return (
+              <View
+                key={equipe.id}
+                className="flex-row items-center py-2"
+              >
+                {equipe.crest ? (
+                  <Image
+                    source={{ uri: equipe.crest }}
+                    resizeMode="contain"
+                    className="w-7 h-7 mr-3"
+                  />
+                ) : null}
+
+                <Texto
+                  tamanho={12}
+                  className="flex-1 font-semibold"
+                  style={{
+                    color: classificado
+                      ? cores.primary
+                      : cores.text,
+                  }}
+                  numberOfLines={1}
+                >
+                  {equipe.name || "Equipe"}
+                </Texto>
+
+                {classificado && (
+                  <Texto
+                    tamanho={10}
+                    className="font-bold mr-2"
+                    style={{ color: cores.primary }}
+                  >
+                    CLASSIFICADO
+                  </Texto>
+                )}
+
+                <Texto
+                  tamanho={13}
+                  className="font-extrabold"
+                  style={{
+                    color: classificado
+                      ? cores.primary
+                      : cores.textSecondary,
+                  }}
+                >
+                  {equipe.id === equipeA.id
+                    ? agregado.equipe_a ?? "-"
+                    : agregado.equipe_b ?? "-"}
+                </Texto>
+              </View>
+            );
+          })}
+
+          {confronto.criterio_classificacao === "PENALTIS" && (
+            <Texto
+              tamanho={10}
+              className="mt-2"
+              style={{ color: cores.textSecondary }}
+            >
+              Decidido nos pênaltis
+            </Texto>
+          )}
+
+          {jogos.map((partida, indice) => (
+            <View
+              key={partida.id || indice}
+              className="border-t mt-2 pt-2"
+              style={{ borderColor: cores.border }}
+            >
+              <Texto
+                tamanho={10}
+                style={{ color: cores.textTertiary }}
+              >
+                {jogos.length > 1
+                  ? `Jogo ${indice + 1}`
+                  : "Confronto"}
+                {" • "}
+                {partida.status === "FINISHED"
+                  ? "Finalizado"
+                  : partida.status === "IN_PLAY"
+                    ? "Em andamento"
+                    : partida.status === "PAUSED"
+                      ? "Intervalo"
+                      : "Aguardando"}
+              </Texto>
+
+              {partida.data && (
+                <Texto
+                  tamanho={11}
+                  className="mt-1"
+                  style={{ color: cores.textSecondary }}
+                >
+                  {new Date(partida.data).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric"
+                  })}
+                </Texto>
+              )}
+
+              {partida.placar?.home != null &&
+                partida.placar?.away != null && (
+                  <Texto
+                    tamanho={12}
+                    className="font-bold mt-1"
+                    style={{ color: cores.text }}
+                  >
+                    {partida.placar.home} x {partida.placar.away}
+                  </Texto>
+                )}
+              {partida.penaltis?.home != null &&
+                partida.penaltis?.away != null && (
+                  <Texto
+                    tamanho={12}
+                    className="mt-1"
+                    style={{ color: cores.textSecondary }}
+                  >
+                    Pênaltis: {partida.penaltis.home} x {partida.penaltis.away}
+                  </Texto>
+                )}
+            </View>
+          ))}
+
+          {confronto.classificado && (
+            <Texto
+              tamanho={10}
+              className="font-bold mt-2"
+              style={{ color: cores.primary }}
+            >
+              Classificado: {confronto.classificado.name}
+            </Texto>
+          )}
+        </View>
+      );
+    };
+
+    return (
+      <View className="mt-5">
+        <TituloSecao
+          titulo="Mata-mata"
+          subtitulo="Confrontos eliminatórios"
+          icone={TrophyIcon}
+        />
+
+        {fases.map((fase) => (
+          <View key={fase.codigo} className="mt-4">
+            <Texto
+              tamanho={14}
+              className="font-extrabold mb-3"
+              style={{ color: cores.text }}
+            >
+              {fase.fase}
+            </Texto>
+
+            {fase.confrontos.map((confronto, index) =>
+              renderConfronto(confronto, index)
+            )}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+
+  // =======================================================
+  // CARREGAMENTO E TRATAMENTO DE ERROS
+  // =======================================================
+
+  if (carregando) {
+    return (
+      <SafeAreaView
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: cores.background }}
+      >
+        <Texto
+          tamanho={16}
+          className={"font-bold"}
+          style={{ color: cores.text }}
+        >
+          Carregando detalhes da partida...
+        </Texto>
+      </SafeAreaView>
+    );
+  }
+
+  if (erro || !jogo) {
+    return (
+      <SafeAreaView
+        className="flex-1 items-center justify-center px-6"
+        style={{ backgroundColor: cores.background }}
+      >
+        <Texto
+          tamanho={17}
+          className="font-bold text-center"
+          style={{ color: cores.text }}
+        >
+          Não foi possível carregar a partida
+        </Texto>
+
+        <Texto
+          tamanho={13}
+          className="text-center mt-2"
+          style={{ color: cores.textSecondary }}
+        >
+          {erro || "Os dados da partida não estão disponíveis."}
+        </Texto>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="rounded-xl px-5 py-3 mt-5"
+          style={{ backgroundColor: cores.primary }}
+        >
+          <Texto
+            tamanho={13}
+            className="font-bold"
+            style={{ color: cores.background }}
+          >
+            Voltar
+          </Texto>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
 
   // =======================================================
   // CONTEÚDO DAS ABAS
