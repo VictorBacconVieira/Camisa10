@@ -29,7 +29,7 @@ import { Texto } from "../components/texto";
 import { useAccessibility } from "../context/AccessibilityContext";
 
 const API_URL =
-  "https://scary-incantation-q7v4974ww77q2jp7-8000.app.github.dev";
+  process.env.EXPO_PUBLIC_API_URL;
 
 const STATUS_AO_VIVO = ["1H", "HT", "2H", "ET", "BT", "P", "LIVE", "INT"];
 const STATUS_FINALIZADO = ["FT", "AET", "PEN", "FT_PEN"];

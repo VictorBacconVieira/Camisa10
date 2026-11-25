@@ -166,7 +166,7 @@ export function Chatbot() {
 
     try {
       const respostaApi = await fetch(
-        "https://scary-incantation-q7v4974ww77q2jp7-8000.app.github.dev/api/chat",
+        `${process.env.EXPO_PUBLIC_API_URL}/api/chat`,
         {
           method: "POST",
           headers: {
