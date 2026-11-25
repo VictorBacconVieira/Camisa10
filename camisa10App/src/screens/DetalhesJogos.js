@@ -21,7 +21,9 @@ import { useTheme } from "../context/ThemeContext";
 import { useAccessibility } from "../context/AccessibilityContext";
 import { Texto } from "../components/texto";
 
-const API_URL = "https://scary-incantation-q7v4974ww77q2jp7-8000.app.github.dev";
+import { obterElencoDesafio, obterPrevisaoEscalacao, enviarPrevisaoEscalacao, } from "../services/authService";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 
 // =========================================================
@@ -110,6 +112,12 @@ function TituloSecao({ titulo, subtitulo, icone: Icon }) {
 
 function LogoTime({ logo, nome, tamanho = 76 }) {
   const { cores } = useTheme();
+
+  console.log("Dados do escudo:", {
+    nome,
+    logo,
+    tamanho,
+  });
 
   return (
     <View
@@ -307,6 +315,50 @@ function IconeEvento({ evento }) {
   return null;
 }
 
+const traduzirMotivoCartao = (descricao) => {
+  if (!descricao) return "";
+
+  const traducoes = {
+    "Foul": "Falta",
+    "Argument": "Reclamação",
+    "Dissent": "Reclamação com a arbitragem",
+    "Handball": "Mão na bola",
+    "Unsportsmanlike conduct": "Conduta antidesportiva",
+    "Simulation": "Simulação",
+    "Diving": "Simulação",
+    "Time wasting": "Perda de tempo",
+    "Excessive celebration": "Comemoração excessiva",
+    "Violent conduct": "Conduta violenta",
+    "Serious foul play": "Jogo brusco grave",
+    "Professional foul": "Falta tática",
+    "Professional foul last man": "Falta tática como último defensor",
+    "Off the ball foul": "Falta sem disputa de bola",
+    "Penalty conceded": "Pênalti cometido",
+    "Second yellow card": "Segundo cartão amarelo",
+    "Delay of game": "Atraso de jogo",
+    "Entering the field without permission": "Entrada em campo sem autorização",
+    "Leaving the field without permission": "Saída de campo sem autorização",
+    "Unsporting behaviour": "Conduta antidesportiva",
+  };
+
+  const chave = descricao.trim();
+
+  return traducoes[chave] || chave;
+};
+
+const traduzirPosicao = (posicao) => {
+  if (!posicao) return "Posição não informada";
+
+  const traducoes = {
+    Goalkeeper: "Goleiro",
+    Defender: "Defensor",
+    Midfielder: "Meio-campista",
+    Attacker: "Atacante",
+  };
+
+  return traducoes[posicao.trim()] || posicao;
+};
+
 // =========================================================
 // COMPONENTE: TEXTO DO EVENTO
 // =========================================================
@@ -367,7 +419,7 @@ function ConteudoEvento({ evento }) {
             className="mt-1"
             style={{ color: cores.textTertiary }}
           >
-            {evento.descricao}
+            {traduzirMotivoCartao(evento.descricao)}
           </Texto>
         ) : null}
       </View>
@@ -519,9 +571,6 @@ function EventosPartida({ jogo }) {
   const { cores } = useTheme();
   const [abaEventos, setAbaEventos] = useState("todos");
 
-  // FUTURO BACKEND / API:
-  // Buscar eventos oficiais, minutos, atletas, assistências,
-  // cartões, substituições e placar por período.
 
   const eventos = jogo.eventos || [];
 
@@ -1047,6 +1096,10 @@ export function DetalhesJogos({ route, navigation }) {
         }
 
         const dados = await resposta.json();
+        console.log("COMPETIÇÃO:", dados.competicao);
+        console.log("CÓDIGO:", dados.codigo_competicao);
+        console.log("FASE DE LIGA:", dados.fase_de_liga);
+        console.log("CLASSIFICAÇÃO:", dados.classificacao);
 
         if (dados.erro) {
           throw new Error(dados.erro);
@@ -1054,6 +1107,7 @@ export function DetalhesJogos({ route, navigation }) {
 
         const dadosTratados = {
           ...dados,
+          id: fixtureId,
 
           estatisticas: {
             posse: [null, null],
@@ -1111,6 +1165,27 @@ export function DetalhesJogos({ route, navigation }) {
         console.log("Escudo visitante:", dados.logo_visitante);
         setJogo(dadosTratados);
 
+        try {
+          const previsao = await obterPrevisaoEscalacao(fixtureId);
+
+          setDesafios({
+            mandante: {
+              selecionados: previsao.mandante?.jogadores || [],
+              confirmado: Boolean(previsao.mandante),
+              formacao: previsao.mandante?.formacao || "4-3-3",
+            },
+            visitante: {
+              selecionados: previsao.visitante?.jogadores || [],
+              confirmado: Boolean(previsao.visitante),
+              formacao: previsao.visitante?.formacao || "4-3-3",
+            },
+          });
+        } catch (erroPrevisao) {
+          if (!erroPrevisao.message?.includes("Você ainda não fez uma previsão")) {
+            console.error("Erro ao recuperar previsão:", erroPrevisao);
+          }
+        }
+
       } catch (error) {
         console.error("Erro ao carregar detalhes:", error);
         setErro(error.message);
@@ -1123,17 +1198,6 @@ export function DetalhesJogos({ route, navigation }) {
   }, [route?.params?.jogo?.id]);
 
   // ACERTE A ESCALAÇÃO
-
-  const [desafios, setDesafios] = useState({
-    mandante: {
-      selecionados: [],
-      confirmado: false,
-    },
-    visitante: {
-      selecionados: [],
-      confirmado: false,
-    },
-  });
 
   const abas = [
     { nome: "Detalhes", icone: ChartBarIcon },
@@ -1178,10 +1242,23 @@ export function DetalhesJogos({ route, navigation }) {
   // FUNÇÕES DO ACERTE A ESCALAÇÃO
   // =======================================================
 
+  const [desafios, setDesafios] = useState({
+    mandante: {
+      selecionados: [],
+      confirmado: false,
+      formacao: "4-3-3",
+    },
+    visitante: {
+      selecionados: [],
+      confirmado: false,
+      formacao: "4-3-3",
+    },
+  });
+
   const desafioAtual = desafios[equipeEscalacao];
 
   const alternarJogadorDesafio = (jogador) => {
-    const idJogador = `${jogador.n}-${jogador.nome}`;
+    const idJogador = jogador.id;
 
     setDesafios((atual) => {
       const desafio = atual[equipeEscalacao];
@@ -1219,45 +1296,76 @@ export function DetalhesJogos({ route, navigation }) {
     });
   };
 
-  const confirmarDesafio = () => {
+  const confirmarDesafio = async () => {
     if (desafioAtual.selecionados.length !== 11) return;
 
-    setDesafios((atual) => ({
-      ...atual,
-      [equipeEscalacao]: {
-        ...atual[equipeEscalacao],
-        confirmado: true,
-      },
-    }));
+    try {
+      setEnviandoPrevisao(true);
+      setErroPrevisao("");
+
+      const dados = {
+        [equipeEscalacao]: {
+          formacao: desafioAtual.formacao,
+          jogadores: desafioAtual.selecionados,
+        },
+      };
+
+      await enviarPrevisaoEscalacao(jogo.id, dados);
+
+      setDesafios((atual) => ({
+        ...atual,
+        [equipeEscalacao]: {
+          ...atual[equipeEscalacao],
+          confirmado: true,
+        },
+      }));
+    } catch (erro) {
+      setErroPrevisao(erro.message || "Não foi possível enviar sua escalação.");
+    } finally {
+      setEnviandoPrevisao(false);
+    }
   };
 
-  const reiniciarDesafio = () => {
-    setDesafios((atual) => ({
-      ...atual,
-      [equipeEscalacao]: {
-        selecionados: [],
-        confirmado: false,
-      },
-    }));
-  };
+  const [elencosDesafio, setElencosDesafio] = useState({
+    mandante: [],
+    visitante: [],
+  });
 
-  const calcularAcertos = () => {
-    const equipe = jogo.escalacoes[equipeEscalacao];
+  const [carregandoElencos, setCarregandoElencos] = useState(false);
+  const [erroElencos, setErroElencos] = useState("");
 
-    const titularesCorretos = equipe.titulares.map(
-      (jogador) => `${jogador.n}-${jogador.nome}`
-    );
+  const [enviandoPrevisao, setEnviandoPrevisao] = useState(false);
+  const [erroPrevisao, setErroPrevisao] = useState("");
 
-    return desafioAtual.selecionados.filter((jogador) =>
-      titularesCorretos.includes(jogador)
-    ).length;
-  };
+  useEffect(() => {
+    const carregarElencos = async () => {
+      if (!jogo?.mandante_id || !jogo?.visitante_id) return;
 
-  const calcularXP = () => {
-    const acertos = calcularAcertos();
+      try {
+        setCarregandoElencos(true);
+        setErroElencos("");
 
-    return acertos * 1000 + (acertos === 11 ? 5000 : 0);
-  };
+        const [elencoMandante, elencoVisitante] = await Promise.all([
+          obterElencoDesafio(jogo.mandante_id),
+          obterElencoDesafio(jogo.visitante_id),
+        ]);
+
+        setElencosDesafio({
+          mandante: elencoMandante.jogadores || [],
+          visitante: elencoVisitante.jogadores || [],
+        });
+      } catch (erro) {
+        console.error("Erro ao carregar elencos:", erro);
+        setErroElencos(erro.message || "Não foi possível carregar os elencos.");
+      } finally {
+        setCarregandoElencos(false);
+      }
+    };
+
+    carregarElencos();
+  }, [jogo?.mandante_id, jogo?.visitante_id]);
+
+
 
   // =======================================================
   // ABA DETALHES
@@ -1472,13 +1580,8 @@ export function DetalhesJogos({ route, navigation }) {
   const renderDesafioEscalacao = (equipe) => {
     const selecionados = desafioAtual.selecionados;
     const confirmado = desafioAtual.confirmado;
-    const acertos = calcularAcertos();
-    const xp = calcularXP();
 
-    const listaJogadores = [
-      ...equipe.titulares,
-      ...equipe.reservas,
-    ];
+    const listaJogadores = elencosDesafio[equipe] || [];
 
     return (
       <Card>
@@ -1487,6 +1590,41 @@ export function DetalhesJogos({ route, navigation }) {
           subtitulo="Você conhece os 11 titulares dessa partida?"
           icone={TrophyIcon}
         />
+        <View className="flex-row gap-2 mb-4">
+          {[
+            { id: "mandante", nome: jogo.mandante },
+            { id: "visitante", nome: jogo.visitante },
+          ].map((time) => (
+            <Pressable
+              key={time.id}
+              onPress={() => setEquipeEscalacao(time.id)}
+              className="flex-1 rounded-xl p-3 items-center border"
+              style={{
+                backgroundColor:
+                  equipeEscalacao === time.id
+                    ? cores.primary
+                    : cores.surfaceSecondary,
+                borderColor:
+                  equipeEscalacao === time.id
+                    ? cores.primary
+                    : cores.border,
+              }}
+            >
+              <Texto
+                tamanho={12}
+                className="font-bold text-center"
+                style={{
+                  color:
+                    equipeEscalacao === time.id
+                      ? cores.background
+                      : cores.text,
+                }}
+              >
+                {time.nome || (time.id === "mandante" ? "Mandante" : "Visitante")}
+              </Texto>
+            </Pressable>
+          ))}
+        </View>
 
         {/* RECOMPENSA */}
 
@@ -1508,7 +1646,7 @@ export function DetalhesJogos({ route, navigation }) {
               className="font-extrabold mt-1"
               style={{ color: "#FFC107" }}
             >
-              16.000 XP
+              130 pontos
             </Texto>
 
             <Texto
@@ -1516,7 +1654,7 @@ export function DetalhesJogos({ route, navigation }) {
               className="mt-1"
               style={{ color: cores.textTertiary }}
             >
-              1.000 XP por acerto + bônus de 5.000 XP
+              10 pontos por acerto + 20 pela formação
             </Texto>
           </View>
 
@@ -1537,6 +1675,60 @@ export function DetalhesJogos({ route, navigation }) {
           Selecione os 11 jogadores que começarão a partida.
           Você pode escolher entre titulares e reservas.
         </Texto>
+
+        {/* FORMAÇÃO */}
+
+        <Texto
+          tamanho={14}
+          className="font-bold mb-2"
+          style={{ color: cores.text }}
+        >
+          Escolha a formação
+        </Texto>
+
+        <View className="flex-row flex-wrap gap-2 mb-4">
+          {["4-3-3", "4-4-2", "4-2-3-1", "3-5-2", "3-4-3", "5-3-2"].map(
+            (formacao) => (
+              <Pressable
+                key={formacao}
+                disabled={confirmado || enviandoPrevisao}
+                onPress={() =>
+                  setDesafios((atual) => ({
+                    ...atual,
+                    [equipe]: {
+                      ...atual[equipe],
+                      formacao,
+                    },
+                  }))
+                }
+                className="rounded-xl px-4 py-3 border"
+                style={{
+                  backgroundColor:
+                    desafioAtual.formacao === formacao
+                      ? cores.primary
+                      : cores.surfaceSecondary,
+                  borderColor:
+                    desafioAtual.formacao === formacao
+                      ? cores.primary
+                      : cores.border,
+                }}
+              >
+                <Texto
+                  tamanho={13}
+                  className="font-bold"
+                  style={{
+                    color:
+                      desafioAtual.formacao === formacao
+                        ? cores.background
+                        : cores.text,
+                  }}
+                >
+                  {formacao}
+                </Texto>
+              </Pressable>
+            )
+          )}
+        </View>
 
         {/* PROGRESSO */}
 
@@ -1573,120 +1765,118 @@ export function DetalhesJogos({ route, navigation }) {
 
         {/* LISTA DE JOGADORES */}
 
-        {listaJogadores.map((jogador) => {
-          const idJogador = `${jogador.n}-${jogador.nome}`;
-          const selecionado = selecionados.includes(idJogador);
+        {carregandoElencos ? (
+          <Texto
+            tamanho={13}
+            className="text-center py-5"
+            style={{ color: cores.textSecondary }}
+          >
+            Carregando jogadores...
+          </Texto>
+        ) : erroElencos ? (
+          <Texto
+            tamanho={13}
+            className="text-center py-5"
+            style={{ color: "#EF4444" }}
+          >
+            {erroElencos}
+          </Texto>
+        ) : listaJogadores.length === 0 ? (
+          <Texto
+            tamanho={13}
+            className="text-center py-5"
+            style={{ color: cores.textSecondary }}
+          >
+            Nenhum jogador disponível para este time.
+          </Texto>
+        ) : (
+          listaJogadores.map((jogador) => {
+            const idJogador = jogador.id;
+            const selecionado = selecionados.includes(idJogador);
 
-          const titular = equipe.titulares.some(
-            (item) => `${item.n}-${item.nome}` === idJogador
-          );
-
-          const acertou = confirmado && titular && selecionado;
-
-          return (
-            <Pressable
-              key={idJogador}
-              onPress={() => alternarJogadorDesafio(jogador)}
-              disabled={confirmado}
-              className="flex-row items-center rounded-xl p-3 mb-2 border"
-              style={{
-                backgroundColor: selecionado
-                  ? `${cores.primary}15`
-                  : cores.surfaceSecondary,
-                borderColor: selecionado
-                  ? cores.primary
-                  : cores.border,
-              }}
-            >
-              <View
-                className="w-9 h-9 rounded-xl items-center justify-center mr-3"
+            return (
+              <Pressable
+                key={idJogador}
+                onPress={() => alternarJogadorDesafio(jogador)}
+                disabled={confirmado || enviandoPrevisao}
+                className="flex-row items-center rounded-xl p-3 mb-2 border"
                 style={{
                   backgroundColor: selecionado
-                    ? cores.primary
-                    : cores.border,
-                }}
-              >
-                <Texto
-                  tamanho={12}
-                  className="font-extrabold"
-                  style={{
-                    color: selecionado
-                      ? cores.background
-                      : cores.textSecondary,
-                  }}
-                >
-                  {jogador.n}
-                </Texto>
-              </View>
-
-              <View className="flex-1">
-                <Texto
-                  tamanho={14}
-                  className="font-bold"
-                  style={{
-                    color: selecionado
-                      ? cores.text
-                      : cores.textSecondary,
-                  }}
-                >
-                  {jogador.nome}
-                </Texto>
-
-                <Texto
-                  tamanho={12}
-                  className="mt-1"
-                  style={{ color: cores.textTertiary }}
-                >
-                  {jogador.pos}
-                </Texto>
-              </View>
-
-              <View
-                className="w-6 h-6 rounded-full border items-center justify-center"
-                style={{
-                  backgroundColor: selecionado
-                    ? cores.primary
-                    : "transparent",
+                    ? `${cores.primary}15`
+                    : cores.surfaceSecondary,
                   borderColor: selecionado
                     ? cores.primary
                     : cores.border,
                 }}
               >
-                {selecionado ? (
+                <View
+                  className="w-9 h-9 rounded-xl items-center justify-center mr-3"
+                  style={{
+                    backgroundColor: selecionado
+                      ? cores.primary
+                      : cores.border,
+                  }}
+                >
                   <Texto
                     tamanho={12}
                     className="font-extrabold"
-                    style={{ color: cores.background }}
+                    style={{
+                      color: selecionado
+                        ? cores.background
+                        : cores.textSecondary,
+                    }}
                   >
-                    ✓
+                    {jogador.numero ?? "-"}
                   </Texto>
-                ) : null}
-              </View>
+                </View>
 
-              {confirmado ? (
-                <View className="ml-2">
-                  {acertou ? (
+                <View className="flex-1">
+                  <Texto
+                    tamanho={14}
+                    className="font-bold"
+                    style={{
+                      color: selecionado
+                        ? cores.text
+                        : cores.textSecondary,
+                    }}
+                  >
+                    {jogador.nome}
+                  </Texto>
+
+                  <Texto
+                    tamanho={12}
+                    className="mt-1"
+                    style={{ color: cores.textTertiary }}
+                  >
+                    {traduzirPosicao(jogador.posicao)}
+                  </Texto>
+                </View>
+
+                <View
+                  className="w-6 h-6 rounded-full border items-center justify-center"
+                  style={{
+                    backgroundColor: selecionado
+                      ? cores.primary
+                      : "transparent",
+                    borderColor: selecionado
+                      ? cores.primary
+                      : cores.border,
+                  }}
+                >
+                  {selecionado ? (
                     <Texto
                       tamanho={12}
                       className="font-extrabold"
-                      style={{ color: "#00C853" }}
+                      style={{ color: cores.background }}
                     >
                       ✓
                     </Texto>
-                  ) : selecionado && !titular ? (
-                    <Texto
-                      tamanho={12}
-                      className="font-extrabold"
-                      style={{ color: "#E53935" }}
-                    >
-                      ✕
-                    </Texto>
                   ) : null}
                 </View>
-              ) : null}
-            </Pressable>
-          );
-        })}
+              </Pressable>
+            );
+          })
+        )}
 
         {/* RESULTADO */}
 
@@ -1708,11 +1898,11 @@ export function DetalhesJogos({ route, navigation }) {
               </View>
 
               <Texto
-                tamanho={20}
+                tamanho={18}
                 className="font-extrabold text-center"
                 style={{ color: "#00C853" }}
               >
-                {acertos}/11 acertos
+                Escalação enviada!
               </Texto>
 
               <Texto
@@ -1720,45 +1910,9 @@ export function DetalhesJogos({ route, navigation }) {
                 className="text-center mt-2"
                 style={{ color: cores.textSecondary }}
               >
-                {acertos === 11
-                  ? "Perfeito! Você acertou todos os titulares!"
-                  : acertos >= 7
-                    ? "Mandou muito bem! Você conhece bastante esse time."
-                    : acertos >= 4
-                      ? "Bom resultado! Você acertou alguns titulares."
-                      : "Desafio concluído! Continue acompanhando o futebol."}
+                Sua previsão foi salva! Após a partida, será possível conferir
+                sua pontuação com base na escalação oficial.
               </Texto>
-
-              <View
-                className="w-full mt-4 pt-4 border-t"
-                style={{ borderColor: cores.border }}
-              >
-                <Texto
-                  tamanho={12}
-                  className="text-center"
-                  style={{ color: cores.textTertiary }}
-                >
-                  EXPERIÊNCIA CONQUISTADA
-                </Texto>
-
-                <Texto
-                  tamanho={24}
-                  className="font-extrabold text-center mt-1"
-                  style={{ color: "#FFC107" }}
-                >
-                  +{xp} XP
-                </Texto>
-
-                {acertos === 11 ? (
-                  <Texto
-                    tamanho={12}
-                    className="font-bold text-center mt-2"
-                    style={{ color: "#00C853" }}
-                  >
-                    Bônus de 5.000 XP por escalação perfeita!
-                  </Texto>
-                ) : null}
-              </View>
             </View>
           </View>
         ) : null}
@@ -1766,35 +1920,48 @@ export function DetalhesJogos({ route, navigation }) {
         {/* BOTÕES */}
 
         {!confirmado ? (
-          <Pressable
-            onPress={confirmarDesafio}
-            disabled={selecionados.length !== 11}
-            className="rounded-xl py-4 items-center mt-3"
-            style={{
-              backgroundColor:
-                selecionados.length === 11
-                  ? cores.primary
-                  : cores.border,
-            }}
-          >
-            <Texto
-              tamanho={14}
-              className="font-extrabold text-center px-2"
+          <>
+            <Pressable
+              onPress={confirmarDesafio}
+              disabled={selecionados.length !== 11 || enviandoPrevisao}
+              className="rounded-xl py-4 items-center mt-3"
               style={{
-                color:
+                backgroundColor:
                   selecionados.length === 11
-                    ? cores.background
-                    : cores.textTertiary,
+                    ? cores.primary
+                    : cores.border,
               }}
             >
-              {selecionados.length === 11
-                ? "Confirmar escalação"
-                : `Selecione mais ${11 - selecionados.length} jogadores`}
-            </Texto>
-          </Pressable>
+              <Texto
+                tamanho={14}
+                className="font-extrabold text-center px-2"
+                style={{
+                  color:
+                    selecionados.length === 11
+                      ? cores.background
+                      : cores.textTertiary,
+                }}
+              >
+                {enviandoPrevisao
+                  ? "Enviando escalação..."
+                  : selecionados.length === 11
+                    ? "Confirmar escalação"
+                    : `Selecione mais ${11 - selecionados.length} jogadores`}
+              </Texto>
+            </Pressable>
+
+            {erroPrevisao ? (
+              <Texto
+                tamanho={12}
+                className="text-center mt-2"
+                style={{ color: cores.error || "#EF4444" }}
+              >
+                {erroPrevisao}
+              </Texto>
+            ) : null}
+          </>
         ) : (
-          <Pressable
-            onPress={reiniciarDesafio}
+          <View
             className="rounded-xl py-4 items-center mt-3 border"
             style={{
               backgroundColor: cores.surfaceSecondary,
@@ -1806,9 +1973,17 @@ export function DetalhesJogos({ route, navigation }) {
               className="font-bold text-center"
               style={{ color: cores.text }}
             >
-              Tentar novamente
+              Escalação já enviada
             </Texto>
-          </Pressable>
+
+            <Texto
+              tamanho={12}
+              className="text-center mt-1"
+              style={{ color: cores.textSecondary }}
+            >
+              Sua previsão está salva e não pode mais ser alterada.
+            </Texto>
+          </View>
         )}
       </Card>
     );
@@ -2228,6 +2403,17 @@ export function DetalhesJogos({ route, navigation }) {
   // ABA CLASSIFICAÇÃO
   // =======================================================
 
+  const coresZonas = {
+    verde: "#22C55E",
+    verde_claro: "#86EFAC",
+    azul: "#3B82F6",
+    azul_claro: "#93C5FD",
+    laranja: "#F97316",
+    amarelo: "#EAB308",
+    vermelho: "#EF4444",
+    vermelho_claro: "#FCA5A5",
+  }
+
   const renderClassificacao = () => (
     <Card className="p-0 overflow-hidden">
       <View className="p-4">
@@ -2282,15 +2468,23 @@ export function DetalhesJogos({ route, navigation }) {
                 time.equipe === jogo.mandante ||
                 time.equipe === jogo.visitante;
 
+              const corZona = time.zona?.cor
+                ? coresZonas[time.zona.cor]
+                : null;
+
               return (
                 <View
                   key={time.pos}
                   className="flex-row items-center px-3 py-3 border-b"
                   style={{
                     borderColor: cores.border,
-                    backgroundColor: destaque
-                      ? cores.surfaceSecondary
-                      : cores.surface,
+                    backgroundColor: corZona
+                      ? `${corZona}18`
+                      : destaque
+                        ? cores.surfaceSecondary
+                        : cores.surface,
+                    borderLeftWidth: corZona ? 4 : 0,
+                    borderLeftColor: corZona || "transparent",
                   }}
                 >
                   <View className="w-[30px] items-center">
@@ -2307,19 +2501,29 @@ export function DetalhesJogos({ route, navigation }) {
                     </Texto>
                   </View>
 
-                  <View className="w-[130px]">
-                    <Texto
-                      tamanho={12}
-                      className="font-semibold"
-                      style={{
-                        color: destaque
-                          ? cores.text
-                          : cores.textSecondary,
-                      }}
-                      numberOfLines={1}
-                    >
-                      {time.equipe}
-                    </Texto>
+                  <View className="w-[130px] flex-row items-center">
+                    {time.escudo ? (
+                      <Image
+                        source={{ uri: time.escudo }}
+                        resizeMode="contain"
+                        className="w-5 h-5 mr-2"
+                      />
+                    ) : null}
+
+                    <View className="flex-1">
+                      <Texto
+                        tamanho={12}
+                        className="font-semibold"
+                        style={{
+                          color: destaque
+                            ? cores.text
+                            : cores.textSecondary,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {time.equipe}
+                      </Texto>
+                    </View>
                   </View>
 
                   {[time.pts, time.j, time.v, time.e, time.d, time.sg].map(
@@ -2364,16 +2568,40 @@ export function DetalhesJogos({ route, navigation }) {
         >
           PTS: Pontos • J: Jogos • V: Vitórias • E: Empates • D: Derrotas • SG: Saldo
         </Texto>
+
+        {jogo.legenda_classificacao?.length > 0 && (
+          <View className="pt-3 flex-row flex-wrap gap-3">
+            {jogo.legenda_classificacao.map((zona, index) => (
+              <View
+                key={`${zona.nome}-${index}`}
+                className="flex-row items-center"
+              >
+                <View
+                  className="w-3 h-3 rounded-sm mr-2"
+                  style={{
+                    backgroundColor:
+                      coresZonas[zona.cor] || cores.textTertiary,
+                  }}
+                />
+
+                <Texto
+                  tamanho={10}
+                  style={{ color: cores.textSecondary }}
+                >
+                  {zona.nome}
+                  {zona.dinamica ? " *" : ""}
+                </Texto>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
       {jogo.fase_de_grupos?.status === "disponivel" &&
         renderFaseDeGrupos()}
 
-      {jogo.fase_de_liga?.status === "disponivel" &&
-        renderFaseDeLiga()}
-
       {jogo.mata_mata?.status !== "nao_aplicavel" &&
         jogo.mata_mata?.status !== "indisponivel" &&
-        renderMataMata}
+        renderMataMata()}
     </Card>
   );
 
@@ -2448,57 +2676,6 @@ export function DetalhesJogos({ route, navigation }) {
           </Card>
         ))}
       </View>
-    );
-  };
-
-  const renderFaseDeLiga = () => {
-    const classificacao = jogo.fase_de_liga?.classificacao || [];
-
-    if (classificacao.length === 0) {
-      return null;
-    }
-
-    return (
-      <Card className="mt-5 p-3">
-        <TituloSecao
-          titulo="Fase de liga"
-          subtitulo="Classificação geral da competição"
-          icone={TrophyIcon}
-        />
-
-        {classificacao.map((time) => (
-          <View
-            key={time.pos}
-            className="flex-row items-center py-3 border-b"
-            style={{ borderColor: cores.border }}
-          >
-            <Texto
-              tamanho={12}
-              className="w-7 font-bold"
-              style={{ color: cores.textSecondary }}
-            >
-              {time.pos}
-            </Texto>
-
-            <Texto
-              tamanho={12}
-              className="flex-1 font-semibold"
-              style={{ color: cores.text }}
-              numberOfLines={1}
-            >
-              {time.equipe}
-            </Texto>
-
-            <Texto
-              tamanho={12}
-              className="font-extrabold"
-              style={{ color: cores.primary }}
-            >
-              {time.pts} pts
-            </Texto>
-          </View>
-        ))}
-      </Card>
     );
   };
 
@@ -2780,7 +2957,12 @@ export function DetalhesJogos({ route, navigation }) {
         return renderDetalhes();
 
       case "Escalação":
-        return renderEscalacao();
+        return (
+          <>
+            {renderEscalacao()}
+            {renderDesafioEscalacao(equipeEscalacao)}
+          </>
+        );
 
       case "Tempo Real":
         return renderTempoReal();

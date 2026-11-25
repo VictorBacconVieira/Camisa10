@@ -75,7 +75,7 @@ export async function fazerLoginGoogle(idToken) {
   const resultado = await requisicaoAPI(
     "/api/auth/google",
     "POST",
-    { id_token: idToken}
+    { id_token: idToken }
   );
 
   if (resultado.access_token) {
@@ -85,7 +85,7 @@ export async function fazerLoginGoogle(idToken) {
     );
   }
 
-  return resultado; 
+  return resultado;
 }
 
 // Recupera o token salvo
@@ -126,14 +126,14 @@ export async function atualizarPerfil(dados) {
     "PUT",
     dados,
     token
-  ); 
+  );
 }
 
 export async function obterTimesDisponiveis() {
   return await requisicaoAPI(
     "/api/times",
     "GET"
-  );  
+  );
 }
 
 export async function atualizarFotoPerfil(uri) {
@@ -179,7 +179,7 @@ export async function atualizarFotoPerfil(uri) {
       resultado.detail || "Não foi possível atualizar a foto de perfil."
     );
   }
-  
+
   return resultado
 }
 
@@ -198,7 +198,7 @@ export async function alterarSenha(senhaAtual, novaSenha) {
       nova_senha: novaSenha,
     },
     token
-  );  
+  );
 }
 
 export async function excluirConta(senha) {
@@ -244,7 +244,7 @@ export async function obterNoticias(categoria = "todas") {
     null,
     token
   );
-  
+
 }
 
 export async function obterEstatisticasGamificacao() {
@@ -307,7 +307,7 @@ export async function enviarRespostasQuiz(codigoQuiz, respostas) {
       respostas,
     },
     token
-  );  
+  );
 }
 
 export async function obterSequenciaQuiz() {
@@ -322,5 +322,58 @@ export async function obterSequenciaQuiz() {
     "GET",
     null,
     token
-  );  
+  );
+}
+
+
+// =========================================================
+// ACERTE A ESCALAÇÃO
+// =========================================================
+
+// Busca o elenco de uma equipe
+export async function obterElencoDesafio(teamId) {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    `/api/desafio-escalacao/elenco/${teamId}`,
+    "GET",
+    null,
+    token
+  );
+}
+
+// Busca a previsão salva para uma partida
+export async function obterPrevisaoEscalacao(fixtureId) {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    `/api/desafio-escalacao/${fixtureId}/previsao`,
+    "GET",
+    null,
+    token
+  );
+}
+
+// Envia ou atualiza a previsão
+export async function enviarPrevisaoEscalacao(fixtureId, dados) {
+  const token = await obterToken();
+
+  if (!token) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+
+  return await requisicaoAPI(
+    `/api/desafio-escalacao/${fixtureId}/previsao`,
+    "POST",
+    dados,
+    token
+  );
 }
